@@ -25,7 +25,7 @@ function ItemBrowser(props) {
   const [showCreate, setShowCreate] = useState(false)
   const [showUpdate, setShowUpdate] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
-  const [itemUpdate, setItemUpdate] = useState({})
+  const [itemSelected, setItemSelected] = useState({})
 
   const sortUpInput = useRef(null);
   const sortDownInput = useRef(null);
@@ -85,11 +85,11 @@ function ItemBrowser(props) {
         setShowCreate(true)
         break
       case "update":
-        setItemUpdate(item)
+        setItemSelected(item)
         setShowUpdate(true)
         break
       case "delete":
-        setItemUpdate(item)
+        setItemSelected(item)
         setShowDelete(true)
         break
       case "none":
@@ -146,6 +146,8 @@ function ItemBrowser(props) {
       <td>{item.name}</td>
       <td>
         <ButtonGroup>
+        <Button onClick={() => showDialog("show", item)} 
+          ref={sortUpInput} variant="outline-success" size="sm">Show</Button>        
         <Button onClick={() => showDialog("update", item)} 
           ref={sortUpInput} variant="outline-primary" size="sm">Edit</Button>        
         <Button onClick={() => showDialog("delete", item)} 
@@ -177,8 +179,8 @@ function ItemBrowser(props) {
       <Navbar.Collapse className="justify-content-end">
       <Button variant="primary" onClick={() => showDialog("create")}>New...</Button>
       <ItemEditor show={showCreate} item={{}} handler={handleActions} action="create" title="Add New" button="Add New"/>
-      <ItemEditor show={showUpdate} item={itemUpdate} handler={handleActions} action="update" title="Update" button="Update"/>
-      <ItemDelete show={showDelete} item={itemUpdate} handler={handleActions} action="delete"/>
+      <ItemEditor show={showUpdate} item={itemSelected} handler={handleActions} action="update" title="Update" button="Update"/>
+      <ItemDelete show={showDelete} item={itemSelected} handler={handleActions} action="delete"/>
       </Navbar.Collapse>
       </Navbar>
 

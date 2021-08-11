@@ -1,4 +1,4 @@
-package lvnbe
+package lvnrt
 
 import (
 	"fmt"
@@ -15,27 +15,29 @@ type Entry interface {
 
 type entryDso struct {
 	port     int
-	core     Core
+	id       Id
+	dispatch Dispatch
 	output   Output
 	listener net.Listener
 	upgrader websocket.FastHTTPUpgrader
 }
 
 type clientDso struct {
-	core     Core
-	sid      string
 	output   Output
+	sid      string
+	dispatch Dispatch
 	conn     *websocket.Conn
 	callback chan *Mutation
 }
 
-func NewEntry(core Core, output Output, endpoint string) Entry {
+func NewEntry(output Output, dispatch Dispatch, id Id, endpoint string) Entry {
 	listener, err := net.Listen("tcp", endpoint)
 	PanicIfError(err)
 	entry := &entryDso{}
-	entry.core = core
+	entry.id = id
 	entry.output = output
 	entry.listener = listener
+	entry.dispatch = dispatch
 	entry.port = listener.Addr().(*net.TCPAddr).Port
 	entry.upgrader = websocket.FastHTTPUpgrader{
 		ReadBufferSize:  1024,
@@ -71,15 +73,14 @@ func (entry *entryDso) handle(ctx *fasthttp.RequestCtx) {
 	err := entry.upgrader.Upgrade(ctx, func(conn *websocket.Conn) {
 		defer TraceRecover(entry.output)
 		defer conn.Close()
-		id := entry.core.NextId()
+		id := entry.id.Next()
 		ipp := conn.RemoteAddr().String()
 		client := &clientDso{}
 		client.conn = conn
-		client.core = entry.core
 		client.output = entry.output
+		client.dispatch = entry.dispatch
 		client.sid = fmt.Sprintf("%v_%v", id, ipp)
 		client.callback = make(chan *Mutation)
-		defer client.wait()
 		client.loop()
 	})
 	if err != nil {
@@ -89,14 +90,44 @@ func (entry *entryDso) handle(ctx *fasthttp.RequestCtx) {
 }
 
 func (client *clientDso) loop() {
-	defer client.core.Remove(client.sid)
-	client.core.Add(client.sid, client.writer)
+	mut, err := client.read()
+	if err != nil {
+		client.output("trace", err)
+		return
+	}
+	_, ok := mut.Args.(*SetupArgs)
+	if !ok {
+		client.output("trace", "setup expected", mut)
+		return
+	}
+	mut.Sid = client.sid
+	defer client.wait()
+	defer client.remove()
+	client.add()
 	go client.reader()
 	for mutation := range client.callback {
 		bytes := encodeMutation(mutation)
 		err := client.conn.WriteMessage(websocket.TextMessage, bytes)
 		PanicIfError(err)
 	}
+}
+
+func (client *clientDso) remove() {
+	mut := &Mutation{}
+	mut.Sid = client.sid
+	mut.Name = "remove"
+	mut.Args = &RemoveArgs{}
+	client.dispatch(mut)
+}
+
+func (client *clientDso) add() {
+	args := &AddArgs{}
+	args.Callback = client.writer
+	mut := &Mutation{}
+	mut.Sid = client.sid
+	mut.Name = "add"
+	mut.Args = args
+	client.dispatch(mut)
 }
 
 func (client *clientDso) wait() {
@@ -108,9 +139,9 @@ func (client *clientDso) writer(mutation *Mutation) {
 	//closing a closed channel panics
 	defer TraceRecover(client.output)
 	switch mutation.Name {
-	case "all", "create", "delete", "update":
+	case "setup", "query":
 		client.callback <- mutation
-	case "remove", "close":
+	case "remove", "dispose":
 		close(client.callback)
 	default:
 		client.output("trace", "unknown mutation", mutation.Name)
@@ -120,7 +151,7 @@ func (client *clientDso) writer(mutation *Mutation) {
 func (client *clientDso) reader() {
 	defer TraceRecover(client.output)
 	defer client.conn.Close()
-	defer client.core.Remove(client.sid)
+	defer client.remove()
 	for {
 		mutation, err := client.read()
 		if err != nil {
@@ -128,7 +159,7 @@ func (client *clientDso) reader() {
 			return
 		}
 		mutation.Sid = client.sid
-		client.core.Apply(mutation)
+		client.dispatch(mutation)
 	}
 }
 

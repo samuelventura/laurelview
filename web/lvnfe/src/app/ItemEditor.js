@@ -10,6 +10,7 @@ function ItemEditor(props) {
   const nameInput = useRef(null);
   const hostInput = useRef(null);
   const portInput = useRef(null);
+  const slaveInput = useRef(null);
 
   useEffect(() => {
     //should not override validation focus
@@ -20,7 +21,8 @@ function ItemEditor(props) {
     const args = JSON.parse(json)
     setName(props.item.name || "")
     setHost(args.host || "")
-    setPort(args.port || "")
+    setPort(args.port || "0")
+    setSlave(args.slave || "1")
 
     //red flicker on disconnection while editing
     setValidated(false);
@@ -29,6 +31,7 @@ function ItemEditor(props) {
   const [name, setName] = useState("")
   const [host, setHost] = useState("")
   const [port, setPort] = useState("")
+  const [slave, setSlave] = useState("")
 
   const [validated, setValidated] = useState(false);
 
@@ -49,13 +52,17 @@ function ItemEditor(props) {
     } else if (!portInput.current.checkValidity()) {
       portInput.current.focus()
       errors++
+    } else if (!slaveInput.current.checkValidity()) {
+      slaveInput.current.focus()
+      errors++
     }
     if (errors > 0) {
       setValidated(true);
       return
     }
     const action = props.action
-    const json = JSON.stringify({host, port})
+    const data = {host, port, slave}
+    const json = JSON.stringify(data)
     const id = props.item.id || 0
     const args = {id, name, json}
     props.handler({action, args})
@@ -73,6 +80,10 @@ function ItemEditor(props) {
   function onPortChange(e) {
     setPort(e.target.value)
   }  
+
+  function onSlaveChange(e) {
+    setSlave(e.target.value)
+  }
 
   return (
     <Modal show={props.show} onHide={handleHide} centered>
@@ -108,6 +119,16 @@ function ItemEditor(props) {
             min="1" max="65535" ref={portInput}/>
           <Form.Control.Feedback type="invalid">
             Port must be an integer between 1 and 65535
+            </Form.Control.Feedback>            
+        </Form.Group>
+
+        <Form.Group className="mb-3" controlId="itemSlave">
+          <Form.Label>Slave</Form.Label>
+          <Form.Control value={slave} onChange={onSlaveChange} 
+            type="number" placeholder="Slave" required 
+            min="1" max="31" ref={slaveInput}/>
+          <Form.Control.Feedback type="invalid">
+            Slave must be an integer between 1 and 31
             </Form.Control.Feedback>            
         </Form.Group>
       </Form>

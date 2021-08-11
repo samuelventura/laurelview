@@ -22,8 +22,8 @@ func decodeMutation(bytes []byte) (mut *Mutation, err error) {
 		args := &AllArgs{}
 		items := argm["items"].([]Any)
 		args.Items = make([]*OneArgs, 0, len(items))
-		for _, fmi := range items {
-			fm := fmi.(Map)
+		for _, imi := range items {
+			fm := imi.(Map)
 			carg := &OneArgs{}
 			carg.Id = parseUint(fm["id"])
 			carg.Name = fm["name"].(string)
@@ -102,12 +102,12 @@ func encodeArgs(name string, argi Any) (argm Map, err error) {
 		args := argi.(*AllArgs)
 		argm = make(Map)
 		items := make([]Map, 0, len(args.Items))
-		for _, file := range args.Items {
-			fm := make(Map)
-			fm["id"] = file.Id
-			fm["name"] = file.Name
-			fm["json"] = file.Json
-			items = append(items, fm)
+		for _, item := range args.Items {
+			im := make(Map)
+			im["id"] = item.Id
+			im["name"] = item.Name
+			im["json"] = item.Json
+			items = append(items, im)
 		}
 		argm["items"] = items
 	case "one":

@@ -33,9 +33,11 @@ entry <- core <- hub <- state <- dao
 
 ## Entity Fields
 
+- Id
+- Name
 - Host
 - Port
-- Slave (Device Address)
+- Slave
 
 ## v0.0.1
 
@@ -44,7 +46,7 @@ entry <- core <- hub <- state <- dao
 - Control Panel is single Laurel with control buttons
 - Control Buttons are Peak, Valley, Tare, Cold Reset
 - Dashboard is view only multi Laurel monitor
-- TCP and Serial Port
+- TCP with slave
 - Windows service 
 - Windows installer https://github.com/mh-cbon/go-msi
 
@@ -52,4 +54,5 @@ entry <- core <- hub <- state <- dao
 
 - https://laurelview.io
 - Link node Laurels to cloud
+- Serial Port
 
