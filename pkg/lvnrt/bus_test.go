@@ -17,7 +17,9 @@ func TestBusCrud(t *testing.T) {
 	echo.ping()
 	rt := NewRuntime(to.push)
 	defer rt.ManagedWait()
-	rt.Setv("bus.toms", int64(4000))
+	rt.Setv("bus.dialtoms", int64(400))
+	rt.Setv("bus.writetoms", int64(400))
+	rt.Setv("bus.readtoms", int64(400))
 	rt.Setv("bus.sleepms", int64(10))
 	rt.Setv("bus.retryms", int64(2000))
 	rt.Setd("hub", to.dispatch("hub"))
@@ -39,6 +41,14 @@ func TestBusCrud(t *testing.T) {
 	for i := 1; i < 32; i++ {
 		bus(&Mutation{Name: "query", Sid: "tid", Args: &QueryArgs{
 			Index:   uint(i),
+			Request: "reset-peak",
+		}})
+		to.matchWait(t, 200, "trace", "echo", fmt.Sprintf(".%vC3.0D.", slaveId(uint(i))))
+		to.matchWait(t, 200, "trace", "echo", fmt.Sprintf(".%vB2.0D.", slaveId(uint(i))))
+	}
+	for i := 1; i < 32; i++ {
+		bus(&Mutation{Name: "query", Sid: "tid", Args: &QueryArgs{
+			Index:   uint(i),
 			Request: "reset-valley",
 		}})
 		to.matchWait(t, 200, "trace", "echo", fmt.Sprintf(".%vC9.0D.", slaveId(uint(i))))
@@ -47,10 +57,26 @@ func TestBusCrud(t *testing.T) {
 	for i := 1; i < 32; i++ {
 		bus(&Mutation{Name: "query", Sid: "tid", Args: &QueryArgs{
 			Index:   uint(i),
-			Request: "reset-peak",
+			Request: "apply-tara",
 		}})
-		to.matchWait(t, 200, "trace", "echo", fmt.Sprintf(".%vC3.0D.", slaveId(uint(i))))
-		to.matchWait(t, 200, "trace", "echo", fmt.Sprintf(".%vB2.0D.", slaveId(uint(i))))
+		to.matchWait(t, 200, "trace", "echo", fmt.Sprintf(".%vCA.0D.", slaveId(uint(i))))
+		to.matchWait(t, 200, "trace", "echo", fmt.Sprintf(".%vB1.0D.", slaveId(uint(i))))
+	}
+	for i := 1; i < 32; i++ {
+		bus(&Mutation{Name: "query", Sid: "tid", Args: &QueryArgs{
+			Index:   uint(i),
+			Request: "reset-tara",
+		}})
+		to.matchWait(t, 200, "trace", "echo", fmt.Sprintf(".%vCB.0D.", slaveId(uint(i))))
+		to.matchWait(t, 200, "trace", "echo", fmt.Sprintf(".%vB1.0D.", slaveId(uint(i))))
+	}
+	for i := 1; i < 32; i++ {
+		bus(&Mutation{Name: "query", Sid: "tid", Args: &QueryArgs{
+			Index:   uint(i),
+			Request: "reset-cold",
+		}})
+		to.matchWait(t, 200, "trace", "echo", fmt.Sprintf(".%vC0.0D.", slaveId(uint(i))))
+		to.matchWait(t, 200, "trace", "echo", fmt.Sprintf(".%vB1.0D.", slaveId(uint(i))))
 	}
 	bus(&Mutation{Name: "dispose", Sid: "tid"})
 }

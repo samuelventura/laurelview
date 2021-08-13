@@ -35,7 +35,9 @@ func NewBus(rt Runtime) Dispatch {
 	}
 	dispatchs["bus"] = func(mut *Mutation) {
 		delete(dispatchs, "bus")
-		toms := rt.Getv("bus.toms").(int64)
+		dialtoms := rt.Getv("bus.dialtoms").(int64)
+		writetoms := rt.Getv("bus.writetoms").(int64)
+		readtoms := rt.Getv("bus.readtoms").(int64)
 		sleepms := rt.Getv("bus.sleepms").(int64)
 		retryms := rt.Getv("bus.retryms").(int64)
 		bus := mut.Args.(*BusArgs)
@@ -178,7 +180,7 @@ func NewBus(rt Runtime) Dispatch {
 						status(query, "error")
 						return false
 					}
-					err = conn.SetWriteDeadline(future(toms))
+					err = conn.SetWriteDeadline(future(writetoms))
 					traceIfError(log.Trace, err)
 					if err != nil {
 						status(query, "error")
@@ -196,7 +198,7 @@ func NewBus(rt Runtime) Dispatch {
 					}
 					res := "ok"
 					if strings.HasPrefix(query.request, "read-") {
-						err = conn.SetReadDeadline(future(toms))
+						err = conn.SetReadDeadline(future(readtoms))
 						traceIfError(log.Trace, err)
 						if err != nil {
 							status(query, "error")
@@ -223,7 +225,7 @@ func NewBus(rt Runtime) Dispatch {
 			managed := rt.Managed(address)
 			defer managed()
 			for {
-				conn, err := net.DialTimeout("tcp", address, millis(toms))
+				conn, err := net.DialTimeout("tcp", address, millis(dialtoms))
 				traceIfError(log.Trace, err)
 				if err != nil {
 					to := future(retryms)
