@@ -116,7 +116,6 @@ func (client *clientDso) remove() {
 	mut := &Mutation{}
 	mut.Sid = client.sid
 	mut.Name = "remove"
-	mut.Args = &RemoveArgs{}
 	client.dispatch(mut)
 }
 

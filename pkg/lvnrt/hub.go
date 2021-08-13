@@ -45,9 +45,9 @@ func (hub *hubDso) applyMutation(mut *Mutation) error {
 	case "add":
 		return hub.applyAdd(mut.Sid, mut.Args.(*AddArgs))
 	case "remove":
-		return hub.applyRemove(mut.Sid, mut.Args.(*RemoveArgs))
+		return hub.applyRemove(mut.Sid)
 	case "dispose":
-		return hub.applyDispose(mut.Sid, mut.Args.(*DisposeArgs))
+		return hub.applyDispose(mut.Sid)
 	}
 	return fmt.Errorf("unknown mutation %v", mut.Name)
 }
@@ -64,7 +64,7 @@ func (hub *hubDso) applyAdd(sid string, args *AddArgs) error {
 	return nil
 }
 
-func (hub *hubDso) applyRemove(sid string, args *RemoveArgs) error {
+func (hub *hubDso) applyRemove(sid string) error {
 	session, ok := hub.sessions[sid]
 	if !ok {
 		return fmt.Errorf("non-existent sid %v", sid)
@@ -74,12 +74,11 @@ func (hub *hubDso) applyRemove(sid string, args *RemoveArgs) error {
 	mut := &Mutation{}
 	mut.Sid = sid
 	mut.Name = "remove"
-	mut.Args = &RemoveArgs{}
 	session.callback(mut)
 	return nil
 }
 
-func (hub *hubDso) applyDispose(sid string, args *DisposeArgs) error {
+func (hub *hubDso) applyDispose(sid string) error {
 	if hub.disposed {
 		return fmt.Errorf("already disposed")
 	}
@@ -89,7 +88,6 @@ func (hub *hubDso) applyDispose(sid string, args *DisposeArgs) error {
 		mut := &Mutation{}
 		mut.Sid = sid
 		mut.Name = "dispose"
-		mut.Args = &DisposeArgs{}
 		session.callback(mut)
 	}
 	return nil

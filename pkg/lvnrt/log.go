@@ -50,9 +50,12 @@ func defaultOutput() Output {
 	loop := func() {
 		for args := range queue {
 			if len(args) == 0 {
-				close(queue)
-				close(done)
-				return
+				//do not close queue
+				select {
+				case <-done:
+				default:
+					close(done)
+				}
 			} else {
 				print(args)
 			}
@@ -61,6 +64,7 @@ func defaultOutput() Output {
 	go loop()
 	return func(args ...Any) {
 		queue <- args
+		//wait for flush
 		if len(args) == 0 {
 			<-done
 		}

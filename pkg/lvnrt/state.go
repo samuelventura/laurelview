@@ -52,10 +52,10 @@ func (state *stateDso) applyMutation(mut *Mutation) error {
 		return state.applyAdd(mut.Sid, mut.Args.(*AddArgs))
 	case "remove":
 		defer state.dispatch(mut)
-		return state.applyRemove(mut.Sid, mut.Args.(*RemoveArgs))
+		return state.applyRemove(mut.Sid)
 	case "dispose":
 		defer state.dispatch(mut)
-		return state.applyDispose(mut.Args.(*DisposeArgs))
+		return state.applyDispose()
 	}
 	return fmt.Errorf("unknown mutation %v", mut.Name)
 }
@@ -73,7 +73,7 @@ func (state *stateDso) applyAdd(sid string, args *AddArgs) error {
 	return nil
 }
 
-func (state *stateDso) applyRemove(sid string, args *RemoveArgs) error {
+func (state *stateDso) applyRemove(sid string) error {
 	session, ok := state.sessions[sid]
 	if !ok {
 		return fmt.Errorf("non-existent sid %v", sid)
@@ -83,7 +83,7 @@ func (state *stateDso) applyRemove(sid string, args *RemoveArgs) error {
 	return nil
 }
 
-func (state *stateDso) applyDispose(args *DisposeArgs) error {
+func (state *stateDso) applyDispose() error {
 	if state.disposed {
 		return fmt.Errorf("already disposed")
 	}

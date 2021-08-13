@@ -2,6 +2,7 @@ package lvnrt
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 )
 
@@ -34,12 +35,6 @@ type Mutation struct {
 
 type AddArgs struct {
 	Callback Dispatch
-}
-
-type RemoveArgs struct {
-}
-
-type DisposeArgs struct {
 }
 
 type SetupArgs struct {
@@ -81,6 +76,6 @@ func NopFactory(Runtime) Dispatch { return NopDispatch }
 
 func (m *Mutation) String() string {
 	buf := new(strings.Builder)
-	fmt.Fprintf(buf, "{%s,%s,%v}", m.Name, m.Sid, toMap(m.Args))
+	fmt.Fprintf(buf, "{%s,%s,%v}", m.Name, m.Sid, reflect.ValueOf(m.Args))
 	return buf.String()
 }

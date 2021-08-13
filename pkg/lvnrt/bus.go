@@ -29,6 +29,7 @@ func NewBus(rt Runtime) Dispatch {
 	log := prefixLogger(rt.Log, "bus")
 	dispatchs := make(map[string]Dispatch)
 	dispatchs["dispose"] = func(mut *Mutation) {
+		defer disposeArgs(mut.Args)
 		defer dispose()
 		clearDispatch(dispatchs)
 	}
@@ -39,10 +40,10 @@ func NewBus(rt Runtime) Dispatch {
 		retryms := rt.Getv("bus.retryms").(int64)
 		bus := mut.Args.(*BusArgs)
 		address := fmt.Sprintf("%v:%v", bus.Host, bus.Port)
+		log := prefixLogger(rt.Log, "bus", address)
 		//size = 1 may be in reconnecting loop
 		queue := make(chan *busQueryDso, 1)
 		exit := make(Channel)
-		done := make(Channel)
 		busy := false
 		status := func(query *busQueryDso, response string) {
 			mut := &Mutation{}
@@ -102,7 +103,6 @@ func NewBus(rt Runtime) Dispatch {
 		}
 		dispose = func() {
 			close(exit)
-			<-done
 		}
 		queries := list.New()
 		slaves := make(map[uint]*list.Element)
@@ -161,14 +161,14 @@ func NewBus(rt Runtime) Dispatch {
 			rt.Post("hub", mut)
 			feed()
 		}
-		read := func(conn net.Conn) {
+		read := func(conn net.Conn) bool {
 			defer conn.Close()
 			cr := byte(13)
 			reader := bufio.NewReader(conn)
 			for {
 				select {
 				case <-exit:
-					return
+					return true
 				case query := <-queue:
 					cmd := command(query.request, query.slave)
 					buf := []byte(cmd + "\r")
@@ -176,13 +176,13 @@ func NewBus(rt Runtime) Dispatch {
 					traceIfError(log.Trace, err)
 					if err != nil {
 						status(query, "error")
-						return
+						return false
 					}
 					err = conn.SetWriteDeadline(future(toms))
 					traceIfError(log.Trace, err)
 					if err != nil {
 						status(query, "error")
-						return
+						return false
 					}
 					n, err := conn.Write(buf)
 					m := len(buf)
@@ -192,7 +192,7 @@ func NewBus(rt Runtime) Dispatch {
 					traceIfError(log.Trace, err)
 					if err != nil {
 						status(query, "error")
-						return
+						return false
 					}
 					res := "ok"
 					if strings.HasPrefix(query.request, "read-") {
@@ -200,7 +200,7 @@ func NewBus(rt Runtime) Dispatch {
 						traceIfError(log.Trace, err)
 						if err != nil {
 							status(query, "error")
-							return
+							return false
 						}
 						res, err = reader.ReadString(cr)
 						traceIfError(log.Trace, err)
@@ -210,7 +210,7 @@ func NewBus(rt Runtime) Dispatch {
 							if nerr, ok := err.(net.Error); ok && nerr.Timeout() {
 								continue
 							} else {
-								return
+								return false
 							}
 						}
 					}
@@ -219,7 +219,9 @@ func NewBus(rt Runtime) Dispatch {
 			}
 		}
 		loop := func() {
-			defer send(done, true)
+			defer traceRecover(log.Warn)
+			managed := rt.Managed(address)
+			defer managed()
 			for {
 				conn, err := net.DialTimeout("tcp", address, millis(toms))
 				traceIfError(log.Trace, err)
@@ -235,7 +237,9 @@ func NewBus(rt Runtime) Dispatch {
 					}
 					continue
 				}
-				read(conn)
+				if read(conn) {
+					return
+				}
 			}
 		}
 		go loop()

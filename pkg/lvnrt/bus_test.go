@@ -12,17 +12,18 @@ func TestBusCrud(t *testing.T) {
 	defer to.close()
 	log := to.logger()
 	echo := newTestEcho(log)
+	log.Info("echo", "port", echo.port())
 	defer echo.close()
+	echo.ping()
 	rt := NewRuntime(to.push)
-	rt.Setv("bus.toms", int64(400))
+	defer rt.ManagedWait()
+	rt.Setv("bus.toms", int64(4000))
 	rt.Setv("bus.sleepms", int64(10))
 	rt.Setv("bus.retryms", int64(2000))
 	rt.Setd("hub", to.dispatch("hub"))
-	bus := asyncDispatch(to.push, NewBus(rt))
-	rt.Setd("self", func(mut *Mutation) {
-		log.Trace("self", mut.Name, mut.Sid, toMap(mut.Args))
-		bus(mut)
-	})
+	brt := rt.Overlay("bus")
+	bus := asyncDispatch(log.Warn, NewBus(brt))
+	brt.Setd("bus", bus)
 	bus(&Mutation{Name: "bus", Sid: "tid", Args: &BusArgs{
 		Host: "127.0.0.1",
 		Port: echo.port(),
@@ -32,11 +33,26 @@ func TestBusCrud(t *testing.T) {
 			Slave: uint(i),
 			Count: 1,
 		}})
-	}
-	//first one repeats (should only happen with echo test server)
-	for i := 1; i < 32; i++ {
+		//first one repeats (should only happen with echo test server)
 		to.matchWait(t, 200, "trace", "echo", fmt.Sprintf(".%vB1.0D.", slaveId(uint(i))))
 	}
+	for i := 1; i < 32; i++ {
+		bus(&Mutation{Name: "query", Sid: "tid", Args: &QueryArgs{
+			Index:   uint(i),
+			Request: "reset-valley",
+		}})
+		to.matchWait(t, 200, "trace", "echo", fmt.Sprintf(".%vC9.0D.", slaveId(uint(i))))
+		to.matchWait(t, 200, "trace", "echo", fmt.Sprintf(".%vB3.0D.", slaveId(uint(i))))
+	}
+	for i := 1; i < 32; i++ {
+		bus(&Mutation{Name: "query", Sid: "tid", Args: &QueryArgs{
+			Index:   uint(i),
+			Request: "reset-peak",
+		}})
+		to.matchWait(t, 200, "trace", "echo", fmt.Sprintf(".%vC3.0D.", slaveId(uint(i))))
+		to.matchWait(t, 200, "trace", "echo", fmt.Sprintf(".%vB2.0D.", slaveId(uint(i))))
+	}
+	bus(&Mutation{Name: "dispose", Sid: "tid"})
 }
 
 func TestSlaveId(t *testing.T) {
