@@ -19,7 +19,7 @@ func NewCoreHub(output Output, dispatch Dispatch) Dispatch {
 func (core *coreDso) apply(mut *Mutation) {
 	core.queue <- func() {
 		defer core.dispose(mut)
-		defer TraceRecover(core.output)
+		defer traceRecover(core.output)
 		core.dispatch(mut)
 	}
 }
@@ -40,6 +40,6 @@ func (core *coreDso) loop() {
 }
 
 func (core *coreDso) run(action Action) {
-	defer TraceRecover(core.output)
+	defer traceRecover(core.output)
 	action()
 }

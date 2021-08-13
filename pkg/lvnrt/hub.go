@@ -33,7 +33,7 @@ func NewHub(output Output) Dispatch {
 
 func (hub *hubDso) apply(mut *Mutation) {
 	err := hub.applyMutation(mut)
-	TraceIfError(hub.output, err)
+	traceIfError(hub.output, err)
 }
 
 func (hub *hubDso) applyMutation(mut *Mutation) error {

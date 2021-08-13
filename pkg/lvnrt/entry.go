@@ -32,7 +32,7 @@ type clientDso struct {
 
 func NewEntry(output Output, dispatch Dispatch, id Id, endpoint string) Entry {
 	listener, err := net.Listen("tcp", endpoint)
-	PanicIfError(err)
+	panicIfError(err)
 	entry := &entryDso{}
 	entry.id = id
 	entry.output = output
@@ -55,11 +55,11 @@ func (entry *entryDso) Port() int {
 func (entry *entryDso) Close() {
 	//hub may have multiple entries
 	err := entry.listener.Close()
-	PanicIfError(err)
+	panicIfError(err)
 }
 
 func (entry *entryDso) listen() {
-	defer TraceRecover(entry.output)
+	defer traceRecover(entry.output)
 	defer entry.listener.Close()
 	//ignore accept close error on exit
 	fasthttp.Serve(entry.listener, entry.handle)
@@ -71,7 +71,7 @@ func (entry *entryDso) origin(ctx *fasthttp.RequestCtx) bool {
 
 func (entry *entryDso) handle(ctx *fasthttp.RequestCtx) {
 	err := entry.upgrader.Upgrade(ctx, func(conn *websocket.Conn) {
-		defer TraceRecover(entry.output)
+		defer traceRecover(entry.output)
 		defer conn.Close()
 		id := entry.id.Next()
 		ipp := conn.RemoteAddr().String()
@@ -108,7 +108,7 @@ func (client *clientDso) loop() {
 	for mutation := range client.callback {
 		bytes := encodeMutation(mutation)
 		err := client.conn.WriteMessage(websocket.TextMessage, bytes)
-		PanicIfError(err)
+		panicIfError(err)
 	}
 }
 
@@ -137,7 +137,7 @@ func (client *clientDso) wait() {
 
 func (client *clientDso) writer(mutation *Mutation) {
 	//closing a closed channel panics
-	defer TraceRecover(client.output)
+	defer traceRecover(client.output)
 	switch mutation.Name {
 	case "setup", "query":
 		client.callback <- mutation
@@ -149,7 +149,7 @@ func (client *clientDso) writer(mutation *Mutation) {
 }
 
 func (client *clientDso) reader() {
-	defer TraceRecover(client.output)
+	defer traceRecover(client.output)
 	defer client.conn.Close()
 	defer client.remove()
 	for {

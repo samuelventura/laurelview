@@ -15,34 +15,35 @@ type busQueryDso struct {
 	request string
 }
 
+func slaveId(slave uint) string {
+	ids := "123456789ABCDEFGHIJKLMNOPQRSTUV"
+	if slave > 0 && slave < 32 {
+		return ids[slave-1 : slave]
+	}
+	panicLN("invalid slave", slave)
+	return "invalid"
+}
+
 func NewBus(rt Runtime) Dispatch {
 	dispose := NopAction
-	output := PrefixOutput(rt.Output, "bus")
+	log := prefixLogger(rt.Log, "bus")
 	dispatchs := make(map[string]Dispatch)
 	dispatchs["dispose"] = func(mut *Mutation) {
 		defer dispose()
-		ClearDispatch(dispatchs)
+		clearDispatch(dispatchs)
 	}
 	dispatchs["bus"] = func(mut *Mutation) {
 		delete(dispatchs, "bus")
 		toms := rt.Getv("bus.toms").(int64)
 		sleepms := rt.Getv("bus.sleepms").(int64)
 		retryms := rt.Getv("bus.retryms").(int64)
-		bus := mut.Args.(BusArgs)
+		bus := mut.Args.(*BusArgs)
 		address := fmt.Sprintf("%v:%v", bus.Host, bus.Port)
 		//size = 1 may be in reconnecting loop
 		queue := make(chan *busQueryDso, 1)
 		exit := make(Channel)
 		done := make(Channel)
 		busy := false
-		slaveid := func(slave uint) string {
-			ids := "123456789ABCDEFGHIJKLMNOPQRSTUV"
-			if slave > 0 && slave < 32 {
-				return ids[slave-1 : slave]
-			}
-			PanicLN("invalid slave", slave)
-			return "invalid"
-		}
 		status := func(query *busQueryDso, response string) {
 			mut := &Mutation{}
 			mut.Sid = query.sid
@@ -73,11 +74,11 @@ func NewBus(rt Runtime) Dispatch {
 			case "reset-cold":
 				return "read-value"
 			}
-			PanicLN("invalid request", request)
+			panicLN("invalid request", request)
 			return "invalid"
 		}
 		command := func(request string, slave uint) string {
-			id := slaveid(slave)
+			id := slaveId(slave)
 			switch request {
 			case "read-value":
 				return fmt.Sprintf("*%vB1", id)
@@ -96,7 +97,7 @@ func NewBus(rt Runtime) Dispatch {
 			case "reset-cold":
 				return fmt.Sprintf("*%vC0", id)
 			}
-			PanicLN("invalid request", request)
+			panicLN("invalid request", request)
 			return "invalid"
 		}
 		dispose = func() {
@@ -119,8 +120,8 @@ func NewBus(rt Runtime) Dispatch {
 			ls := len(slaves)
 			lq := queries.Len()
 			element := queries.Front()
-			Assert(ls == lq, "slaves != queries", ls, lq, element)
-			Assert(element != nil || ls == 0, "ls > 0 and nil element", ls, element)
+			assertTrue(ls == lq, "slaves != queries", ls, lq, element)
+			assertTrue(element != nil || ls == 0, "ls > 0 and nil element", ls, element)
 			if element != nil {
 				query := element.Value.(*busQueryDso)
 				queries.Remove(element)
@@ -134,14 +135,14 @@ func NewBus(rt Runtime) Dispatch {
 			args := mut.Args.(*SlaveArgs)
 			element, ok := slaves[args.Slave]
 			if args.Count == 0 {
-				Assert(ok, "slave not found", args.Slave)
+				assertTrue(ok, "slave not found", args.Slave)
 				delete(slaves, args.Slave)
 				queries.Remove(element)
 			} else {
 				//0->1 and 2->1 are valid transitions
 				if !ok {
-					Assert(args.Count == 1, "slave should be 1", args.Slave, args.Count)
-					push(mut.Sid, args.Slave, "read-one")
+					assertTrue(args.Count == 1, "slave should be 1", args.Slave, args.Count)
+					push(mut.Sid, args.Slave, "read-value")
 				}
 			}
 			feed()
@@ -149,13 +150,13 @@ func NewBus(rt Runtime) Dispatch {
 		dispatchs["query"] = func(mut *Mutation) {
 			args := mut.Args.(*QueryArgs)
 			element, ok := slaves[args.Index]
-			Assert(ok, "slave not found", args.Index)
+			assertTrue(ok, "slave not found", args.Index)
 			queries.Remove(element)
 			push(mut.Sid, args.Index, args.Request)
 			feed()
 		}
 		dispatchs["status"] = func(mut *Mutation) {
-			Assert(busy, "not busy")
+			assertTrue(busy, "not busy")
 			busy = false
 			rt.Post("hub", mut)
 			feed()
@@ -172,13 +173,13 @@ func NewBus(rt Runtime) Dispatch {
 					cmd := command(query.request, query.slave)
 					buf := []byte(cmd + "\r")
 					_, err := reader.Discard(reader.Buffered())
-					TraceIfError(output, err)
+					traceIfError(log.Trace, err)
 					if err != nil {
 						status(query, "error")
 						return
 					}
-					err = conn.SetWriteDeadline(Future(toms))
-					TraceIfError(output, err)
+					err = conn.SetWriteDeadline(future(toms))
+					traceIfError(log.Trace, err)
 					if err != nil {
 						status(query, "error")
 						return
@@ -188,21 +189,21 @@ func NewBus(rt Runtime) Dispatch {
 					if err == nil && n != m {
 						err = fmt.Errorf("wrote %v of %v", n, m)
 					}
-					TraceIfError(output, err)
+					traceIfError(log.Trace, err)
 					if err != nil {
 						status(query, "error")
 						return
 					}
 					res := "ok"
 					if strings.HasPrefix(query.request, "read-") {
-						err = conn.SetReadDeadline(Future(toms))
-						TraceIfError(output, err)
+						err = conn.SetReadDeadline(future(toms))
+						traceIfError(log.Trace, err)
 						if err != nil {
 							status(query, "error")
 							return
 						}
 						res, err = reader.ReadString(cr)
-						TraceIfError(output, err)
+						traceIfError(log.Trace, err)
 						if err != nil {
 							status(query, "error")
 							//do not close, may timeout after cold reset
@@ -218,18 +219,18 @@ func NewBus(rt Runtime) Dispatch {
 			}
 		}
 		loop := func() {
-			defer Send(done, true)
+			defer send(done, true)
 			for {
-				conn, err := net.DialTimeout("tcp", address, Millis(toms))
-				TraceIfError(output, err)
+				conn, err := net.DialTimeout("tcp", address, millis(toms))
+				traceIfError(log.Trace, err)
 				if err != nil {
-					to := Future(retryms)
+					to := future(retryms)
 					for time.Now().Before(to) {
 						select {
 						case <-exit:
 							return
 						default:
-							time.Sleep(Millis(sleepms))
+							time.Sleep(millis(sleepms))
 						}
 					}
 					continue
@@ -239,5 +240,5 @@ func NewBus(rt Runtime) Dispatch {
 		}
 		go loop()
 	}
-	return MapDispatch(output, dispatchs)
+	return mapDispatch(log, dispatchs)
 }

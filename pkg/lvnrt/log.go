@@ -3,6 +3,7 @@ package lvnrt
 import (
 	"container/list"
 	"fmt"
+	"io"
 	"os"
 	"regexp"
 	"strings"
@@ -11,58 +12,96 @@ import (
 	"time"
 )
 
-func DefaultOutput() Output {
-	var queue = make(chan Action, 128)
-	go func() {
-		for action := range queue {
-			action()
+func flattenArgs() func(cb func(Any), args ...Any) {
+	flatten := func(func(Any), ...Any) {}
+	flatten = func(cb func(Any), args ...Any) {
+		for _, arg := range args {
+			switch v := arg.(type) {
+			case []Any:
+				flatten(cb, v...)
+			default:
+				cb(arg)
+			}
 		}
-	}()
+	}
+	return flatten
+}
+
+func flatPrintln(writer io.Writer) func(args ...Any) {
+	flatten := flattenArgs()
 	return func(args ...Any) {
-		if len(args) > 0 {
-			queue <- func() {
-				fmt.Fprintln(os.Stdout, args...)
+		count := 0
+		cb := func(arg Any) {
+			if count > 0 {
+				fmt.Fprint(writer, " ")
 			}
-		} else {
-			done := make(Channel)
-			queue <- func() {
-				defer close(done)
+			fmt.Fprint(writer, arg)
+			count++
+		}
+		flatten(cb, args)
+		fmt.Fprintln(writer)
+	}
+}
+
+func defaultOutput() Output {
+	done := make(Channel)
+	queue := make(chan []Any, 128)
+	print := flatPrintln(os.Stdout)
+	loop := func() {
+		for args := range queue {
+			if len(args) == 0 {
 				close(queue)
+				close(done)
+				return
+			} else {
+				print(args)
 			}
+		}
+	}
+	go loop()
+	return func(args ...Any) {
+		queue <- args
+		if len(args) == 0 {
 			<-done
 		}
 	}
 }
 
-func DefaultLog() Log {
-	LogLevelFromEnv()
-	output := DefaultOutput()
+func defaultLog() Log {
+	logLevelFromEnv()
+	output := defaultOutput()
 	log := func(level string, args ...Any) {
 		if level != "" {
-			if IsLogPrintable(level) {
+			if isLogPrintable(level) {
 				now := time.Now()
 				when := now.Format("20060102T150405.000")
-				output(level, when, args)
+				output(when, level, args)
+			}
+			if level == "panic" {
+				buf := new(strings.Builder)
+				print := flatPrintln(buf)
+				print(args)
+				panic(buf.String())
 			}
 		} else {
 			output()
 		}
 	}
-	log("info", "log-level", LogLevel)
+	log("info", "log-level", logLevel)
 	return log
 }
 
-var LogLevel = "info" //trace, debug, info
+var logLevel = "info" //trace, debug, info
 
-func LogLevelFromEnv() {
-	logLevel := os.Getenv("LV_LOGLEVEL")
-	if len(strings.TrimSpace(logLevel)) > 0 {
-		LogLevel = logLevel
+func logLevelFromEnv() {
+	logLevelEnv := os.Getenv("LV_LOGLEVEL")
+	if len(strings.TrimSpace(logLevelEnv)) > 0 {
+		logLevel = logLevelEnv
 	}
 }
 
-func IsLogPrintable(level string) bool {
-	switch LogLevel {
+func isLogPrintable(level string) bool {
+	switch logLevel {
 	case "trace":
 		return true
 	case "debug":
@@ -82,42 +121,97 @@ func IsLogPrintable(level string) bool {
 	}
 }
 
-type testOutputState struct {
-	list  *list.List
-	mutex sync.Mutex
-	log   Log
+type prefixLog struct {
+	prefix []Any
+	log    Log
+}
+
+func prefixLogger(log Log, prefix ...Any) Logger {
+	l := &prefixLog{}
+	l.log = log
+	l.prefix = prefix
+	return l
+}
+
+func (l *prefixLog) Log(level string, args ...Any) {
+	l.log(level, l.prefix, args)
+}
+
+func (l *prefixLog) Trace(args ...Any) {
+	l.log("trace", l.prefix, args)
+}
+
+func (l *prefixLog) Debug(args ...Any) {
+	l.log("debug", l.prefix, args)
+}
+
+func (l *prefixLog) Info(args ...Any) {
+	l.log("info", l.prefix, args)
+}
+
+func (l *prefixLog) Warn(args ...Any) {
+	l.log("warn", l.prefix, args)
+}
+
+func (l *prefixLog) Error(args ...Any) {
+	l.log("error", l.prefix, args)
+}
+
+func (l *prefixLog) Panic(args ...Any) {
+	l.log("panic", l.prefix, args)
+}
+
+type testOutputDso struct {
+	list    *list.List
+	mutex   sync.Mutex
+	flatten func(cb func(Any), args ...Any)
+	log     Log
 }
 
 type testOutput interface {
 	close()
-	out(string, ...Any)
+	logger(prefix ...Any) Logger
+	push(level string, args ...Any)
 	assertEmpty(t *testing.T)
+	dispatch(name string) Dispatch
 	matchNext(t *testing.T, args ...string) []string
 	matchWait(t *testing.T, toms uint64, args ...string) []string
 }
 
 func newTestOutput() testOutput {
-	to := &testOutputState{}
-	to.log = DefaultLog()
+	to := &testOutputDso{}
+	to.flatten = flattenArgs()
+	to.log = defaultLog()
 	to.list = list.New()
 	return to
 }
 
-func (to *testOutputState) close() {
+func (to *testOutputDso) close() {
 	to.log("") //wait flush
 }
 
-func (to *testOutputState) out(level string, args ...Any) {
-	to.log(level, args...)
-	array := make([]string, 0, 1+len(args))
-	array = append(array, level)
-	for _, arg := range args {
-		array = append(array, fmt.Sprint(arg))
+func (to *testOutputDso) dispatch(name string) Dispatch {
+	return func(mut *Mutation) {
+		to.push("trace", name, mut)
 	}
-	to.push(array)
 }
 
-func (to *testOutputState) compile(args []string) []*regexp.Regexp {
+func (to *testOutputDso) logger(prefix ...Any) Logger {
+	return prefixLogger(to.push, prefix...)
+}
+
+func (to *testOutputDso) push(level string, args ...Any) {
+	to.log(level, args...)
+	var array []string
+	array = append(array, level)
+	cb := func(arg Any) {
+		array = append(array, fmt.Sprint(arg))
+	}
+	to.flatten(cb, args)
+	to.pushArray(array)
+}
+
+func (to *testOutputDso) compile(args []string) []*regexp.Regexp {
 	matchers := make([]*regexp.Regexp, 0, len(args))
 	for _, arg := range args {
 		matchers = append(matchers, regexp.MustCompile(arg))
@@ -125,7 +219,7 @@ func (to *testOutputState) compile(args []string) []*regexp.Regexp {
 	return matchers
 }
 
-func (to *testOutputState) matches(array []string, matchers []*regexp.Regexp) bool {
+func (to *testOutputDso) matches(array []string, matchers []*regexp.Regexp) bool {
 	if len(array) >= len(matchers) {
 		count := len(matchers)
 		for i, matcher := range matchers {
@@ -141,47 +235,47 @@ func (to *testOutputState) matches(array []string, matchers []*regexp.Regexp) bo
 	return false
 }
 
-func (to *testOutputState) assertEmpty(t *testing.T) {
-	array := to.pop()
+func (to *testOutputDso) assertEmpty(t *testing.T) {
+	array := to.popArray()
 	for array != nil {
-		t.Fatalf("not empty %v", array)
+		t.Errorf("not empty %v", array)
 	}
 }
 
-func (to *testOutputState) matchNext(t *testing.T, args ...string) []string {
-	array := to.pop()
+func (to *testOutputDso) matchNext(t *testing.T, args ...string) []string {
+	array := to.popArray()
 	for array == nil {
-		t.Fatalf("empty pop")
+		t.Errorf("empty pop")
 		return nil
 	}
 	matchers := to.compile(args)
 	if !to.matches(args, matchers) {
-		t.Fatalf("%v is no match for %v", array, args)
+		t.Errorf("%v is no match for %v", array, args)
 		return nil
 	}
 	return array
 }
 
-func (to *testOutputState) matchWait(t *testing.T, toms uint64, args ...string) []string {
+func (to *testOutputDso) matchWait(t *testing.T, toms uint64, args ...string) []string {
 	matchers := to.compile(args)
 	array := to.popWait(toms)
 	for array != nil {
-		if to.matches(args, matchers) {
+		if to.matches(array, matchers) {
 			return array
 		}
 		array = to.popWait(toms)
 	}
-	t.Fatalf("No match for %v", args)
+	t.Errorf("no match for %v", args)
 	return nil
 }
 
-func (to *testOutputState) push(array []string) {
+func (to *testOutputDso) pushArray(array []string) {
 	defer to.mutex.Unlock()
 	to.mutex.Lock()
 	to.list.PushBack(array)
 }
 
-func (to *testOutputState) pop() []string {
+func (to *testOutputDso) popArray() []string {
 	defer to.mutex.Unlock()
 	to.mutex.Lock()
 	e := to.list.Front()
@@ -192,17 +286,17 @@ func (to *testOutputState) pop() []string {
 	return nil
 }
 
-func (to *testOutputState) popWait(toms uint64) []string {
+func (to *testOutputDso) popWait(toms uint64) []string {
 	onems := time.Duration(1) * time.Millisecond
 	tod := time.Duration(toms) * time.Millisecond
 	dl := time.Now().Add(tod)
-	array := to.pop()
+	array := to.popArray()
 	for array == nil {
 		time.Sleep(onems)
 		if time.Now().After(dl) {
 			return nil
 		}
-		array = to.pop()
+		array = to.popArray()
 	}
 	return array
 }

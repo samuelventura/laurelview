@@ -37,7 +37,7 @@ func NewState(output Output, dispatch Dispatch, factory Factory) Dispatch {
 
 func (state *stateDso) apply(mut *Mutation) {
 	err := state.applyMutation(mut)
-	TraceIfError(state.output, err)
+	traceIfError(state.output, err)
 }
 
 func (state *stateDso) applyMutation(mut *Mutation) error {

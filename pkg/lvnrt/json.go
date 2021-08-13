@@ -58,7 +58,7 @@ func parseUint(id Any) uint {
 		return uint(v)
 	case string:
 		id, err := strconv.ParseUint(v, 10, bits.UintSize)
-		PanicIfError(err)
+		panicIfError(err)
 		return uint(id)
 	default:
 		return 0
@@ -70,10 +70,10 @@ func encodeMutation(mutation *Mutation) []byte {
 	mm["name"] = mutation.Name
 	mm["sid"] = mutation.Sid
 	args, err := encodeArgs(mutation.Name, mutation.Args)
-	PanicIfError(err)
+	panicIfError(err)
 	mm["args"] = args
 	bytes, err := json.Marshal(mm)
-	PanicIfError(err)
+	panicIfError(err)
 	return bytes
 }
 

@@ -1,5 +1,10 @@
 package lvnrt
 
+import (
+	"fmt"
+	"strings"
+)
+
 type Log = func(string, ...Any)
 type Output = func(...Any)
 type Map = map[string]Any
@@ -10,6 +15,16 @@ type Action = func()
 
 type Dispatch = func(*Mutation)
 type Factory = func(Runtime) Dispatch
+
+type Logger interface {
+	Log(string, ...Any)
+	Trace(...Any)
+	Debug(...Any)
+	Info(...Any)
+	Warn(...Any)
+	Error(...Any)
+	Panic(...Any)
+}
 
 type Mutation struct {
 	Sid  string
@@ -60,5 +75,12 @@ type SlaveArgs struct {
 }
 
 func NopAction()                  {}
+func NopOutput(...Any)            {}
 func NopDispatch(*Mutation)       {}
 func NopFactory(Runtime) Dispatch { return NopDispatch }
+
+func (m *Mutation) String() string {
+	buf := new(strings.Builder)
+	fmt.Fprintf(buf, "{%s,%s,%v}", m.Name, m.Sid, toMap(m.Args))
+	return buf.String()
+}

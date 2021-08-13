@@ -9,7 +9,7 @@ import (
 type idState struct {
 	count  uint64
 	prefix string
-	mutex  sync.Mutex
+	mutex  *sync.Mutex
 }
 
 type Id interface {
@@ -18,6 +18,7 @@ type Id interface {
 
 func NewId(prefix string) Id {
 	s := &idState{}
+	s.mutex = new(sync.Mutex)
 	s.prefix = prefix
 	return s
 }

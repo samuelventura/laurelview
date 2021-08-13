@@ -134,19 +134,19 @@ func (to *testOutputState) matches(array []string, matchers []*regexp.Regexp) bo
 func (to *testOutputState) assertEmpty(t *testing.T) {
 	array := to.pop()
 	for array != nil {
-		t.Fatalf("not empty %v", array)
+		t.Errorf("not empty %v", array)
 	}
 }
 
 func (to *testOutputState) matchNext(t *testing.T, args ...string) []string {
 	array := to.pop()
 	for array == nil {
-		t.Fatalf("empty pop")
+		t.Errorf("empty pop")
 		return nil
 	}
 	matchers := to.compile(args)
 	if !to.matches(args, matchers) {
-		t.Fatalf("%v is no match for %v", array, args)
+		t.Errorf("%v is no match for %v", array, args)
 		return nil
 	}
 	return array
@@ -156,12 +156,13 @@ func (to *testOutputState) matchWait(t *testing.T, toms uint64, args ...string) 
 	matchers := to.compile(args)
 	array := to.popWait(toms)
 	for array != nil {
+		to.output("matchWait", array)
 		if to.matches(args, matchers) {
 			return array
 		}
 		array = to.popWait(toms)
 	}
-	t.Fatalf("No match for %v", args)
+	t.Errorf("No match for %v", args)
 	return nil
 }
 
