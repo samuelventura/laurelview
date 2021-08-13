@@ -12,22 +12,16 @@ import (
 )
 
 func DefaultOutput() Output {
-	LogLevelFromEnv()
 	var queue = make(chan Action, 128)
 	go func() {
 		for action := range queue {
 			action()
 		}
 	}()
-	output := func(level string, args ...Any) {
-		if level != "" {
-			if IsLogPrintable(level) {
-				when := time.Now().Format("20060102T150405.000")
-				queue <- func() {
-					//log pkg won't flush on exit
-					fmt.Fprint(os.Stdout, when, " ", level, " ")
-					fmt.Fprintln(os.Stdout, args...)
-				}
+	return func(args ...Any) {
+		if len(args) > 0 {
+			queue <- func() {
+				fmt.Fprintln(os.Stdout, args...)
 			}
 		} else {
 			done := make(Channel)
@@ -38,8 +32,24 @@ func DefaultOutput() Output {
 			<-done
 		}
 	}
-	output("info", "log-level", LogLevel)
-	return output
+}
+
+func DefaultLog() Log {
+	LogLevelFromEnv()
+	output := DefaultOutput()
+	log := func(level string, args ...Any) {
+		if level != "" {
+			if IsLogPrintable(level) {
+				now := time.Now()
+				when := now.Format("20060102T150405.000")
+				output(level, when, args)
+			}
+		} else {
+			output()
+		}
+	}
+	log("info", "log-level", LogLevel)
+	return log
 }
 
 var LogLevel = "info" //trace, debug, info
@@ -73,9 +83,9 @@ func IsLogPrintable(level string) bool {
 }
 
 type testOutputState struct {
-	list   *list.List
-	mutex  sync.Mutex
-	output Output
+	list  *list.List
+	mutex sync.Mutex
+	log   Log
 }
 
 type testOutput interface {
@@ -88,17 +98,17 @@ type testOutput interface {
 
 func newTestOutput() testOutput {
 	to := &testOutputState{}
-	to.output = DefaultOutput()
+	to.log = DefaultLog()
 	to.list = list.New()
 	return to
 }
 
 func (to *testOutputState) close() {
-	to.output("") //wait flush
+	to.log("") //wait flush
 }
 
 func (to *testOutputState) out(level string, args ...Any) {
-	to.output(level, args...)
+	to.log(level, args...)
 	array := make([]string, 0, 1+len(args))
 	array = append(array, level)
 	for _, arg := range args {

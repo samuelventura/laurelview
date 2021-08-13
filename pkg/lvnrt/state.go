@@ -112,15 +112,14 @@ func (state *stateDso) applySetup(sid string, args *SetupArgs) error {
 		channel, ok := state.channels[address]
 		if !ok {
 			channel = &stateChannelDso{}
-			channel.dispatch = state.factory()
+			channel.dispatch = state.factory(nil)
 			channel.slaves = make(map[uint]Count)
-			args := &ChannelArgs{}
+			args := &BusArgs{}
 			args.Host = item.Host
 			args.Port = item.Port
-			args.Dispatch = state.dispatch
 			mut := &Mutation{}
 			mut.Sid = sid
-			mut.Name = "channel"
+			mut.Name = "bus"
 			mut.Args = args
 			channel.dispatch(mut)
 			state.channels[address] = channel

@@ -1,6 +1,7 @@
 package lvnrt
 
-type Output = func(string, ...Any)
+type Log = func(string, ...Any)
+type Output = func(...Any)
 type Map = map[string]Any
 type Queue = chan Action
 type Channel = chan Any
@@ -8,10 +9,7 @@ type Any = interface{}
 type Action = func()
 
 type Dispatch = func(*Mutation)
-type Factory = func() Dispatch
-
-var NopAction = func() {}
-var NopDispatch = func(*Mutation) {}
+type Factory = func(Runtime) Dispatch
 
 type Mutation struct {
 	Sid  string
@@ -51,13 +49,16 @@ type StatusArgs struct {
 	Response string
 }
 
-type ChannelArgs struct {
-	Dispatch Dispatch
-	Host     string
-	Port     uint
+type BusArgs struct {
+	Host string
+	Port uint
 }
 
 type SlaveArgs struct {
 	Slave uint
 	Count uint
 }
+
+func NopAction()                  {}
+func NopDispatch(*Mutation)       {}
+func NopFactory(Runtime) Dispatch { return NopDispatch }
