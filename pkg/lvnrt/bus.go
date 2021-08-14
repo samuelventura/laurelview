@@ -33,7 +33,7 @@ func NewBus(rt Runtime) Dispatch {
 		defer dispose()
 		clearDispatch(dispatchs)
 	}
-	dispatchs["bus"] = func(mut *Mutation) {
+	dispatchs["setup"] = func(mut *Mutation) {
 		delete(dispatchs, "bus")
 		dialtoms := rt.Getv("bus.dialtoms").(int64)
 		writetoms := rt.Getv("bus.writetoms").(int64)
@@ -136,14 +136,12 @@ func NewBus(rt Runtime) Dispatch {
 		dispatchs["slave"] = func(mut *Mutation) {
 			args := mut.Args.(*SlaveArgs)
 			element, ok := slaves[args.Slave]
+			//all transitions are valid
 			if args.Count == 0 {
-				assertTrue(ok, "slave not found", args.Slave)
 				delete(slaves, args.Slave)
 				queries.Remove(element)
 			} else {
-				//0->1 and 2->1 are valid transitions
 				if !ok {
-					assertTrue(args.Count == 1, "slave should be 1", args.Slave, args.Count)
 					push(mut.Sid, args.Slave, "read-value")
 				}
 			}
@@ -246,5 +244,5 @@ func NewBus(rt Runtime) Dispatch {
 		}
 		go loop()
 	}
-	return mapDispatch(log, dispatchs)
+	return mapDispatch(log.Trace, log.Debug, dispatchs)
 }

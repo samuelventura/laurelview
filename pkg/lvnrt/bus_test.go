@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestBusCrud(t *testing.T) {
+func TestRtBusBasic(t *testing.T) {
 	to := newTestOutput()
 	defer to.close()
 	log := to.logger()
@@ -24,14 +24,14 @@ func TestBusCrud(t *testing.T) {
 	rt.Setv("bus.retryms", int64(2000))
 	rt.Setd("hub", to.dispatch("hub"))
 	brt := rt.Overlay("bus")
-	bus := asyncDispatch(log.Warn, NewBus(brt))
-	brt.Setd("bus", bus)
-	bus(&Mutation{Name: "bus", Sid: "tid", Args: &BusArgs{
+	disp := asyncDispatch(log.Warn, NewBus(brt))
+	brt.Setd("bus", disp)
+	disp(&Mutation{Name: "setup", Sid: "tid", Args: &BusArgs{
 		Host: "127.0.0.1",
 		Port: echo.port(),
 	}})
 	for i := 1; i < 32; i++ {
-		bus(&Mutation{Name: "slave", Sid: "tid", Args: &SlaveArgs{
+		disp(&Mutation{Name: "slave", Sid: "tid", Args: &SlaveArgs{
 			Slave: uint(i),
 			Count: 1,
 		}})
@@ -39,7 +39,7 @@ func TestBusCrud(t *testing.T) {
 		to.matchWait(t, 200, "trace", "echo", fmt.Sprintf(".%vB1.0D.", slaveId(uint(i))))
 	}
 	for i := 1; i < 32; i++ {
-		bus(&Mutation{Name: "query", Sid: "tid", Args: &QueryArgs{
+		disp(&Mutation{Name: "query", Sid: "tid", Args: &QueryArgs{
 			Index:   uint(i),
 			Request: "reset-peak",
 		}})
@@ -47,7 +47,7 @@ func TestBusCrud(t *testing.T) {
 		to.matchWait(t, 200, "trace", "echo", fmt.Sprintf(".%vB2.0D.", slaveId(uint(i))))
 	}
 	for i := 1; i < 32; i++ {
-		bus(&Mutation{Name: "query", Sid: "tid", Args: &QueryArgs{
+		disp(&Mutation{Name: "query", Sid: "tid", Args: &QueryArgs{
 			Index:   uint(i),
 			Request: "reset-valley",
 		}})
@@ -55,7 +55,7 @@ func TestBusCrud(t *testing.T) {
 		to.matchWait(t, 200, "trace", "echo", fmt.Sprintf(".%vB3.0D.", slaveId(uint(i))))
 	}
 	for i := 1; i < 32; i++ {
-		bus(&Mutation{Name: "query", Sid: "tid", Args: &QueryArgs{
+		disp(&Mutation{Name: "query", Sid: "tid", Args: &QueryArgs{
 			Index:   uint(i),
 			Request: "apply-tara",
 		}})
@@ -63,7 +63,7 @@ func TestBusCrud(t *testing.T) {
 		to.matchWait(t, 200, "trace", "echo", fmt.Sprintf(".%vB1.0D.", slaveId(uint(i))))
 	}
 	for i := 1; i < 32; i++ {
-		bus(&Mutation{Name: "query", Sid: "tid", Args: &QueryArgs{
+		disp(&Mutation{Name: "query", Sid: "tid", Args: &QueryArgs{
 			Index:   uint(i),
 			Request: "reset-tara",
 		}})
@@ -71,17 +71,29 @@ func TestBusCrud(t *testing.T) {
 		to.matchWait(t, 200, "trace", "echo", fmt.Sprintf(".%vB1.0D.", slaveId(uint(i))))
 	}
 	for i := 1; i < 32; i++ {
-		bus(&Mutation{Name: "query", Sid: "tid", Args: &QueryArgs{
+		disp(&Mutation{Name: "query", Sid: "tid", Args: &QueryArgs{
 			Index:   uint(i),
 			Request: "reset-cold",
 		}})
 		to.matchWait(t, 200, "trace", "echo", fmt.Sprintf(".%vC0.0D.", slaveId(uint(i))))
 		to.matchWait(t, 200, "trace", "echo", fmt.Sprintf(".%vB1.0D.", slaveId(uint(i))))
 	}
-	bus(&Mutation{Name: "dispose", Sid: "tid"})
+	for i := 1; i < 32; i++ {
+		disp(&Mutation{Name: "slave", Sid: "tid", Args: &SlaveArgs{
+			Slave: uint(i),
+			Count: 2,
+		}})
+	}
+	for i := 1; i < 32; i++ {
+		disp(&Mutation{Name: "slave", Sid: "tid", Args: &SlaveArgs{
+			Slave: uint(i),
+			Count: 0,
+		}})
+	}
+	disp(&Mutation{Name: "dispose", Sid: "tid"})
 }
 
-func TestSlaveId(t *testing.T) {
+func TestRtSlaveId(t *testing.T) {
 	assert.Equal(t, "1", slaveId(1))
 	assert.Equal(t, "2", slaveId(2))
 	assert.Equal(t, "3", slaveId(3))
