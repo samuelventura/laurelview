@@ -125,6 +125,12 @@ func isLogPrintable(level string) bool {
 	}
 }
 
+func levelOutput(log Log, level string) Output {
+	return func(args ...Any) {
+		log(level, args...)
+	}
+}
+
 type prefixLog struct {
 	prefix []Any
 	log    Log

@@ -16,28 +16,28 @@ type Entry interface {
 type entryDso struct {
 	port     int
 	id       Id
-	dispatch Dispatch
-	output   Output
+	log      Logger
+	rt       Runtime
 	listener net.Listener
 	upgrader websocket.FastHTTPUpgrader
 }
 
 type clientDso struct {
-	output   Output
 	sid      string
-	dispatch Dispatch
+	log      Logger
+	rt       Runtime
 	conn     *websocket.Conn
 	callback chan *Mutation
 }
 
-func NewEntry(output Output, dispatch Dispatch, id Id, endpoint string) Entry {
+func NewEntry(rt Runtime, id Id, endpoint string) Entry {
 	listener, err := net.Listen("tcp", endpoint)
 	panicIfError(err)
 	entry := &entryDso{}
 	entry.id = id
-	entry.output = output
+	entry.rt = rt
+	entry.log = rt.PrefixLog("entry")
 	entry.listener = listener
-	entry.dispatch = dispatch
 	entry.port = listener.Addr().(*net.TCPAddr).Port
 	entry.upgrader = websocket.FastHTTPUpgrader{
 		ReadBufferSize:  1024,
@@ -59,7 +59,7 @@ func (entry *entryDso) Close() {
 }
 
 func (entry *entryDso) listen() {
-	defer traceRecover(entry.output)
+	defer entry.rt.TraceRecover()
 	defer entry.listener.Close()
 	//ignore accept close error on exit
 	fasthttp.Serve(entry.listener, entry.handle)
@@ -71,20 +71,20 @@ func (entry *entryDso) origin(ctx *fasthttp.RequestCtx) bool {
 
 func (entry *entryDso) handle(ctx *fasthttp.RequestCtx) {
 	err := entry.upgrader.Upgrade(ctx, func(conn *websocket.Conn) {
-		defer traceRecover(entry.output)
+		defer entry.rt.TraceRecover()
 		defer conn.Close()
 		id := entry.id.Next()
 		ipp := conn.RemoteAddr().String()
 		client := &clientDso{}
 		client.conn = conn
-		client.output = entry.output
-		client.dispatch = entry.dispatch
+		client.rt = entry.rt
+		client.log = entry.rt.PrefixLog("client")
 		client.sid = fmt.Sprintf("%v_%v", id, ipp)
 		client.callback = make(chan *Mutation)
 		client.loop()
 	})
 	if err != nil {
-		entry.output("trace", "upgrade:", err)
+		entry.log.Trace("upgrade:", err)
 		return
 	}
 }
@@ -92,12 +92,12 @@ func (entry *entryDso) handle(ctx *fasthttp.RequestCtx) {
 func (client *clientDso) loop() {
 	mut, err := client.read()
 	if err != nil {
-		client.output("trace", err)
+		client.log.Trace(err)
 		return
 	}
 	_, ok := mut.Args.(*SetupArgs)
 	if !ok {
-		client.output("trace", "setup expected", mut)
+		client.log.Trace("setup expected", mut)
 		return
 	}
 	mut.Sid = client.sid
@@ -116,7 +116,7 @@ func (client *clientDso) remove() {
 	mut := &Mutation{}
 	mut.Sid = client.sid
 	mut.Name = "remove"
-	client.dispatch(mut)
+	client.rt.Post("state", mut)
 }
 
 func (client *clientDso) add() {
@@ -126,7 +126,7 @@ func (client *clientDso) add() {
 	mut.Sid = client.sid
 	mut.Name = "add"
 	mut.Args = args
-	client.dispatch(mut)
+	client.rt.Post("state", mut)
 }
 
 func (client *clientDso) wait() {
@@ -136,29 +136,29 @@ func (client *clientDso) wait() {
 
 func (client *clientDso) writer(mutation *Mutation) {
 	//closing a closed channel panics
-	defer traceRecover(client.output)
+	defer client.rt.TraceRecover()
 	switch mutation.Name {
 	case "setup", "query":
 		client.callback <- mutation
 	case "remove", "dispose":
 		close(client.callback)
 	default:
-		client.output("trace", "unknown mutation", mutation.Name)
+		client.log.Trace("unknown mutation", mutation.Name)
 	}
 }
 
 func (client *clientDso) reader() {
-	defer traceRecover(client.output)
+	defer client.rt.TraceRecover()
 	defer client.conn.Close()
 	defer client.remove()
 	for {
-		mutation, err := client.read()
+		mut, err := client.read()
 		if err != nil {
-			client.output("trace", err)
+			client.log.Trace(err)
 			return
 		}
-		mutation.Sid = client.sid
-		client.dispatch(mutation)
+		mut.Sid = client.sid
+		client.rt.Post("state", mut)
 	}
 }
 

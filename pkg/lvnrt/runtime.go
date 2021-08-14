@@ -5,7 +5,10 @@ import (
 	"time"
 )
 
-//FIXME self overlay
+func DefaultRuntime() Runtime {
+	return NewRuntime(defaultLog())
+}
+
 //provides
 //1) config
 //2) factories
@@ -17,12 +20,15 @@ type Runtime interface {
 	Setv(name string, value Any)
 	Setf(name string, factory Factory)
 	Setd(name string, dispatch Dispatch)
+	SetdAsync(name string, dispatch Dispatch)
 	Make(name string) Dispatch
 	Post(name string, mut *Mutation)
 	Log(level string, args ...Any)
 	Overlay(self string) Runtime
 	Managed(mid string) Action
 	ManagedWait()
+	PrefixLog(prefix ...Any) Logger
+	TraceRecover()
 }
 
 type runtimeDso struct {
@@ -32,13 +38,14 @@ type runtimeDso struct {
 	factories map[string]Factory
 	dispatchs map[string]Dispatch
 	managed   map[string]Count
-	mutex     sync.Mutex
+	mutex     *sync.Mutex
 }
 
 func NewRuntime(log Log) Runtime {
 	rt := &runtimeDso{}
 	rt.log = log
 	rt.self = "self"
+	rt.mutex = &sync.Mutex{}
 	rt.values = make(map[string]interface{})
 	rt.factories = make(map[string]Factory)
 	rt.dispatchs = make(map[string]Dispatch)
@@ -47,10 +54,24 @@ func NewRuntime(log Log) Runtime {
 }
 
 func (rt *runtimeDso) Overlay(self string) Runtime {
-	n := *rt
-	n.self = self
-	assertTrue(rt.self == "self", "Not cloned")
-	return &n
+	clone := &runtimeDso{}
+	clone.log = rt.log
+	clone.self = self
+	clone.mutex = rt.mutex
+	clone.values = rt.values
+	clone.factories = rt.factories
+	clone.dispatchs = rt.dispatchs
+	clone.managed = rt.managed
+	return clone
+}
+
+func (rt *runtimeDso) TraceRecover() {
+	warn := levelOutput(rt.log, "warn")
+	traceRecover(warn)
+}
+
+func (rt *runtimeDso) PrefixLog(prefix ...Any) Logger {
+	return prefixLogger(rt.log, prefix...)
 }
 
 func (rt *runtimeDso) Managed(mid string) Action {
@@ -98,6 +119,11 @@ func (rt *runtimeDso) Setf(name string, factory Factory) {
 
 func (rt *runtimeDso) Setd(name string, dispatch Dispatch) {
 	rt.dispatchs[name] = dispatch
+}
+
+func (rt *runtimeDso) SetdAsync(name string, dispatch Dispatch) {
+	warn := levelOutput(rt.log, "warn")
+	rt.dispatchs[name] = asyncDispatch(warn, dispatch)
 }
 
 func (rt *runtimeDso) Make(name string) Dispatch {

@@ -44,7 +44,7 @@ func relative(ext string) string {
 }
 
 func endpoint() string {
-	ep := os.Getenv("LV_ENDPOINT")
+	ep := os.Getenv("LV_NBE_ENDPOINT")
 	if len(strings.TrimSpace(ep)) > 0 {
 		return ep
 	}
