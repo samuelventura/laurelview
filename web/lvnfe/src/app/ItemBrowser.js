@@ -14,6 +14,7 @@ import Navbar from 'react-bootstrap/Navbar';
 
 import ItemEditor from "./ItemEditor"
 import ItemDelete from "./ItemDelete"
+import ItemControl from "./ItemControl"
 
 import env from "../environ"
 
@@ -25,6 +26,7 @@ function ItemBrowser(props) {
   const [showCreate, setShowCreate] = useState(false)
   const [showUpdate, setShowUpdate] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
+  const [showControl, setShowControl] = useState(false)
   const [itemSelected, setItemSelected] = useState({})
 
   const sortUpInput = useRef(null);
@@ -79,6 +81,7 @@ function ItemBrowser(props) {
     setShowCreate(false)
     setShowUpdate(false)
     setShowDelete(false)
+    setShowControl(false)
     switch(action)
     {
       case "create":
@@ -91,6 +94,10 @@ function ItemBrowser(props) {
       case "delete":
         setItemSelected(item)
         setShowDelete(true)
+        break
+      case "show":
+        setItemSelected(item)
+        setShowControl(true)
         break
       case "none":
         break
@@ -147,7 +154,7 @@ function ItemBrowser(props) {
       <td>
         <ButtonGroup>
         <Button onClick={() => showDialog("show", item)} 
-          ref={sortUpInput} variant="outline-success" size="sm">Show</Button>        
+          ref={sortUpInput} variant="outline-secondary" size="sm">Show</Button>        
         <Button onClick={() => showDialog("update", item)} 
           ref={sortUpInput} variant="outline-primary" size="sm">Edit</Button>        
         <Button onClick={() => showDialog("delete", item)} 
@@ -156,6 +163,12 @@ function ItemBrowser(props) {
       </td>
     </tr>
   )
+
+  function control(show) {
+    if (show) {
+      return <ItemControl show={showControl} item={itemSelected} handler={handleActions}/>
+    }
+  }
 
   return (
     <Container>
@@ -177,10 +190,11 @@ function ItemBrowser(props) {
       </Form>
       </Navbar.Collapse>
       <Navbar.Collapse className="justify-content-end">
-      <Button variant="primary" onClick={() => showDialog("create")}>New...</Button>
+      <Button variant="success" onClick={() => showDialog("create")}>New...</Button>
       <ItemEditor show={showCreate} item={{}} handler={handleActions} action="create" title="Add New" button="Add New"/>
       <ItemEditor show={showUpdate} item={itemSelected} handler={handleActions} action="update" title="Update" button="Update"/>
       <ItemDelete show={showDelete} item={itemSelected} handler={handleActions} action="delete"/>
+      { control(showControl) }
       </Navbar.Collapse>
       </Navbar>
 

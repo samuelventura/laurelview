@@ -1,7 +1,6 @@
 package lvnrt
 
 import (
-	"bufio"
 	"container/list"
 	"fmt"
 	"net"
@@ -20,18 +19,19 @@ func slaveId(slave uint) string {
 	if slave > 0 && slave < 32 {
 		return ids[slave-1 : slave]
 	}
-	panicLN("invalid slave", slave)
+	PanicLN("invalid slave", slave)
 	return "invalid"
 }
 
 func NewBus(rt Runtime) Dispatch {
 	dispose := NopAction
-	log := prefixLogger(rt.Log, "bus")
+	log := PrefixLogger(rt.Log, "bus")
+	cleaner := rt.Getc("bus")
 	dispatchs := make(map[string]Dispatch)
 	dispatchs["dispose"] = func(mut *Mutation) {
-		defer disposeArgs(mut.Args)
+		defer DisposeArgs(mut.Args)
 		defer dispose()
-		clearDispatch(dispatchs)
+		ClearDispatch(dispatchs)
 	}
 	dispatchs["setup"] = func(mut *Mutation) {
 		delete(dispatchs, "bus")
@@ -40,9 +40,10 @@ func NewBus(rt Runtime) Dispatch {
 		readtoms := rt.Getv("bus.readtoms").(int64)
 		sleepms := rt.Getv("bus.sleepms").(int64)
 		retryms := rt.Getv("bus.retryms").(int64)
+		discardms := rt.Getv("bus.discardms").(int64)
 		bus := mut.Args.(*BusArgs)
 		address := fmt.Sprintf("%v:%v", bus.Host, bus.Port)
-		log := prefixLogger(rt.Log, "bus", address)
+		log := PrefixLogger(rt.Log, "bus", address)
 		//size = 1 may be in reconnecting loop
 		queue := make(chan *busQueryDso, 1)
 		exit := make(Channel)
@@ -77,7 +78,7 @@ func NewBus(rt Runtime) Dispatch {
 			case "reset-cold":
 				return "read-value"
 			}
-			panicLN("invalid request", request)
+			PanicLN("invalid request", request)
 			return "invalid"
 		}
 		command := func(request string, slave uint) string {
@@ -100,7 +101,7 @@ func NewBus(rt Runtime) Dispatch {
 			case "reset-cold":
 				return fmt.Sprintf("*%vC0", id)
 			}
-			panicLN("invalid request", request)
+			PanicLN("invalid request", request)
 			return "invalid"
 		}
 		dispose = func() {
@@ -122,9 +123,10 @@ func NewBus(rt Runtime) Dispatch {
 			ls := len(slaves)
 			lq := queries.Len()
 			element := queries.Front()
-			assertTrue(ls == lq, "slaves != queries", ls, lq, element)
-			assertTrue(element != nil || ls == 0, "ls > 0 and nil element", ls, element)
+			AssertTrue(ls == lq, "slaves != queries", ls, lq, element)
+			AssertTrue(element != nil || ls == 0, "ls > 0 and nil element", ls, element)
 			if element != nil {
+				//FIXME 20210814T013131.279 warn bus 127.0.0.1:54496 recover interface conversion: interface {} is nil, not *lvnrt.busQueryDso goroutine 39 [running]:
 				query := element.Value.(*busQueryDso)
 				queries.Remove(element)
 				request := next(query.request)
@@ -150,64 +152,49 @@ func NewBus(rt Runtime) Dispatch {
 		dispatchs["query"] = func(mut *Mutation) {
 			args := mut.Args.(*QueryArgs)
 			element, ok := slaves[args.Index]
-			assertTrue(ok, "slave not found", args.Index)
+			AssertTrue(ok, "slave not found", args.Index)
 			queries.Remove(element)
 			push(mut.Sid, args.Index, args.Request)
 			feed()
 		}
 		dispatchs["status"] = func(mut *Mutation) {
-			assertTrue(busy, "not busy")
+			AssertTrue(busy, "not busy")
 			busy = false
 			rt.Post("hub", mut)
 			feed()
 		}
 		read := func(conn net.Conn) bool {
-			defer conn.Close()
-			cr := byte(13)
-			reader := bufio.NewReader(conn)
+			cleaner.AddCloser(address, conn)
+			defer cleaner.Remove(address)
+			socket := NewSocketConn(conn)
+			defer socket.Close()
 			for {
 				select {
 				case <-exit:
 					return true
 				case query := <-queue:
 					cmd := command(query.request, query.slave)
-					buf := []byte(cmd + "\r")
-					_, err := reader.Discard(reader.Buffered())
-					traceIfError(log.Trace, err)
+					err := socket.Discard(discardms)
+					TraceIfError(log.Trace, err)
 					if err != nil {
 						status(query, "error")
 						return false
 					}
-					err = conn.SetWriteDeadline(future(writetoms))
-					traceIfError(log.Trace, err)
-					if err != nil {
-						status(query, "error")
-						return false
-					}
-					n, err := conn.Write(buf)
-					m := len(buf)
-					if err == nil && n != m {
-						err = fmt.Errorf("wrote %v of %v", n, m)
-					}
-					traceIfError(log.Trace, err)
+					err = socket.WriteLine(cmd, writetoms)
+					TraceIfError(log.Trace, err)
 					if err != nil {
 						status(query, "error")
 						return false
 					}
 					res := "ok"
 					if strings.HasPrefix(query.request, "read-") {
-						err = conn.SetReadDeadline(future(readtoms))
-						traceIfError(log.Trace, err)
-						if err != nil {
-							status(query, "error")
-							return false
-						}
-						res, err = reader.ReadString(cr)
-						traceIfError(log.Trace, err)
+						res, err = socket.ReadLine(readtoms)
+						TraceIfError(log.Trace, err)
 						if err != nil {
 							status(query, "error")
 							//do not close, may timeout after cold reset
-							if nerr, ok := err.(net.Error); ok && nerr.Timeout() {
+							nerr, ok := err.(net.Error)
+							if ok && nerr.Timeout() {
 								continue
 							} else {
 								return false
@@ -219,20 +206,18 @@ func NewBus(rt Runtime) Dispatch {
 			}
 		}
 		loop := func() {
-			defer traceRecover(log.Warn)
-			managed := rt.Managed(address)
-			defer managed()
+			defer TraceRecover(log.Debug)
 			for {
-				conn, err := net.DialTimeout("tcp", address, millis(dialtoms))
-				traceIfError(log.Trace, err)
+				conn, err := net.DialTimeout("tcp", address, Millis(dialtoms))
+				TraceIfError(log.Trace, err)
 				if err != nil {
-					to := future(retryms)
+					to := Future(retryms)
 					for time.Now().Before(to) {
 						select {
 						case <-exit:
 							return
 						default:
-							time.Sleep(millis(sleepms))
+							time.Sleep(Millis(sleepms))
 						}
 					}
 					continue
@@ -244,5 +229,5 @@ func NewBus(rt Runtime) Dispatch {
 		}
 		go loop()
 	}
-	return mapDispatch(log.Trace, log.Debug, dispatchs)
+	return MapDispatch(log, dispatchs)
 }

@@ -1,6 +1,6 @@
-package lvnrt
+package lvsdk
 
-type countState struct {
+type countDso struct {
 	count uint
 }
 
@@ -11,20 +11,20 @@ type Count interface {
 }
 
 func NewCount() Count {
-	s := &countState{}
+	s := &countDso{}
 	return s
 }
 
-func (c *countState) Count() uint {
+func (c *countDso) Count() uint {
 	return c.count
 }
 
-func (c *countState) Inc() uint {
+func (c *countDso) Inc() uint {
 	c.count++
 	return c.count
 }
 
-func (c *countState) Dec() uint {
+func (c *countDso) Dec() uint {
 	c.count--
 	return c.count
 }

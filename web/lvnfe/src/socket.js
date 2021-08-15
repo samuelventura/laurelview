@@ -1,6 +1,14 @@
 import env from "./environ"
 
-function create(dispatch, path) {
+function createWc(dispatch, path) {
+  return create(dispatch, path, env.wsWcURL)
+}
+
+function createRt(dispatch, path) {
+  return create(dispatch, path, env.wsRtURL)
+}
+
+function create(dispatch, path, base) {
   let toms = 0
   let to = null
   let ws = null
@@ -30,7 +38,7 @@ function create(dispatch, path) {
     //immediate error when navigating back
     //toms is workaround for trottled reconnection
     //safari only, chrome and firefox work ok
-    let url = env.wsURL + path
+    let url = base + path
     ws = new WebSocket(url)
     env.log("connect", to, url, ws)
     ws.onclose = (event) => {  
@@ -53,8 +61,8 @@ function create(dispatch, path) {
     }
     ws.onopen = (event) => {
       env.log("ws.open", event)
-      dispatch({name: "send", args: send})
       closed = false
+      dispatch({name: "send", args: send})
       toms = 0
     }
   }
@@ -66,6 +74,6 @@ function send(msg) {
   env.log("nop.send", msg)
 }
 
-var socket = {create, send}
+var socket = {createWc, createRt, send}
 
 export default socket

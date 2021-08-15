@@ -1,4 +1,4 @@
-package lvnrt
+package lvsdk
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-type idState struct {
+type idDso struct {
 	count  uint64
 	prefix string
 	mutex  *sync.Mutex
@@ -17,13 +17,13 @@ type Id interface {
 }
 
 func NewId(prefix string) Id {
-	s := &idState{}
+	s := &idDso{}
 	s.mutex = new(sync.Mutex)
 	s.prefix = prefix
 	return s
 }
 
-func (id *idState) Next() string {
+func (id *idDso) Next() string {
 	count := id.next()
 	//1678 - January 1, 1970 UTC - 2262
 	//last 3 digits are always zero
@@ -31,7 +31,7 @@ func (id *idState) Next() string {
 	return fmt.Sprintf("%s-%d-%d", id.prefix, count, now)
 }
 
-func (id *idState) next() uint64 {
+func (id *idDso) next() uint64 {
 	defer id.mutex.Unlock()
 	id.mutex.Lock()
 	id.count++

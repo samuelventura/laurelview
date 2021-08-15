@@ -17,13 +17,13 @@ type hubSessionDso struct {
 }
 
 func NewHub(rt Runtime) Dispatch {
-	log := prefixLogger(rt.Log, "hub")
+	log := PrefixLogger(rt.Log, "hub")
 	dispatchs := make(map[string]Dispatch)
 	slaves := make(map[string]*hubSlaveDso)
 	sessions := make(map[string]*hubSessionDso)
 	dispatchs["dispose"] = func(mut *Mutation) {
-		defer disposeArgs(mut.Args)
-		clearDispatch(dispatchs)
+		defer DisposeArgs(mut.Args)
+		ClearDispatch(dispatchs)
 		for _, session := range sessions {
 			session.disposer()
 			session.callback(mut)
@@ -33,7 +33,7 @@ func NewHub(rt Runtime) Dispatch {
 		sid := mut.Sid
 		args := mut.Args.(*AddArgs)
 		_, ok := sessions[sid]
-		assertTrue(!ok, "duplicated sid", sid)
+		AssertTrue(!ok, "duplicated sid", sid)
 		session := &hubSessionDso{}
 		session.callback = args.Callback
 		session.disposer = NopAction
@@ -42,16 +42,19 @@ func NewHub(rt Runtime) Dispatch {
 	dispatchs["remove"] = func(mut *Mutation) {
 		sid := mut.Sid
 		session, ok := sessions[sid]
-		assertTrue(ok, "non-existent sid", sid)
-		session.disposer()
-		delete(sessions, sid)
-		session.callback(mut)
+		if ok { //duplicated cleanup
+			session.disposer()
+			delete(sessions, sid)
+			session.callback(mut)
+		} else {
+			log.Debug(mut)
+		}
 	}
 	dispatchs["setup"] = func(mut *Mutation) {
 		sid := mut.Sid
 		args := mut.Args.(*SetupArgs)
 		session, ok := sessions[sid]
-		assertTrue(ok, "non-existent sid", sid)
+		AssertTrue(ok, "non-existent sid", sid)
 		session.disposer()
 		disposers := make([]Action, 0, len(args.Items))
 		statuses := make([]Action, 0, len(args.Items))
@@ -106,16 +109,19 @@ func NewHub(rt Runtime) Dispatch {
 		sid := mut.Sid
 		args := mut.Args.(*StatusArgs)
 		slave, ok := slaves[args.Slave]
-		assertTrue(ok, "non-existent slave", args.Slave)
-		slave.request = args.Request
-		slave.response = args.Response
-		element := slave.callbacks.Front()
-		for element != nil {
-			value := element.Value
-			callback := value.(func(sid string, args *StatusArgs))
-			callback(sid, args)
-			element = element.Next()
+		if ok {
+			slave.request = args.Request
+			slave.response = args.Response
+			element := slave.callbacks.Front()
+			for element != nil {
+				value := element.Value
+				callback := value.(func(sid string, args *StatusArgs))
+				callback(sid, args)
+				element = element.Next()
+			}
+		} else {
+			log.Debug(mut)
 		}
 	}
-	return mapDispatch(log.Trace, log.Debug, dispatchs)
+	return MapDispatch(log, dispatchs)
 }

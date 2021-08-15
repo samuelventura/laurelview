@@ -32,7 +32,7 @@ type clientDso struct {
 
 func NewEntry(rt Runtime, id Id, endpoint string) Entry {
 	listener, err := net.Listen("tcp", endpoint)
-	panicIfError(err)
+	PanicIfError(err)
 	entry := &entryDso{}
 	entry.id = id
 	entry.rt = rt
@@ -55,11 +55,11 @@ func (entry *entryDso) Port() int {
 func (entry *entryDso) Close() {
 	//hub may have multiple entries
 	err := entry.listener.Close()
-	panicIfError(err)
+	PanicIfError(err)
 }
 
 func (entry *entryDso) listen() {
-	defer entry.rt.TraceRecover()
+	defer TraceRecover(entry.log.Debug)
 	defer entry.listener.Close()
 	//ignore accept close error on exit
 	fasthttp.Serve(entry.listener, entry.handle)
@@ -71,20 +71,20 @@ func (entry *entryDso) origin(ctx *fasthttp.RequestCtx) bool {
 
 func (entry *entryDso) handle(ctx *fasthttp.RequestCtx) {
 	err := entry.upgrader.Upgrade(ctx, func(conn *websocket.Conn) {
-		defer entry.rt.TraceRecover()
+		defer TraceRecover(entry.log.Debug)
 		defer conn.Close()
 		id := entry.id.Next()
 		ipp := conn.RemoteAddr().String()
 		client := &clientDso{}
 		client.conn = conn
 		client.rt = entry.rt
-		client.log = entry.rt.PrefixLog("client")
 		client.sid = fmt.Sprintf("%v_%v", id, ipp)
+		client.log = entry.rt.PrefixLog(client.sid)
 		client.callback = make(chan *Mutation)
 		client.loop()
 	})
 	if err != nil {
-		entry.log.Trace("upgrade:", err)
+		entry.log.Error("upgrade", err)
 		return
 	}
 }
@@ -92,23 +92,23 @@ func (entry *entryDso) handle(ctx *fasthttp.RequestCtx) {
 func (client *clientDso) loop() {
 	mut, err := client.read()
 	if err != nil {
-		client.log.Trace(err)
+		client.log.Error(err)
 		return
 	}
 	_, ok := mut.Args.(*SetupArgs)
 	if !ok {
-		client.log.Trace("setup expected", mut)
+		client.log.Error("setup", mut)
 		return
 	}
-	mut.Sid = client.sid
 	defer client.wait()
 	defer client.remove()
 	client.add()
+	client.rt.Post("state", mut)
 	go client.reader()
 	for mutation := range client.callback {
 		bytes := encodeMutation(mutation)
 		err := client.conn.WriteMessage(websocket.TextMessage, bytes)
-		panicIfError(err)
+		PanicIfError(err)
 	}
 }
 
@@ -134,21 +134,22 @@ func (client *clientDso) wait() {
 	}
 }
 
-func (client *clientDso) writer(mutation *Mutation) {
-	//closing a closed channel panics
-	defer client.rt.TraceRecover()
-	switch mutation.Name {
+//FIXME is remove/dispose being received? test it
+func (client *clientDso) writer(mut *Mutation) {
+	defer TraceRecover(client.log.Debug)
+	client.log.Trace("out", mut)
+	switch mut.Name {
 	case "setup", "query":
-		client.callback <- mutation
+		client.callback <- mut
 	case "remove", "dispose":
 		close(client.callback)
 	default:
-		client.log.Trace("unknown mutation", mutation.Name)
+		client.log.Debug("unknown mutation", mut.Name)
 	}
 }
 
 func (client *clientDso) reader() {
-	defer client.rt.TraceRecover()
+	defer TraceRecover(client.log.Debug)
 	defer client.conn.Close()
 	defer client.remove()
 	for {
@@ -157,12 +158,11 @@ func (client *clientDso) reader() {
 			client.log.Trace(err)
 			return
 		}
-		mut.Sid = client.sid
 		client.rt.Post("state", mut)
 	}
 }
 
-func (client *clientDso) read() (mutation *Mutation, err error) {
+func (client *clientDso) read() (mut *Mutation, err error) {
 	mt, msg, err := client.conn.ReadMessage()
 	if err != nil {
 		err = fmt.Errorf("conn.ReadMessage %w", err)
@@ -173,10 +173,13 @@ func (client *clientDso) read() (mutation *Mutation, err error) {
 		return
 	}
 	//may throw on invalid json format
-	mutation, err = decodeMutation(msg)
+	//FIXME test needed to ensure incomming misformats properly handled
+	mut, err = decodeMutation(msg)
 	if err != nil {
 		err = fmt.Errorf("decodeMutation %w", err)
 		return
 	}
+	mut.Sid = client.sid
+	client.log.Trace("in", mut)
 	return
 }

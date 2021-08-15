@@ -5,28 +5,37 @@ import (
 	"os/signal"
 	"strings"
 
-	"github.com/samuelventura/laurelview/pkg/lvnrt"
+	"github.com/samuelventura/laurelview/pkg/lvsdk"
 )
 
 func main() {
 	ctrlc := make(chan os.Signal, 1)
 	signal.Notify(ctrlc, os.Interrupt)
-	rt := lvnrt.DefaultRuntime()
+	rt := lvsdk.DefaultRuntime()
+	rt.Setv("bus.dialtoms", int64(800))
+	rt.Setv("bus.writetoms", int64(800))
+	rt.Setv("bus.readtoms", int64(800))
+	rt.Setv("bus.sleepms", int64(10))
+	rt.Setv("bus.retryms", int64(2000))
+	rt.Setv("bus.discardms", int64(200))
 	log := rt.PrefixLog("main")
+	rt.Setc("bus", NewCleaner(rt.PrefixLog("bus", "clean")))
+	defer rt.Close()
 	defer log.Log("") //wait flush
-	defer rt.TraceRecover()
-	rt.SetdAsync("hub", lvnrt.NewHub(rt))
-	rt.SetdAsync("state", lvnrt.NewState(rt))
-	rt.Setf("bus", func(rt lvnrt.Runtime) lvnrt.Dispatch {
-		nrt := rt.Overlay("bus")
-		bus := lvnrt.NewBus(nrt)
-		nrt.Setd("bus", bus)
+	defer TraceRecover(log.Warn)
+	rt.Setd("hub", AsyncDispatch(log.Trace, NewHub(rt)))
+	rt.Setd("state", AsyncDispatch(log.Trace, NewState(rt)))
+	defer rt.Post("state", &Mutation{Name: "dispose"})
+	rt.Setf("bus", func(rt Runtime) Dispatch {
+		nrt := rt.Clone()
+		bus := AsyncDispatch(log.Trace, NewBus(nrt))
+		nrt.Setd("self", bus)
 		return bus
 	})
 	ep := endpoint()
 	log.Info("endpoint", ep)
-	id := lvnrt.NewId("client")
-	entry := lvnrt.NewEntry(rt, id, ep)
+	id := NewId("client")
+	entry := NewEntry(rt, id, ep)
 	defer entry.Close()
 	log.Info("port", entry.Port())
 	<-ctrlc

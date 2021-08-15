@@ -8,89 +8,91 @@ import (
 )
 
 func TestRtBusBasic(t *testing.T) {
-	to := newTestOutput()
-	defer to.close()
-	log := to.logger()
-	echo := newTestEcho(log)
-	log.Info("echo", "port", echo.port())
-	defer echo.close()
-	echo.ping()
-	rt := NewRuntime(to.push)
-	defer rt.ManagedWait()
+	to := NewTestOutput()
+	defer to.Close()
+	log := to.Logger()
+	dpm := NewDpm(log, ":0", 0)
+	log.Info("dpm", "port", dpm.Port())
+	defer dpm.Close()
+	dpm.Echo()
+	rt := NewRuntime(to.Log)
+	defer rt.Close()
 	rt.Setv("bus.dialtoms", int64(400))
 	rt.Setv("bus.writetoms", int64(400))
 	rt.Setv("bus.readtoms", int64(400))
+	rt.Setv("bus.discardms", int64(0))
 	rt.Setv("bus.sleepms", int64(10))
 	rt.Setv("bus.retryms", int64(2000))
-	rt.Setd("hub", to.dispatch("hub"))
-	brt := rt.Overlay("bus")
-	disp := asyncDispatch(log.Warn, NewBus(brt))
-	brt.Setd("bus", disp)
-	disp(&Mutation{Name: "setup", Sid: "tid", Args: &BusArgs{
+	rt.Setc("bus", NewCleaner(rt.PrefixLog("bus", "clean")))
+	rt.Setd("hub", to.Dispatch("hub"))
+	nrt := rt.Clone()
+	disp := AsyncDispatch(log.Warn, NewBus(nrt))
+	nrt.Setd("self", disp)
+	disp(M("setup", "tid", &BusArgs{
 		Host: "127.0.0.1",
-		Port: echo.port(),
-	}})
+		Port: dpm.Port(),
+	}))
 	for i := 1; i < 32; i++ {
-		disp(&Mutation{Name: "slave", Sid: "tid", Args: &SlaveArgs{
+		disp(M("slave", "tid", &SlaveArgs{
 			Slave: uint(i),
 			Count: 1,
-		}})
+		}))
 		//first one repeats (should only happen with echo test server)
-		to.matchWait(t, 200, "trace", "echo", fmt.Sprintf(".%vB1.0D.", slaveId(uint(i))))
+		to.MatchWait(t, 200, "trace", "dpm", "true", fmt.Sprintf(".%vB1.0D.", slaveId(uint(i))))
 	}
 	for i := 1; i < 32; i++ {
-		disp(&Mutation{Name: "query", Sid: "tid", Args: &QueryArgs{
+		disp(M("query", "tid", &QueryArgs{
 			Index:   uint(i),
 			Request: "reset-peak",
-		}})
-		to.matchWait(t, 200, "trace", "echo", fmt.Sprintf(".%vC3.0D.", slaveId(uint(i))))
-		to.matchWait(t, 200, "trace", "echo", fmt.Sprintf(".%vB2.0D.", slaveId(uint(i))))
+		}))
+		to.MatchWait(t, 200, "trace", "dpm", "false", fmt.Sprintf(".%vC3.0D.", slaveId(uint(i))))
+		to.MatchWait(t, 200, "trace", "dpm", "true", fmt.Sprintf(".%vB2.0D.", slaveId(uint(i))))
 	}
 	for i := 1; i < 32; i++ {
-		disp(&Mutation{Name: "query", Sid: "tid", Args: &QueryArgs{
+		disp(M("query", "tid", &QueryArgs{
 			Index:   uint(i),
 			Request: "reset-valley",
-		}})
-		to.matchWait(t, 200, "trace", "echo", fmt.Sprintf(".%vC9.0D.", slaveId(uint(i))))
-		to.matchWait(t, 200, "trace", "echo", fmt.Sprintf(".%vB3.0D.", slaveId(uint(i))))
+		}))
+		to.MatchWait(t, 200, "trace", "dpm", "false", fmt.Sprintf(".%vC9.0D.", slaveId(uint(i))))
+		to.MatchWait(t, 200, "trace", "dpm", "true", fmt.Sprintf(".%vB3.0D.", slaveId(uint(i))))
 	}
 	for i := 1; i < 32; i++ {
-		disp(&Mutation{Name: "query", Sid: "tid", Args: &QueryArgs{
+		disp(M("query", "tid", &QueryArgs{
 			Index:   uint(i),
 			Request: "apply-tara",
-		}})
-		to.matchWait(t, 200, "trace", "echo", fmt.Sprintf(".%vCA.0D.", slaveId(uint(i))))
-		to.matchWait(t, 200, "trace", "echo", fmt.Sprintf(".%vB1.0D.", slaveId(uint(i))))
+		}))
+		to.MatchWait(t, 200, "trace", "dpm", "false", fmt.Sprintf(".%vCA.0D.", slaveId(uint(i))))
+		to.MatchWait(t, 200, "trace", "dpm", "true", fmt.Sprintf(".%vB1.0D.", slaveId(uint(i))))
 	}
 	for i := 1; i < 32; i++ {
-		disp(&Mutation{Name: "query", Sid: "tid", Args: &QueryArgs{
+		disp(M("query", "tid", &QueryArgs{
 			Index:   uint(i),
 			Request: "reset-tara",
-		}})
-		to.matchWait(t, 200, "trace", "echo", fmt.Sprintf(".%vCB.0D.", slaveId(uint(i))))
-		to.matchWait(t, 200, "trace", "echo", fmt.Sprintf(".%vB1.0D.", slaveId(uint(i))))
+		}))
+		to.MatchWait(t, 200, "trace", "dpm", "false", fmt.Sprintf(".%vCB.0D.", slaveId(uint(i))))
+		to.MatchWait(t, 200, "trace", "dpm", "true", fmt.Sprintf(".%vB1.0D.", slaveId(uint(i))))
 	}
 	for i := 1; i < 32; i++ {
-		disp(&Mutation{Name: "query", Sid: "tid", Args: &QueryArgs{
+		disp(M("query", "tid", &QueryArgs{
 			Index:   uint(i),
 			Request: "reset-cold",
-		}})
-		to.matchWait(t, 200, "trace", "echo", fmt.Sprintf(".%vC0.0D.", slaveId(uint(i))))
-		to.matchWait(t, 200, "trace", "echo", fmt.Sprintf(".%vB1.0D.", slaveId(uint(i))))
+		}))
+		to.MatchWait(t, 200, "trace", "dpm", "false", fmt.Sprintf(".%vC0.0D.", slaveId(uint(i))))
+		to.MatchWait(t, 200, "trace", "dpm", "true", fmt.Sprintf(".%vB1.0D.", slaveId(uint(i))))
 	}
 	for i := 1; i < 32; i++ {
-		disp(&Mutation{Name: "slave", Sid: "tid", Args: &SlaveArgs{
+		disp(M("slave", "tid", &SlaveArgs{
 			Slave: uint(i),
 			Count: 2,
-		}})
+		}))
 	}
 	for i := 1; i < 32; i++ {
-		disp(&Mutation{Name: "slave", Sid: "tid", Args: &SlaveArgs{
+		disp(M("slave", "tid", &SlaveArgs{
 			Slave: uint(i),
 			Count: 0,
-		}})
+		}))
 	}
-	disp(&Mutation{Name: "dispose", Sid: "tid"})
+	disp(Mns("dispose", "tid"))
 }
 
 func TestRtSlaveId(t *testing.T) {

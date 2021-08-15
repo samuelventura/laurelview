@@ -8,6 +8,10 @@ import (
 )
 
 func decodeMutation(bytes []byte) (mut *Mutation, err error) {
+	return decodeMutationEx(bytes, false)
+}
+
+func decodeMutationEx(bytes []byte, ws bool) (mut *Mutation, err error) {
 	mut = &Mutation{}
 	var mmi Any
 	err = json.Unmarshal(bytes, &mmi)
@@ -16,7 +20,11 @@ func decodeMutation(bytes []byte) (mut *Mutation, err error) {
 	}
 	mm := mmi.(Map)
 	mut.Name = mm["name"].(string)
+	if ws {
+		mut.Sid = mm["sid"].(string)
+	}
 	switch mut.Name {
+	//FIXME validate inputs
 	case "setup":
 		argm := mm["args"].(Map)
 		args := &SetupArgs{}
@@ -25,9 +33,10 @@ func decodeMutation(bytes []byte) (mut *Mutation, err error) {
 		for _, imi := range items {
 			fm := imi.(Map)
 			carg := &ItemArgs{}
-			carg.Host = fm["name"].(string)
+			carg.Host = fm["host"].(string)
 			carg.Port = parseUint(fm["port"])
 			carg.Slave = parseUint(fm["slave"])
+			args.Items = append(args.Items, carg)
 		}
 		mut.Args = args
 	case "query":
@@ -58,7 +67,7 @@ func parseUint(id Any) uint {
 		return uint(v)
 	case string:
 		id, err := strconv.ParseUint(v, 10, bits.UintSize)
-		panicIfError(err)
+		PanicIfError(err)
 		return uint(id)
 	default:
 		return 0
@@ -70,10 +79,10 @@ func encodeMutation(mutation *Mutation) []byte {
 	mm["name"] = mutation.Name
 	mm["sid"] = mutation.Sid
 	args, err := encodeArgs(mutation.Name, mutation.Args)
-	panicIfError(err)
+	PanicIfError(err)
 	mm["args"] = args
 	bytes, err := json.Marshal(mm)
-	panicIfError(err)
+	PanicIfError(err)
 	return bytes
 }
 

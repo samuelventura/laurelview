@@ -16,13 +16,13 @@ type stateSessionDso struct {
 }
 
 func NewState(rt Runtime) Dispatch {
-	log := prefixLogger(rt.Log, "state")
+	log := PrefixLogger(rt.Log, "state")
 	dispatchs := make(map[string]Dispatch)
 	sessions := make(map[string]*stateSessionDso)
 	buses := make(map[string]*stateBusDso)
 	dispatchs["dispose"] = func(mut *Mutation) {
-		defer disposeArgs(mut.Args)
-		clearDispatch(dispatchs)
+		defer DisposeArgs(mut.Args)
+		ClearDispatch(dispatchs)
 		for sid, session := range sessions {
 			session.disposer()
 			delete(sessions, sid)
@@ -32,7 +32,7 @@ func NewState(rt Runtime) Dispatch {
 	dispatchs["add"] = func(mut *Mutation) {
 		sid := mut.Sid
 		_, ok := sessions[sid]
-		assertTrue(!ok, "duplicated sid", sid)
+		AssertTrue(!ok, "duplicated sid", sid)
 		session := &stateSessionDso{}
 		session.disposer = NopAction
 		session.buses = make(map[uint]*stateBusDso)
@@ -43,16 +43,19 @@ func NewState(rt Runtime) Dispatch {
 	dispatchs["remove"] = func(mut *Mutation) {
 		sid := mut.Sid
 		session, ok := sessions[sid]
-		assertTrue(ok, "non-existent sid", sid)
-		session.disposer()
-		delete(sessions, sid)
-		rt.Post("hub", mut)
+		if ok { //duplicate cleanup
+			session.disposer()
+			delete(sessions, sid)
+			rt.Post("hub", mut)
+		} else {
+			log.Debug(mut)
+		}
 	}
 	dispatchs["setup"] = func(mut *Mutation) {
 		sid := mut.Sid
 		args := mut.Args.(*SetupArgs)
 		session, ok := sessions[sid]
-		assertTrue(ok, "non-existent sid", sid)
+		AssertTrue(ok, "non-existent sid", sid)
 		session.disposer()
 		session.buses = make(map[uint]*stateBusDso)
 		session.slaves = make(map[uint]uint)
@@ -127,16 +130,16 @@ func NewState(rt Runtime) Dispatch {
 		sid := mut.Sid
 		args := mut.Args.(*QueryArgs)
 		session, ok := sessions[sid]
-		assertTrue(ok, "non-existent sid", sid)
+		AssertTrue(ok, "non-existent sid", sid)
 		bus, ok := session.buses[args.Index]
-		assertTrue(ok, "non-existent bus", args.Index)
+		AssertTrue(ok, "non-existent bus", args.Index)
 		slave, ok := session.slaves[args.Index]
-		assertTrue(ok, "non-existent slave", args.Index)
+		AssertTrue(ok, "non-existent slave", args.Index)
 		nargs := *args
 		nmut := *mut
 		nargs.Index = slave
 		nmut.Args = &nargs
 		bus.dispatch(&nmut)
 	}
-	return mapDispatch(log.Trace, log.Debug, dispatchs)
+	return MapDispatch(log, dispatchs)
 }

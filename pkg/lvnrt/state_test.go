@@ -5,36 +5,36 @@ import (
 )
 
 func TestRtStateBasic(t *testing.T) {
-	to := newTestOutput()
-	defer to.close()
-	log := to.logger()
-	rt := NewRuntime(to.push)
-	defer rt.ManagedWait()
+	to := NewTestOutput()
+	defer to.Close()
+	log := to.Logger()
+	rt := NewRuntime(to.Log)
+	defer rt.Close()
 	bid := NewId("bus")
 	rt.Setf("bus", func(Runtime) Dispatch {
-		return to.dispatch(bid.Next())
+		return to.Dispatch(bid.Next())
 	})
-	rt.Setd("hub", to.dispatch("hub"))
-	disp := asyncDispatch(log.Warn, NewState(rt))
+	rt.Setd("hub", to.Dispatch("hub"))
+	disp := AsyncDispatch(log.Warn, NewState(rt))
 	disp(&Mutation{Name: "add", Sid: "tid", Args: &AddArgs{
-		Callback: to.dispatch("entry"),
+		Callback: to.Dispatch("entry"),
 	}})
-	to.matchWait(t, 200, "trace", "hub", "{add,tid")
+	to.MatchWait(t, 200, "trace", "hub", "{add,tid")
 	disp(&Mutation{Name: "setup", Sid: "tid", Args: &SetupArgs{
 		Items: []*ItemArgs{{"host", 0, 1}},
 	}})
-	to.matchWait(t, 200, "trace", "bus-1", "{setup,tid,&{host 0}")
-	to.matchWait(t, 200, "trace", "bus-1", "{slave,tid,&{1 1}")
-	to.matchWait(t, 200, "trace", "hub", "{setup,tid")
+	to.MatchWait(t, 200, "trace", "bus-1", "{setup,tid,&{host 0}")
+	to.MatchWait(t, 200, "trace", "bus-1", "{slave,tid,&{1 1}")
+	to.MatchWait(t, 200, "trace", "hub", "{setup,tid")
 	disp(&Mutation{Name: "query", Sid: "tid", Args: &QueryArgs{
 		Index:   0,
 		Request: "read-value",
 	}})
-	to.matchWait(t, 200, "trace", "bus-1", "{query,tid,&{1 read-value }}")
+	to.MatchWait(t, 200, "trace", "bus-1", "{query,tid,&{1 read-value }}")
 	disp(&Mutation{Name: "remove", Sid: "tid"})
-	to.matchWait(t, 200, "trace", "bus-1", "{slave,tid,&{1 0}}")
-	to.matchWait(t, 200, "trace", "bus-1", "{dispose,tid,")
-	to.matchWait(t, 200, "trace", "hub", "{remove,tid")
+	to.MatchWait(t, 200, "trace", "bus-1", "{slave,tid,&{1 0}}")
+	to.MatchWait(t, 200, "trace", "bus-1", "{dispose,tid,")
+	to.MatchWait(t, 200, "trace", "hub", "{remove,tid")
 	disp(&Mutation{Name: "dispose", Sid: "tid"})
-	to.matchWait(t, 200, "trace", "hub", "{dispose,tid")
+	to.MatchWait(t, 200, "trace", "hub", "{dispose,tid")
 }

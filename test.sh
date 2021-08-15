@@ -6,3 +6,4 @@ MOD="github.com/samuelventura/laurelview"
 go clean -testcache 
 go test $MOD/pkg/lvnbe -v -run $1
 go test $MOD/pkg/lvnrt -v -run $1
+go test $MOD/pkg/lvsdk -v -run $1

@@ -82,7 +82,7 @@ function App() {
   }
 
   useEffect(() => {
-    return socket.create(dispatch, "/index")
+    return socket.createWc(dispatch, "/index")
   }, [])
 
   return (
