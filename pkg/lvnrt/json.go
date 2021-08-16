@@ -44,7 +44,9 @@ func decodeMutationEx(bytes []byte, ws bool) (mut *Mutation, err error) {
 		args := &QueryArgs{}
 		args.Index = parseUint(argm["index"])
 		args.Request = argm["request"].(string)
-		args.Response = argm["response"].(string)
+		args.Response = maybeString(argm["response"])
+		args.Count = maybeUint(argm["count"])
+		args.Total = maybeUint(argm["total"])
 		mut.Args = args
 	default:
 		err = fmt.Errorf("unkown mutation %s", mut.Name)
@@ -52,8 +54,8 @@ func decodeMutationEx(bytes []byte, ws bool) (mut *Mutation, err error) {
 	return
 }
 
-func maybeUint(id Any) uint {
-	switch v := id.(type) {
+func maybeUint(any Any) uint {
+	switch v := any.(type) {
 	case float64:
 		return uint(v)
 	default:
@@ -61,8 +63,17 @@ func maybeUint(id Any) uint {
 	}
 }
 
-func parseUint(id Any) uint {
-	switch v := id.(type) {
+func maybeString(any Any) string {
+	switch v := any.(type) {
+	case string:
+		return v
+	default:
+		return ""
+	}
+}
+
+func parseUint(any Any) uint {
+	switch v := any.(type) {
 	case float64:
 		return uint(v)
 	case string:
@@ -106,6 +117,8 @@ func encodeArgs(name string, argi Any) (argm Map, err error) {
 		argm["index"] = args.Index
 		argm["request"] = args.Request
 		argm["response"] = args.Response
+		argm["count"] = args.Count
+		argm["total"] = args.Total
 	default:
 		err = fmt.Errorf("unkown mutation %s", name)
 	}

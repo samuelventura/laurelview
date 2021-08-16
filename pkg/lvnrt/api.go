@@ -18,6 +18,8 @@ type QueryArgs struct {
 	Index    uint
 	Request  string
 	Response string
+	Count    uint
+	Total    uint
 }
 
 type StatusArgs struct {

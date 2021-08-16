@@ -71,6 +71,7 @@ func testSetupEntry(t *testing.T, callback func(to TestOutput, rt Runtime, log L
 	rt.Setv("bus.discardms", int64(50))
 	rt.Setv("bus.sleepms", int64(10))
 	rt.Setv("bus.retryms", int64(2000))
+	rt.Setv("bus.resetms", int64(0))
 	rt.Setc("bus", NewCleaner(log))
 	defer log.Log("") //wait flush
 	defer TraceRecover(log.Warn)

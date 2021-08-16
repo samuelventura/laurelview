@@ -58,6 +58,7 @@ func NewHub(rt Runtime) Dispatch {
 		session.disposer()
 		disposers := make([]Action, 0, len(args.Items))
 		statuses := make([]Action, 0, len(args.Items))
+		total := NewCount()
 		for i, it := range args.Items {
 			index := uint(i)
 			item := it
@@ -69,7 +70,10 @@ func NewHub(rt Runtime) Dispatch {
 				slave.callbacks = list.New()
 				slaves[address] = slave
 			}
+			count := NewCount()
 			callback := func(sid string, args *StatusArgs) {
+				count.Inc()
+				total.Inc()
 				mut := &Mutation{}
 				mut.Sid = sid
 				mut.Name = "query"
@@ -77,6 +81,8 @@ func NewHub(rt Runtime) Dispatch {
 				query.Index = index
 				query.Request = args.Request
 				query.Response = args.Response
+				query.Count = count.Count()
+				query.Total = total.Count()
 				mut.Args = query
 				session.callback(mut)
 			}

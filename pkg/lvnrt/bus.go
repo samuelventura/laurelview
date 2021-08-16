@@ -40,6 +40,7 @@ func NewBus(rt Runtime) Dispatch {
 		readtoms := rt.Getv("bus.readtoms").(int64)
 		sleepms := rt.Getv("bus.sleepms").(int64)
 		retryms := rt.Getv("bus.retryms").(int64)
+		resetms := rt.Getv("bus.resetms").(int64)
 		discardms := rt.Getv("bus.discardms").(int64)
 		bus := mut.Args.(*BusArgs)
 		address := fmt.Sprintf("%v:%v", bus.Host, bus.Port)
@@ -48,14 +49,14 @@ func NewBus(rt Runtime) Dispatch {
 		queue := make(chan *busQueryDso, 1)
 		exit := make(Channel)
 		busy := false
-		status := func(query *busQueryDso, response string) {
+		status := func(query *busQueryDso, response string, err error) {
 			mut := &Mutation{}
 			mut.Sid = query.sid
 			mut.Name = "status"
 			mut.Args = &StatusArgs{
 				Slave:    fmt.Sprintf("%v:%v:%v", bus.Host, bus.Port, query.slave),
 				Request:  query.request,
-				Response: response,
+				Response: response, //+ fmt.Sprint(err),
 			}
 			rt.Post("self", mut)
 		}
@@ -177,13 +178,14 @@ func NewBus(rt Runtime) Dispatch {
 					err := socket.Discard(discardms)
 					TraceIfError(log.Trace, err)
 					if err != nil {
-						status(query, "error")
+						status(query, "error", err)
 						return false
 					}
+					//log.Info("REQUEST >", cmd)
 					err = socket.WriteLine(cmd, writetoms)
 					TraceIfError(log.Trace, err)
 					if err != nil {
-						status(query, "error")
+						status(query, "error", err)
 						return false
 					}
 					res := "ok"
@@ -191,17 +193,22 @@ func NewBus(rt Runtime) Dispatch {
 						res, err = socket.ReadLine(readtoms)
 						TraceIfError(log.Trace, err)
 						if err != nil {
-							status(query, "error")
+							status(query, "error", err)
 							//do not close, may timeout after cold reset
 							nerr, ok := err.(net.Error)
 							if ok && nerr.Timeout() {
+								//log.Info("TIMEOUT <", cmd)
 								continue
 							} else {
 								return false
 							}
 						}
+					} else {
+						//bus get unresponsive after resets 400ms works
+						time.Sleep(Millis(resetms))
 					}
-					status(query, strings.TrimSpace(res))
+					//log.Info("RESPONSE <", strings.TrimSpace(res))
+					status(query, strings.TrimSpace(res), nil)
 				}
 			}
 		}

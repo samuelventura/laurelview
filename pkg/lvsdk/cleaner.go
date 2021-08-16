@@ -43,25 +43,15 @@ func (c *cleanerDso) AddAction(id string, action Action) {
 }
 
 func (c *cleanerDso) AddCloser(id string, closer io.Closer) {
-	c.queue <- func() {
-		c.override(id)
-		c.add(id, func() {
-			c.log.Trace("close", id)
-			delete(c.items, id)
-			closer.Close()
-		})
-	}
+	c.AddAction(id, func() {
+		closer.Close()
+	})
 }
 
 func (c *cleanerDso) AddChannel(id string, channel Channel) {
-	c.queue <- func() {
-		c.override(id)
-		c.add(id, func() {
-			c.log.Trace("close", id)
-			delete(c.items, id)
-			close(channel)
-		})
-	}
+	c.AddAction(id, func() {
+		close(channel)
+	})
 }
 
 func (c *cleanerDso) Remove(id string) {

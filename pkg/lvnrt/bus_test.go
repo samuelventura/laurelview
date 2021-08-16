@@ -23,6 +23,7 @@ func TestRtBusBasic(t *testing.T) {
 	rt.Setv("bus.discardms", int64(0))
 	rt.Setv("bus.sleepms", int64(10))
 	rt.Setv("bus.retryms", int64(2000))
+	rt.Setv("bus.resetms", int64(0))
 	rt.Setc("bus", NewCleaner(rt.PrefixLog("bus", "clean")))
 	rt.Setd("hub", to.Dispatch("hub"))
 	nrt := rt.Clone()

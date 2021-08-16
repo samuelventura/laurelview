@@ -4,6 +4,8 @@ import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
 
+import ItemDisplay from "./ItemDisplay"
+
 import socket from "../socket"
 import env from "../environ"
 
@@ -51,6 +53,7 @@ function ItemControl(props) {
           args({name, args: {items}})
           break
         } 
+        default: //linter complains
       }
     }
     return socket.createRt(handler, "/index")
@@ -75,8 +78,8 @@ function ItemControl(props) {
         <Modal.Title>{props.item.name}</Modal.Title>
       </Modal.Header>
       <Modal.Body>
+      <ItemDisplay query={state.query}/>
       </Modal.Body>
-      { JSON.stringify(state.query) }
       <Modal.Footer>
         <Button variant="success" onClick={() => handleQuery("read-value")}>Value</Button>
         <ButtonGroup>
