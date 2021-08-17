@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io/ioutil"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -14,6 +15,7 @@ func main() {
 	signal.Notify(ctrlc, os.Interrupt)
 	output := lvnbe.DefaultOutput()
 	defer output("") //wait flush
+	defer output("info", "exited")
 	defer lvnbe.TraceRecover(output)
 	var db = relative("db3")
 	dao := lvnbe.NewDao(db)
@@ -26,7 +28,17 @@ func main() {
 	entry := lvnbe.NewEntry(core, output, ep)
 	defer entry.Close()
 	output("info", "port", entry.Port())
-	<-ctrlc
+	exit := make(chan bool)
+	go stdin(exit)
+	select {
+	case <-ctrlc:
+	case <-exit:
+	}
+}
+
+func stdin(exit chan bool) {
+	defer close(exit)
+	ioutil.ReadAll(os.Stdin)
 }
 
 func executable() string {

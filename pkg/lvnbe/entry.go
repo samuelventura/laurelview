@@ -1,12 +1,20 @@
 package lvnbe
 
 import (
+	"embed"
 	"fmt"
+	"mime"
 	"net"
+	"net/http"
+	"path/filepath"
+	"strings"
 
 	"github.com/fasthttp/websocket"
 	"github.com/valyala/fasthttp"
 )
+
+//go:embed build/*
+var fs embed.FS
 
 type Entry interface {
 	Port() int
@@ -19,6 +27,12 @@ type entryDso struct {
 	output   Output
 	listener net.Listener
 	upgrader websocket.FastHTTPUpgrader
+	cache    map[string]*staticDso
+}
+
+type staticDso struct {
+	bytes []byte
+	mime  string
 }
 
 type clientDso struct {
@@ -36,6 +50,7 @@ func NewEntry(core Core, output Output, endpoint string) Entry {
 	entry.core = core
 	entry.output = output
 	entry.listener = listener
+	entry.cache = make(map[string]*staticDso)
 	entry.port = listener.Addr().(*net.TCPAddr).Port
 	entry.upgrader = websocket.FastHTTPUpgrader{
 		ReadBufferSize:  1024,
@@ -68,7 +83,36 @@ func (entry *entryDso) origin(ctx *fasthttp.RequestCtx) bool {
 }
 
 func (entry *entryDso) handle(ctx *fasthttp.RequestCtx) {
-	err := entry.upgrader.Upgrade(ctx, func(conn *websocket.Conn) {
+	var err error
+	path := string(ctx.Path())
+	if path == "/" {
+		path = "/index.html"
+	}
+	ext := filepath.Ext(path)
+	//FIXME *.map gets empty mime
+	//FIXME add client side standard http file caching
+	ct := mime.TypeByExtension(ext)
+	entry.output("trace", path, ct)
+	if !strings.HasPrefix(path, "/ws/") {
+		path = "build" + path
+		static, ok := entry.cache[path]
+		if !ok {
+			bytes, err := fs.ReadFile(path)
+			if err != nil {
+				entry.output("trace", path, err)
+				ctx.Response.SetStatusCode(http.StatusNotFound)
+				return
+			}
+			static = &staticDso{}
+			entry.cache[path] = static
+			static.bytes = bytes
+			static.mime = ct
+		}
+		ctx.SetContentType(static.mime)
+		ctx.Write(static.bytes)
+		return
+	}
+	err = entry.upgrader.Upgrade(ctx, func(conn *websocket.Conn) {
 		defer TraceRecover(entry.output)
 		defer conn.Close()
 		id := entry.core.NextId()

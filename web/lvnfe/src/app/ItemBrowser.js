@@ -26,7 +26,7 @@ function ItemBrowser(props) {
   const [showCreate, setShowCreate] = useState(false)
   const [showUpdate, setShowUpdate] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
-  const [showControl, setShowControl] = useState(false)
+  const [showView, setShowView] = useState(false)
   const [itemSelected, setItemSelected] = useState({})
 
   const sortUpInput = useRef(null);
@@ -81,7 +81,7 @@ function ItemBrowser(props) {
     setShowCreate(false)
     setShowUpdate(false)
     setShowDelete(false)
-    setShowControl(false)
+    setShowView(false)
     switch(action)
     {
       case "create":
@@ -95,9 +95,9 @@ function ItemBrowser(props) {
         setItemSelected(item)
         setShowDelete(true)
         break
-      case "show":
+      case "view":
         setItemSelected(item)
-        setShowControl(true)
+        setShowView(true)
         break
       case "none":
         break
@@ -153,8 +153,8 @@ function ItemBrowser(props) {
       <td>{item.name}</td>
       <td>
         <ButtonGroup>
-        <Button onClick={() => showDialog("show", item)} 
-          ref={sortUpInput} variant="outline-secondary" size="sm">Show</Button>        
+        <Button onClick={() => showDialog("view", item)} 
+          ref={sortUpInput} variant="outline-secondary" size="sm">View</Button>        
         <Button onClick={() => showDialog("update", item)} 
           ref={sortUpInput} variant="outline-primary" size="sm">Edit</Button>        
         <Button onClick={() => showDialog("delete", item)} 
@@ -166,7 +166,7 @@ function ItemBrowser(props) {
 
   function control(show) {
     if (show) {
-      return <ItemControl show={showControl} item={itemSelected} handler={handleActions}/>
+      return <ItemControl show={showView} item={itemSelected} handler={handleActions}/>
     }
   }
 
@@ -194,7 +194,7 @@ function ItemBrowser(props) {
       <ItemEditor show={showCreate} item={{}} handler={handleActions} action="create" title="Add New" button="Add New"/>
       <ItemEditor show={showUpdate} item={itemSelected} handler={handleActions} action="update" title="Update" button="Update"/>
       <ItemDelete show={showDelete} item={itemSelected} handler={handleActions} action="delete"/>
-      { control(showControl) }
+      { control(showView) }
       </Navbar.Collapse>
       </Navbar>
 

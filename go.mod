@@ -7,6 +7,7 @@ require (
 	github.com/andybalholm/brotli v1.0.3 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fasthttp/websocket v1.4.3
+	github.com/kardianos/service v1.2.0 // indirect
 	github.com/klauspost/compress v1.13.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/mattn/go-zglob v0.0.3 // indirect
