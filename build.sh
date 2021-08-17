@@ -1,5 +1,6 @@
 #!/bin/sh -x
 
+[ ! -d "web/lvnfe/node_modules" ] && (cd web/lvnfe; npm i)
 (cd web/lvnfe; npm run build)
 rm -fr pkg/lvnbe/build
 mkdir -p pkg/lvnbe/build

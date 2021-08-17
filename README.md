@@ -1,58 +1,30 @@
-# laurelview
+# Laurel View
 
 ## Code Tree
 
 ```bash
+pkg/lvnrt #node runtime testeable package
 pkg/lvnbe #node backend testeable package
+cmd/lvnrt #node runtime executable
 cmd/lvnbe #node backend executable
 cmd/lvnss #node system service
-cmd/lvcbe #cloud backend executable
-web/lvnfe #node frontend
-web/lvcfe #cloud frontend
+cmd/lvdpm #node dpm echo server
+web/lvnfe #node react frontend
 ```
-
-## Mutation Flow
-
-```bash
-<-- all
-<-> create
-<-> update
-
-#open coupled to url params
-#close coupled to socket lifecycle
---> mode
-<-- status
-<-- reading
-```
-
-## Components
-
-```
-entry <- core <- hub <- state <- dao
-```
-
-## Entity Fields
-
-- Id
-- Name
-- Host
-- Port
-- Slave
 
 ## v0.0.1
 
 - Filterable list of Laurels
-- Single page Index + Control Panel + Dashboard
+- Single page Index + Control Panel
 - Control Panel is single Laurel with control buttons
-- Control Buttons are Peak, Valley, Tare, Cold Reset
-- Dashboard is view only multi Laurel monitor
-- TCP with slave
-- Windows service 
+- Value Peak/Reset, Valley/Reset, Tare/Reset, Cold Reset
+- Cross platform service github.com/kardianos/service
 - Windows installer https://github.com/mh-cbon/go-msi
+- TCP with slave support
 
 ## v0.0.2
 
+- Multi Laurel view
 - https://laurelview.io
 - Link node Laurels to cloud
 - Serial Port
-
