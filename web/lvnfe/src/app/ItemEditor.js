@@ -91,7 +91,7 @@ function ItemEditor(props) {
         <Modal.Title>{props.title}</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-      <Form validated={validated}>
+      <Form noValidate validated={validated}>
         <Form.Group className="mb-3" controlId="itemName">
           <Form.Label>Name</Form.Label>
           <Form.Control value={name} onChange={onNameChange} 
@@ -99,7 +99,7 @@ function ItemEditor(props) {
             required ref={nameInput}/>
           <Form.Control.Feedback type="invalid">
             Name cannot be blank nor have white spaces on the edges
-            </Form.Control.Feedback>            
+          </Form.Control.Feedback>            
         </Form.Group>
 
         <Form.Group className="mb-3" controlId="itemHost">
@@ -109,7 +109,7 @@ function ItemEditor(props) {
             required ref={hostInput}/>
           <Form.Control.Feedback type="invalid">
             Host cannot be blank nor have white spaces on the edges
-            </Form.Control.Feedback>
+          </Form.Control.Feedback>
         </Form.Group>
 
         <Form.Group className="mb-3" controlId="itemPort">
@@ -119,7 +119,7 @@ function ItemEditor(props) {
             min="1" max="65535" ref={portInput}/>
           <Form.Control.Feedback type="invalid">
             Port must be an integer between 1 and 65535
-            </Form.Control.Feedback>            
+          </Form.Control.Feedback>           
         </Form.Group>
 
         <Form.Group className="mb-3" controlId="itemSlave">
@@ -129,7 +129,7 @@ function ItemEditor(props) {
             min="1" max="31" ref={slaveInput}/>
           <Form.Control.Feedback type="invalid">
             Slave must be an integer between 1 and 31
-            </Form.Control.Feedback>            
+          </Form.Control.Feedback>            
         </Form.Group>
       </Form>
       </Modal.Body>

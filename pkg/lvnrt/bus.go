@@ -14,15 +14,6 @@ type busQueryDso struct {
 	request string
 }
 
-func slaveId(slave uint) string {
-	ids := "123456789ABCDEFGHIJKLMNOPQRSTUV"
-	if slave > 0 && slave < 32 {
-		return ids[slave-1 : slave]
-	}
-	PanicLN("invalid slave", slave)
-	return "invalid"
-}
-
 func NewBus(rt Runtime) Dispatch {
 	dispose := NopAction
 	log := PrefixLogger(rt.Log, "bus")
@@ -60,51 +51,6 @@ func NewBus(rt Runtime) Dispatch {
 			}
 			rt.Post("self", mut)
 		}
-		next := func(request string) string {
-			switch request {
-			case "read-value":
-				return "read-value"
-			case "read-peak":
-				return "read-peak"
-			case "read-valley":
-				return "read-valley"
-			case "reset-peak":
-				return "read-peak"
-			case "reset-valley":
-				return "read-valley"
-			case "apply-tara":
-				return "read-value"
-			case "reset-tara":
-				return "read-value"
-			case "reset-cold":
-				return "read-value"
-			}
-			PanicLN("invalid request", request)
-			return "invalid"
-		}
-		command := func(request string, slave uint) string {
-			id := slaveId(slave)
-			switch request {
-			case "read-value":
-				return fmt.Sprintf("*%vB1", id)
-			case "read-peak":
-				return fmt.Sprintf("*%vB2", id)
-			case "read-valley":
-				return fmt.Sprintf("*%vB3", id)
-			case "reset-peak":
-				return fmt.Sprintf("*%vC3", id)
-			case "reset-valley":
-				return fmt.Sprintf("*%vC9", id)
-			case "apply-tara":
-				return fmt.Sprintf("*%vCA", id)
-			case "reset-tara":
-				return fmt.Sprintf("*%vCB", id)
-			case "reset-cold":
-				return fmt.Sprintf("*%vC0", id)
-			}
-			PanicLN("invalid request", request)
-			return "invalid"
-		}
 		dispose = func() {
 			close(exit)
 		}
@@ -130,7 +76,7 @@ func NewBus(rt Runtime) Dispatch {
 				//FIXME 20210814T013131.279 warn bus 127.0.0.1:54496 recover interface conversion: interface {} is nil, not *lvnrt.busQueryDso goroutine 39 [running]:
 				query := element.Value.(*busQueryDso)
 				queries.Remove(element)
-				request := next(query.request)
+				request := busNextRequest(query.request)
 				push(query.sid, query.slave, request)
 				busy = true
 				queue <- query
@@ -174,7 +120,7 @@ func NewBus(rt Runtime) Dispatch {
 				case <-exit:
 					return true
 				case query := <-queue:
-					cmd := command(query.request, query.slave)
+					cmd := busRequestCode(query.request, query.slave)
 					err := socket.Discard(discardms)
 					TraceIfError(log.Trace, err)
 					if err != nil {
@@ -237,4 +183,60 @@ func NewBus(rt Runtime) Dispatch {
 		go loop()
 	}
 	return MapDispatch(log, dispatchs)
+}
+
+func busSlaveId(slave uint) string {
+	ids := "123456789ABCDEFGHIJKLMNOPQRSTUV"
+	if slave > 0 && slave < 32 {
+		return ids[slave-1 : slave]
+	}
+	PanicLN("invalid slave", slave)
+	return "invalid"
+}
+
+func busRequestCode(request string, slave uint) string {
+	id := busSlaveId(slave)
+	switch request {
+	case "read-value":
+		return fmt.Sprintf("*%vB1", id)
+	case "read-peak":
+		return fmt.Sprintf("*%vB2", id)
+	case "read-valley":
+		return fmt.Sprintf("*%vB3", id)
+	case "reset-peak":
+		return fmt.Sprintf("*%vC3", id)
+	case "reset-valley":
+		return fmt.Sprintf("*%vC9", id)
+	case "apply-tara":
+		return fmt.Sprintf("*%vCA", id)
+	case "reset-tara":
+		return fmt.Sprintf("*%vCB", id)
+	case "reset-cold":
+		return fmt.Sprintf("*%vC0", id)
+	}
+	PanicLN("invalid request", request)
+	return "invalid"
+}
+
+func busNextRequest(request string) string {
+	switch request {
+	case "read-value":
+		return "read-value"
+	case "read-peak":
+		return "read-peak"
+	case "read-valley":
+		return "read-valley"
+	case "reset-peak":
+		return "read-peak"
+	case "reset-valley":
+		return "read-valley"
+	case "apply-tara":
+		return "read-value"
+	case "reset-tara":
+		return "read-value"
+	case "reset-cold":
+		return "read-value"
+	}
+	PanicLN("invalid request", request)
+	return "invalid"
 }

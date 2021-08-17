@@ -30,7 +30,7 @@ func TestRtStateBasic(t *testing.T) {
 		Index:   0,
 		Request: "read-value",
 	}})
-	to.MatchWait(t, 200, "trace", "bus-1", "{query,tid,&{1 read-value }}")
+	to.MatchWait(t, 200, "trace", "bus-1", "{query,tid,&{1 read-value")
 	disp(&Mutation{Name: "remove", Sid: "tid"})
 	to.MatchWait(t, 200, "trace", "bus-1", "{slave,tid,&{1 0}}")
 	to.MatchWait(t, 200, "trace", "bus-1", "{dispose,tid,")

@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRtBusBasic(t *testing.T) {
+func TestRtBusDpm(t *testing.T) {
 	to := NewTestOutput()
 	defer to.Close()
 	log := to.Logger()
@@ -39,47 +39,49 @@ func TestRtBusBasic(t *testing.T) {
 			Count: 1,
 		}))
 		//first one repeats (should only happen with echo test server)
-		to.MatchWait(t, 200, "trace", "dpm", "true", fmt.Sprintf(".%vB1.0D.", slaveId(uint(i))))
+		to.MatchWait(t, 200, "trace", "dpm", "true", fmt.Sprintf(".%vB1.0D.", busSlaveId(uint(i))))
+		to.MatchWait(t, 200, "trace", "hub", fmt.Sprintf("read-value .%vB1", busSlaveId(uint(i))))
 	}
 	for i := 1; i < 32; i++ {
 		disp(M("query", "tid", &QueryArgs{
 			Index:   uint(i),
 			Request: "reset-peak",
 		}))
-		to.MatchWait(t, 200, "trace", "dpm", "false", fmt.Sprintf(".%vC3.0D.", slaveId(uint(i))))
-		to.MatchWait(t, 200, "trace", "dpm", "true", fmt.Sprintf(".%vB2.0D.", slaveId(uint(i))))
+		//lack of order warranty prevents from testing hub as well
+		to.MatchWait(t, 200, "trace", "dpm", "false", fmt.Sprintf(".%vC3.0D.", busSlaveId(uint(i))))
+		to.MatchWait(t, 200, "trace", "dpm", "true", fmt.Sprintf(".%vB2.0D.", busSlaveId(uint(i))))
 	}
 	for i := 1; i < 32; i++ {
 		disp(M("query", "tid", &QueryArgs{
 			Index:   uint(i),
 			Request: "reset-valley",
 		}))
-		to.MatchWait(t, 200, "trace", "dpm", "false", fmt.Sprintf(".%vC9.0D.", slaveId(uint(i))))
-		to.MatchWait(t, 200, "trace", "dpm", "true", fmt.Sprintf(".%vB3.0D.", slaveId(uint(i))))
+		to.MatchWait(t, 200, "trace", "dpm", "false", fmt.Sprintf(".%vC9.0D.", busSlaveId(uint(i))))
+		to.MatchWait(t, 200, "trace", "dpm", "true", fmt.Sprintf(".%vB3.0D.", busSlaveId(uint(i))))
 	}
 	for i := 1; i < 32; i++ {
 		disp(M("query", "tid", &QueryArgs{
 			Index:   uint(i),
 			Request: "apply-tara",
 		}))
-		to.MatchWait(t, 200, "trace", "dpm", "false", fmt.Sprintf(".%vCA.0D.", slaveId(uint(i))))
-		to.MatchWait(t, 200, "trace", "dpm", "true", fmt.Sprintf(".%vB1.0D.", slaveId(uint(i))))
+		to.MatchWait(t, 200, "trace", "dpm", "false", fmt.Sprintf(".%vCA.0D.", busSlaveId(uint(i))))
+		to.MatchWait(t, 200, "trace", "dpm", "true", fmt.Sprintf(".%vB1.0D.", busSlaveId(uint(i))))
 	}
 	for i := 1; i < 32; i++ {
 		disp(M("query", "tid", &QueryArgs{
 			Index:   uint(i),
 			Request: "reset-tara",
 		}))
-		to.MatchWait(t, 200, "trace", "dpm", "false", fmt.Sprintf(".%vCB.0D.", slaveId(uint(i))))
-		to.MatchWait(t, 200, "trace", "dpm", "true", fmt.Sprintf(".%vB1.0D.", slaveId(uint(i))))
+		to.MatchWait(t, 200, "trace", "dpm", "false", fmt.Sprintf(".%vCB.0D.", busSlaveId(uint(i))))
+		to.MatchWait(t, 200, "trace", "dpm", "true", fmt.Sprintf(".%vB1.0D.", busSlaveId(uint(i))))
 	}
 	for i := 1; i < 32; i++ {
 		disp(M("query", "tid", &QueryArgs{
 			Index:   uint(i),
 			Request: "reset-cold",
 		}))
-		to.MatchWait(t, 200, "trace", "dpm", "false", fmt.Sprintf(".%vC0.0D.", slaveId(uint(i))))
-		to.MatchWait(t, 200, "trace", "dpm", "true", fmt.Sprintf(".%vB1.0D.", slaveId(uint(i))))
+		to.MatchWait(t, 200, "trace", "dpm", "false", fmt.Sprintf(".%vC0.0D.", busSlaveId(uint(i))))
+		to.MatchWait(t, 200, "trace", "dpm", "true", fmt.Sprintf(".%vB1.0D.", busSlaveId(uint(i))))
 	}
 	for i := 1; i < 32; i++ {
 		disp(M("slave", "tid", &SlaveArgs{
@@ -97,35 +99,35 @@ func TestRtBusBasic(t *testing.T) {
 }
 
 func TestRtSlaveId(t *testing.T) {
-	assert.Equal(t, "1", slaveId(1))
-	assert.Equal(t, "2", slaveId(2))
-	assert.Equal(t, "3", slaveId(3))
-	assert.Equal(t, "4", slaveId(4))
-	assert.Equal(t, "5", slaveId(5))
-	assert.Equal(t, "6", slaveId(6))
-	assert.Equal(t, "7", slaveId(7))
-	assert.Equal(t, "8", slaveId(8))
-	assert.Equal(t, "9", slaveId(9))
-	assert.Equal(t, "A", slaveId(10))
-	assert.Equal(t, "B", slaveId(11))
-	assert.Equal(t, "C", slaveId(12))
-	assert.Equal(t, "D", slaveId(13))
-	assert.Equal(t, "E", slaveId(14))
-	assert.Equal(t, "F", slaveId(15))
-	assert.Equal(t, "G", slaveId(16))
-	assert.Equal(t, "H", slaveId(17))
-	assert.Equal(t, "I", slaveId(18))
-	assert.Equal(t, "J", slaveId(19))
-	assert.Equal(t, "K", slaveId(20))
-	assert.Equal(t, "L", slaveId(21))
-	assert.Equal(t, "M", slaveId(22))
-	assert.Equal(t, "N", slaveId(23))
-	assert.Equal(t, "O", slaveId(24))
-	assert.Equal(t, "P", slaveId(25))
-	assert.Equal(t, "Q", slaveId(26))
-	assert.Equal(t, "R", slaveId(27))
-	assert.Equal(t, "S", slaveId(28))
-	assert.Equal(t, "T", slaveId(29))
-	assert.Equal(t, "U", slaveId(30))
-	assert.Equal(t, "V", slaveId(31))
+	assert.Equal(t, "1", busSlaveId(1))
+	assert.Equal(t, "2", busSlaveId(2))
+	assert.Equal(t, "3", busSlaveId(3))
+	assert.Equal(t, "4", busSlaveId(4))
+	assert.Equal(t, "5", busSlaveId(5))
+	assert.Equal(t, "6", busSlaveId(6))
+	assert.Equal(t, "7", busSlaveId(7))
+	assert.Equal(t, "8", busSlaveId(8))
+	assert.Equal(t, "9", busSlaveId(9))
+	assert.Equal(t, "A", busSlaveId(10))
+	assert.Equal(t, "B", busSlaveId(11))
+	assert.Equal(t, "C", busSlaveId(12))
+	assert.Equal(t, "D", busSlaveId(13))
+	assert.Equal(t, "E", busSlaveId(14))
+	assert.Equal(t, "F", busSlaveId(15))
+	assert.Equal(t, "G", busSlaveId(16))
+	assert.Equal(t, "H", busSlaveId(17))
+	assert.Equal(t, "I", busSlaveId(18))
+	assert.Equal(t, "J", busSlaveId(19))
+	assert.Equal(t, "K", busSlaveId(20))
+	assert.Equal(t, "L", busSlaveId(21))
+	assert.Equal(t, "M", busSlaveId(22))
+	assert.Equal(t, "N", busSlaveId(23))
+	assert.Equal(t, "O", busSlaveId(24))
+	assert.Equal(t, "P", busSlaveId(25))
+	assert.Equal(t, "Q", busSlaveId(26))
+	assert.Equal(t, "R", busSlaveId(27))
+	assert.Equal(t, "S", busSlaveId(28))
+	assert.Equal(t, "T", busSlaveId(29))
+	assert.Equal(t, "U", busSlaveId(30))
+	assert.Equal(t, "V", busSlaveId(31))
 }
