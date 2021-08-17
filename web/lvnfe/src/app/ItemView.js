@@ -9,25 +9,25 @@ import ItemDisplay from "./ItemDisplay"
 import socket from "../socket"
 import env from "../environ"
 
-function ItemControl(props) {
+function ItemView(props) {
 
-  function reducer(state, {name, args, session}) {
-    switch(name){
+  function reducer(state, { name, args, session }) {
+    switch (name) {
       case "query": {
-        const next = {...state}
+        const next = { ...state }
         next.query = args
         return next
-      } 
+      }
       case "close": {
-        const next = {...state}
+        const next = { ...state }
         next.send = socket.send
         return next
-      } 
+      }
       case "send": {
-        const next = {...state}
+        const next = { ...state }
         next.send = args
         return next
-      } 
+      }
       default:
         env.log("Unknown mutation", name, args, session)
         return state
@@ -42,17 +42,17 @@ function ItemControl(props) {
   const [state, dispatch] = useReducer(reducer, initial)
 
   useEffect(() => {
-    function handler({name, args, session}) {
-      dispatch({name, args, session})
-      switch(name){
+    function handler({ name, args, session }) {
+      dispatch({ name, args, session })
+      switch (name) {
         case "send": {
           const name = "setup"
           const json = props.item.json
           const item = JSON.parse(json)
           const items = [item]
-          args({name, args: {items}})
+          args({ name, args: { items } })
           break
-        } 
+        }
         default: //linter complains
       }
     }
@@ -63,36 +63,36 @@ function ItemControl(props) {
     const name = "query"
     const index = 0
     const response = ""
-    const args = {index, request, response}
-    state.send({name, args})
+    const args = { index, request, response }
+    state.send({ name, args })
   }
 
   function handleHide() {
     const action = "cancel"
-    props.handler({action})
+    props.handler({ action })
   }
 
   return (
-    <Modal show={props.show} onHide={handleHide} centered>
+    <Modal show={props.show} onHide={handleHide} backdrop="static" centered>
       <Modal.Header closeButton>
         <Modal.Title>{props.item.name}</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-      <ItemDisplay query={state.query}/>
+        <ItemDisplay query={state.query} />
       </Modal.Body>
       <Modal.Footer>
         <Button variant="success" onClick={() => handleQuery("read-value")}>Value</Button>
         <ButtonGroup>
-        <Button variant="success" onClick={() => handleQuery("read-peak")}>Peak</Button>
-        <Button variant="dark" onClick={() => handleQuery("reset-peak")}>Reset</Button>
+          <Button variant="success" onClick={() => handleQuery("read-peak")}>Peak</Button>
+          <Button variant="dark" onClick={() => handleQuery("reset-peak")}>Reset</Button>
         </ButtonGroup>
         <ButtonGroup>
-        <Button variant="success" onClick={() => handleQuery("read-valley")}>Valley</Button>
-        <Button variant="dark" onClick={() => handleQuery("reset-valley")}>Reset</Button>
+          <Button variant="success" onClick={() => handleQuery("read-valley")}>Valley</Button>
+          <Button variant="dark" onClick={() => handleQuery("reset-valley")}>Reset</Button>
         </ButtonGroup>
         <ButtonGroup>
-        <Button variant="success" onClick={() => handleQuery("apply-tara")}>Tara</Button>
-        <Button variant="dark" onClick={() => handleQuery("reset-tara")}>Reset</Button>
+          <Button variant="success" onClick={() => handleQuery("apply-tara")}>Tara</Button>
+          <Button variant="dark" onClick={() => handleQuery("reset-tara")}>Reset</Button>
         </ButtonGroup>
         <Button variant="dark" onClick={() => handleQuery("reset-cold")}>Cold Reset</Button>
       </Modal.Footer>
@@ -100,4 +100,4 @@ function ItemControl(props) {
   )
 }
 
-export default ItemControl
+export default ItemView

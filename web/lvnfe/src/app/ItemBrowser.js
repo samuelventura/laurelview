@@ -14,12 +14,12 @@ import Navbar from 'react-bootstrap/Navbar';
 
 import ItemEditor from "./ItemEditor"
 import ItemDelete from "./ItemDelete"
-import ItemControl from "./ItemControl"
+import ItemView from "./ItemView"
 
 import env from "../environ"
 
 function ItemBrowser(props) {
-  
+
   const [filter, setFilter] = useState("")
   const [sort, setSort] = useState("asc")
 
@@ -44,7 +44,7 @@ function ItemBrowser(props) {
   }, [props]);
 
   function onFilterKeyPress(e) {
-    if(e.key === 'Enter') {
+    if (e.key === 'Enter') {
       onSearchClick()
     }
   }
@@ -53,7 +53,7 @@ function ItemBrowser(props) {
   //use X icon to reset filter instead
   //Escape not captured as keyPress
   function onFilterKeyUp(e) {
-    if(e.key === 'Escape') {
+    if (e.key === 'Escape') {
       setFilter("")
     }
   }
@@ -82,8 +82,7 @@ function ItemBrowser(props) {
     setShowUpdate(false)
     setShowDelete(false)
     setShowView(false)
-    switch(action)
-    {
+    switch (action) {
       case "create":
         setShowCreate(true)
         break
@@ -106,24 +105,24 @@ function ItemBrowser(props) {
     }
   }
 
-  function handleActions({action, args}) {
-    switch(action) {
+  function handleActions({ action, args }) {
+    switch (action) {
       case "cancel":
         showDialog("none")
         break;
       case "create": {
         const name = "create"
-        props.dispatch({name, args})
+        props.dispatch({ name, args })
         break;
       }
       case "update": {
         const name = "update"
-        props.dispatch({name, args})
+        props.dispatch({ name, args })
         break;
       }
       case "delete": {
         const name = "delete"
-        props.dispatch({name, args})
+        props.dispatch({ name, args })
         break;
       }
       default:
@@ -134,31 +133,31 @@ function ItemBrowser(props) {
   function viewItems() {
     const f = filter.toLowerCase()
     const list = Object.values(props.state.items)
-    const filtered = list.filter(item => 
+    const filtered = list.filter(item =>
       item.name.toLowerCase().includes(f))
-    switch(sort) {
+    switch (sort) {
       case "asc":
-        return filtered.sort((i1, i2) => 
-          i1.name.localeCompare(i2.name))    
+        return filtered.sort((i1, i2) =>
+          i1.name.localeCompare(i2.name))
       case "desc":
-        return filtered.sort((i1, i2) => 
-          i2.name.localeCompare(i1.name))    
+        return filtered.sort((i1, i2) =>
+          i2.name.localeCompare(i1.name))
       default:
-        return filtered 
-    }     
+        return filtered
+    }
   }
 
-  const rows = viewItems().map(item => 
+  const rows = viewItems().map(item =>
     <tr key={item.id}>
       <td>{item.name}</td>
       <td>
         <ButtonGroup>
-        <Button onClick={() => showDialog("view", item)} 
-          ref={sortUpInput} variant="outline-secondary" size="sm">View</Button>        
-        <Button onClick={() => showDialog("update", item)} 
-          ref={sortUpInput} variant="outline-primary" size="sm">Edit</Button>        
-        <Button onClick={() => showDialog("delete", item)} 
-          ref={sortDownInput} variant="outline-danger" size="sm">Delete</Button>
+          <Button onClick={() => showDialog("view", item)}
+            ref={sortUpInput} variant="outline-secondary" size="sm">View</Button>
+          <Button onClick={() => showDialog("update", item)}
+            ref={sortUpInput} variant="outline-primary" size="sm">Edit</Button>
+          <Button onClick={() => showDialog("delete", item)}
+            ref={sortDownInput} variant="outline-danger" size="sm">Delete</Button>
         </ButtonGroup>
       </td>
     </tr>
@@ -166,7 +165,7 @@ function ItemBrowser(props) {
 
   function control(show) {
     if (show) {
-      return <ItemControl show={showView} item={itemSelected} handler={handleActions}/>
+      return <ItemView show={showView} item={itemSelected} handler={handleActions} />
     }
   }
 
@@ -174,44 +173,44 @@ function ItemBrowser(props) {
     <Container>
 
       <Navbar >
-      <Navbar.Brand>Laurel View</Navbar.Brand>
-      <Navbar.Toggle aria-controls="navbarScroll" />
-      <Navbar.Collapse id="navbarScroll">
+        <Navbar.Brand>Laurel View</Navbar.Brand>
+        <Navbar.Toggle aria-controls="navbarScroll" />
+        <Navbar.Collapse id="navbarScroll">
 
-      <Form className="d-flex">
-      <InputGroup>
-      <InputGroup.Text><FontAwesomeIcon icon={faSearch} /></InputGroup.Text>
-      <Form.Control value={filter} onChange={onFilterChange} 
-            onKeyPress={onFilterKeyPress} onKeyUp={onFilterKeyUp} 
-            placeholder="Filter..."  type="text" ref={filterInput}/>
-      <Button onClick={onSearchClick} variant="outline-secondary">Search</Button>
-      <Button onClick={onClearClick} variant="outline-secondary">Clear</Button>
-      </InputGroup>
-      </Form>
-      </Navbar.Collapse>
-      <Navbar.Collapse className="justify-content-end">
-      <Button variant="success" onClick={() => showDialog("create")}>New...</Button>
-      <ItemEditor show={showCreate} item={{}} handler={handleActions} action="create" title="Add New" button="Add New"/>
-      <ItemEditor show={showUpdate} item={itemSelected} handler={handleActions} action="update" title="Update" button="Update"/>
-      <ItemDelete show={showDelete} item={itemSelected} handler={handleActions} action="delete"/>
-      { control(showView) }
-      </Navbar.Collapse>
+          <Form className="d-flex">
+            <InputGroup>
+              <InputGroup.Text><FontAwesomeIcon icon={faSearch} /></InputGroup.Text>
+              <Form.Control value={filter} onChange={onFilterChange}
+                onKeyPress={onFilterKeyPress} onKeyUp={onFilterKeyUp}
+                placeholder="Filter..." type="text" ref={filterInput} />
+              <Button onClick={onSearchClick} variant="outline-secondary">Search</Button>
+              <Button onClick={onClearClick} variant="outline-secondary">Clear</Button>
+            </InputGroup>
+          </Form>
+        </Navbar.Collapse>
+        <Navbar.Collapse className="justify-content-end">
+          <Button variant="success" onClick={() => showDialog("create")}>New...</Button>
+          <ItemEditor show={showCreate} item={{}} handler={handleActions} action="create" title="Add New" button="Add New" />
+          <ItemEditor show={showUpdate} item={itemSelected} handler={handleActions} action="update" title="Update" button="Update" />
+          <ItemDelete show={showDelete} item={itemSelected} handler={handleActions} action="delete" />
+          {control(showView)}
+        </Navbar.Collapse>
       </Navbar>
 
       <Table striped bordered hover>
         <thead>
           <tr>
             <th>Name {' '}
-            <Button onClick={()=> handleSortChange("asc")} variant="link" size="sm">
-              <FontAwesomeIcon icon={faArrowUp} /></Button>
-            <Button onClick={()=> handleSortChange("desc")} variant="link" size="sm">
-              <FontAwesomeIcon icon={faArrowDown} /></Button>
+              <Button onClick={() => handleSortChange("asc")} variant="link" size="sm">
+                <FontAwesomeIcon icon={faArrowUp} /></Button>
+              <Button onClick={() => handleSortChange("desc")} variant="link" size="sm">
+                <FontAwesomeIcon icon={faArrowDown} /></Button>
             </th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-        {rows}
+          {rows}
         </tbody>
       </Table>
     </Container>

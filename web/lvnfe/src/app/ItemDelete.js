@@ -4,17 +4,17 @@ import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 
 function ItemDelete(props) {
-  
+
   function handleHide() {
     const action = "cancel"
-    props.handler({action})
+    props.handler({ action })
   }
 
   function handleAction() {
     const action = "delete"
     const id = props.item.id
-    const args = {id}
-    props.handler({action, args})
+    const args = { id }
+    props.handler({ action, args })
     handleHide()
   }
 
@@ -24,7 +24,7 @@ function ItemDelete(props) {
         <Modal.Title>Caution</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-      <p>Delete item <b>{props.item.name}</b>?</p>
+        <p>Delete item <b>{props.item.name}</b>?</p>
       </Modal.Body>
       <Modal.Footer>
         <Button variant="secondary" onClick={handleHide}>Close</Button>

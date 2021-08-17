@@ -17,6 +17,8 @@ func environDefault(name string, defval string) {
 	if len(strings.TrimSpace(val)) == 0 {
 		logger.Info("Setting default ", name, "=", defval)
 		os.Setenv(name, defval)
+	} else {
+		logger.Info("Found environ ", name, "=", val)
 	}
 }
 

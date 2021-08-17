@@ -1,5 +1,11 @@
 #!/bin/sh -x
 
+[ ! -d "web/lvnfe/node_modules" ] && (cd web/lvnfe; npm i)
+(cd web/lvnfe; npm run build)
+rm -fr pkg/lvnbe/build
+mkdir -p pkg/lvnbe/build
+touch pkg/lvnbe/build/.empty
+cp -fr web/lvnfe/build pkg/lvnbe/
 MOD="github.com/samuelventura/laurelview"
 #go get github.com/akavel/rsrc
 rsrc -ico icon.ico -o build/rsrc.syso
