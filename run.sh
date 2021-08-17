@@ -12,6 +12,6 @@ mkfifo /tmp/lvdpm.fifo #keep lvdpm stdin open
 go install $MOD/cmd/lvdpm && (tail -f /tmp/lvdpm.fifo | lvdpm > /tmp/lvdpm.log) &
 go install $MOD/cmd/lvnbe
 go install $MOD/cmd/lvnrt
-go install $MOD/cmd/lvnsd && lvnsd > /tmp/lvnsd.log
+go install $MOD/cmd/lvnss && lvnss > /tmp/lvnss.log
 trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
 wait

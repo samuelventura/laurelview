@@ -5,7 +5,7 @@
 ```bash
 pkg/lvnbe #node backend testeable package
 cmd/lvnbe #node backend executable
-cmd/lvnsd #node system daemon
+cmd/lvnss #node system service
 cmd/lvcbe #cloud backend executable
 web/lvnfe #node frontend
 web/lvcfe #cloud frontend
