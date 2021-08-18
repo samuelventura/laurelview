@@ -12,6 +12,7 @@ import Form from 'react-bootstrap/Form';
 import InputGroup from 'react-bootstrap/InputGroup';
 import Navbar from 'react-bootstrap/Navbar';
 
+import ItemMultiView from "./ItemMultiView"
 import ItemEditor from "./ItemEditor"
 import ItemDelete from "./ItemDelete"
 import ItemView from "./ItemView"
@@ -20,6 +21,7 @@ import env from "../environ"
 
 function ItemBrowser(props) {
 
+  const [selected, setSelected] = useState({})
   const [filter, setFilter] = useState("")
   const [sort, setSort] = useState("asc")
 
@@ -28,6 +30,7 @@ function ItemBrowser(props) {
   const [showDelete, setShowDelete] = useState(false)
   const [showView, setShowView] = useState(false)
   const [itemSelected, setItemSelected] = useState({})
+  const [showMultiView, setShowMultiView] = useState(false)
 
   const sortUpInput = useRef(null);
   const sortDownInput = useRef(null);
@@ -71,13 +74,13 @@ function ItemBrowser(props) {
   }
 
   function handleSortChange(value) {
-    //FIXME blur not working
     sortUpInput.current.blur()
     sortDownInput.current.blur()
     setSort(value)
   }
 
   function showDialog(action, item) {
+    setShowMultiView(false)
     setShowCreate(false)
     setShowUpdate(false)
     setShowDelete(false)
@@ -97,6 +100,9 @@ function ItemBrowser(props) {
       case "view":
         setItemSelected(item)
         setShowView(true)
+        break
+      case "multiview":
+        setShowMultiView(true)
         break
       case "none":
         break
@@ -129,6 +135,17 @@ function ItemBrowser(props) {
         env.log("Unknown action", action, args)
     }
   }
+  
+  function onSelectedChange(e, item) {
+    const next = {...selected}
+    next[item.id] = e.target.checked
+    setSelected(next)
+  }
+
+  function selectedItems() {
+    const items = viewItems()
+    return items.filter(item => selected[item.id])
+  }
 
   function viewItems() {
     const f = filter.toLowerCase()
@@ -149,23 +166,41 @@ function ItemBrowser(props) {
 
   const rows = viewItems().map(item =>
     <tr key={item.id}>
-      <td>{item.name}</td>
+      <td>
+        <Form.Check type="checkbox" label={item.name} 
+          value={item.selected} onChange={(e) => onSelectedChange(e, item)}></Form.Check>
+      </td>
       <td>
         <ButtonGroup>
           <Button onClick={() => showDialog("view", item)}
-            ref={sortUpInput} variant="outline-secondary" size="sm">View</Button>
+            variant="link" size="sm">View</Button>
           <Button onClick={() => showDialog("update", item)}
-            ref={sortUpInput} variant="outline-primary" size="sm">Edit</Button>
+            variant="link" size="sm">Edit</Button>
           <Button onClick={() => showDialog("delete", item)}
-            ref={sortDownInput} variant="outline-danger" size="sm">Delete</Button>
+            variant="link" size="sm">Delete</Button>
         </ButtonGroup>
       </td>
     </tr>
   )
 
-  function control(show) {
+  function view(show) {
     if (show) {
       return <ItemView show={showView} item={itemSelected} handler={handleActions} />
+    }
+  }
+
+  function multibutton() {
+    const items = selectedItems()
+    if (items.length > 0) {
+      return <Button onClick={() => showDialog("multiview")}
+        variant="link" size="sm">Multi View</Button>
+    }
+  }
+
+  function multiview(show) {
+    const items = selectedItems()
+    if (show && items.length > 0) {
+      return <ItemMultiView show={showMultiView} items={items} handler={handleActions}/>
     }
   }
 
@@ -193,20 +228,23 @@ function ItemBrowser(props) {
           <ItemEditor show={showCreate} item={{}} handler={handleActions} action="create" title="Add New" button="Add New" />
           <ItemEditor show={showUpdate} item={itemSelected} handler={handleActions} action="update" title="Update" button="Update" />
           <ItemDelete show={showDelete} item={itemSelected} handler={handleActions} action="delete" />
-          {control(showView)}
+          {view(showView)}
+          {multiview(showMultiView)}
         </Navbar.Collapse>
       </Navbar>
 
       <Table striped bordered hover>
         <thead>
           <tr>
-            <th>Name {' '}
-              <Button onClick={() => handleSortChange("asc")} variant="link" size="sm">
+            <th>Name &nbsp;
+              <Button ref={sortUpInput} onClick={() => handleSortChange("asc")} variant="link" size="sm">
                 <FontAwesomeIcon icon={faArrowUp} /></Button>
-              <Button onClick={() => handleSortChange("desc")} variant="link" size="sm">
+              <Button ref={sortDownInput}  onClick={() => handleSortChange("desc")} variant="link" size="sm">
                 <FontAwesomeIcon icon={faArrowDown} /></Button>
             </th>
-            <th>Actions</th>
+            <th>
+              Actions {multibutton()}
+            </th>
           </tr>
         </thead>
         <tbody>

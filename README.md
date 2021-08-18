@@ -21,6 +21,7 @@ web/lvnfe #node react frontend
 - Cross platform service https://github.com/kardianos/service
 - Windows installer https://github.com/mh-cbon/go-msi
 - TCP with slave support
+- Multi Laurel view
 - Favicon
 
 ## v0.0.2
@@ -28,7 +29,6 @@ web/lvnfe #node react frontend
 - Branding
 - Serial Port
 - Realtime Plot 
-- Multi Laurel view
 - HTTPS certificate
 - https://laurelview.io
 - Link node Laurels to cloud
