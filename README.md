@@ -22,7 +22,8 @@ web/lvnfe #node react frontend
 - Windows installer https://github.com/mh-cbon/go-msi
 - TCP with slave support
 - Multi Laurel view
-- Favicon
+- Banner and favicon
+- Fit cell screen size
 
 ## v0.0.2
 
@@ -31,5 +32,6 @@ web/lvnfe #node react frontend
 - Realtime Plot 
 - HTTPS certificate
 - https://laurelview.io
+- First dpm duplicate update
 - Link node Laurels to cloud
 - Executable version https://github.com/josephspurrier/goversioninfo

@@ -135,9 +135,9 @@ function ItemBrowser(props) {
         env.log("Unknown action", action, args)
     }
   }
-  
+
   function onSelectedChange(e, item) {
-    const next = {...selected}
+    const next = { ...selected }
     next[item.id] = e.target.checked
     setSelected(next)
   }
@@ -167,7 +167,7 @@ function ItemBrowser(props) {
   const rows = viewItems().map(item =>
     <tr key={item.id}>
       <td>
-        <Form.Check type="checkbox" label={item.name} 
+        <Form.Check type="checkbox" label={item.name}
           value={item.selected} onChange={(e) => onSelectedChange(e, item)}></Form.Check>
       </td>
       <td>
@@ -200,7 +200,7 @@ function ItemBrowser(props) {
   function multiview(show) {
     const items = selectedItems()
     if (show && items.length > 0) {
-      return <ItemMultiView show={showMultiView} items={items} handler={handleActions}/>
+      return <ItemMultiView show={showMultiView} items={items} handler={handleActions} />
     }
   }
 
@@ -208,7 +208,13 @@ function ItemBrowser(props) {
     <Container>
 
       <Navbar >
-        <Navbar.Brand>Laurel View</Navbar.Brand>
+        <Navbar.Brand><img height="48px" src="banner.png" alt="Laurel View" /></Navbar.Brand>
+        <Navbar.Collapse className="justify-content-end">
+          <Button variant="success" onClick={() => showDialog("create")}>New...</Button>
+        </Navbar.Collapse>
+      </Navbar>
+
+      <Navbar >
         <Navbar.Toggle aria-controls="navbarScroll" />
         <Navbar.Collapse id="navbarScroll">
 
@@ -224,7 +230,6 @@ function ItemBrowser(props) {
           </Form>
         </Navbar.Collapse>
         <Navbar.Collapse className="justify-content-end">
-          <Button variant="success" onClick={() => showDialog("create")}>New...</Button>
           <ItemEditor show={showCreate} item={{}} handler={handleActions} action="create" title="Add New" button="Add New" />
           <ItemEditor show={showUpdate} item={itemSelected} handler={handleActions} action="update" title="Update" button="Update" />
           <ItemDelete show={showDelete} item={itemSelected} handler={handleActions} action="delete" />
@@ -239,7 +244,7 @@ function ItemBrowser(props) {
             <th>Name &nbsp;
               <Button ref={sortUpInput} onClick={() => handleSortChange("asc")} variant="link" size="sm">
                 <FontAwesomeIcon icon={faArrowUp} /></Button>
-              <Button ref={sortDownInput}  onClick={() => handleSortChange("desc")} variant="link" size="sm">
+              <Button ref={sortDownInput} onClick={() => handleSortChange("desc")} variant="link" size="sm">
                 <FontAwesomeIcon icon={faArrowDown} /></Button>
             </th>
             <th>
