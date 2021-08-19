@@ -63,7 +63,9 @@ function ItemMultiView(props) {
   }
 
   function query(index) {
-    return state.queries[index] || {}
+    let q = state.queries[index]
+    q = q || {}
+    q.index = index
   }
 
   const displays = props.items.map((item, i) => {

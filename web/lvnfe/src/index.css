@@ -20,6 +20,8 @@
 }
 
 .display .error {
+    font-size: 1em;
+    font-family: tahoma;
     color: tomato;
 }
 

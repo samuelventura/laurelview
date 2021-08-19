@@ -21,6 +21,10 @@ function ItemDisplay(props) {
     setQuery(props.query)
     setStart(new Date())
     setMillis(0)
+    const q = props.query
+    if (q.error) {
+      console.error(q.index, q.error)
+    }
   }, [props.query])
 
   function elapsed() {
