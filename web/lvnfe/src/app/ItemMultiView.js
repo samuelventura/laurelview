@@ -66,6 +66,7 @@ function ItemMultiView(props) {
     let q = state.queries[index]
     q = q || {}
     q.index = index
+    return q
   }
 
   const displays = props.items.map((item, i) => {

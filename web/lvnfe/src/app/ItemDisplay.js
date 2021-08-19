@@ -1,36 +1,56 @@
-import React, { useState, useEffect } from 'react'
+import React, { useReducer, useEffect } from 'react'
 
 import 'dseg/css/dseg.css';
+import env from "../environ"
 
 function ItemDisplay(props) {
 
-  const [query, setQuery] = useState({});
-  const [start, setStart] = useState(new Date());
-  const [millis, setMillis] = useState(0);
-  const [latency, setLatency] = useState(0);
+  function reducer(state, { name, args }) {
+    switch (name) {
+      case "millis": {
+        const next = { ...state }
+        next.millis = args
+        return next
+      }
+      case "query": {
+        const next = { ...state }
+        next.latency = next.millis
+        next.start = new Date()
+        next.query = args
+        next.millis = 0
+        return next
+      }
+      default:
+        env.log("Unknown mutation", name, args)
+        return state
+    }
+  }
+
+  const initial = {
+    start: new Date(),
+    latency: 0,
+    millis: 0,
+    query: {}
+  }
+
+  const [state, dispatch] = useReducer(reducer, initial)
 
   useEffect(() => {
     const tid = setInterval(()=>{
-      setMillis(elapsed())
-    }, 1)
+      const now = new Date().getTime()
+      const elapsed = now - state.start.getTime()
+      dispatch({name:"millis", args: elapsed})
+    }, 10)
     return () => clearInterval(tid)
-  }, [start])
+  }, [state.start])
 
   useEffect(() => {
-    setLatency(elapsed())
-    setQuery(props.query)
-    setStart(new Date())
-    setMillis(0)
-    const q = props.query
+    const q = props.query || {}
+    dispatch({name:"query", args: q})
     if (q.error) {
-      console.error(q.index, q.error)
+      console.error(q.index, q.error, q)
     }
   }, [props.query])
-
-  function elapsed() {
-    const now = new Date().getTime()
-    return now - start.getTime()
-  }
 
   const requestMap = {
     "read-value": "Value Reading",
@@ -59,21 +79,17 @@ function ItemDisplay(props) {
   }
 
   function timing() {
-    let str = `${latency} ms`
-    if (millis > 1000) {
-      str = `${millis} ! ` + str
-    }
-    return str
+    return `${state.millis} @ ${state.latency} ms`
   }
 
   return (
     <div className="display">
       <div className="top">
         <div className="timing">{timing()}</div>
-        <div className="request">{requestText(query.request)}</div>
+        <div className="request">{requestText(state.query.request)}</div>
       </div>
-      <div className="response">{responseText(query.response)}</div>
-      <div className="error">{query.error}</div>
+      <div className="response">{responseText(state.query.response)}</div>
+      <div className="error">{state.query.error}</div>
     </div>
   )
 }

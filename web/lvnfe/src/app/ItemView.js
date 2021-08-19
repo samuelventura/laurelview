@@ -16,8 +16,7 @@ function ItemView(props) {
       case "query": {
         const next = { ...state }
         next.query = args
-        const index = props.item.index
-        next.query.index = index
+        next.query.index = 0
         return next
       }
       case "close": {
