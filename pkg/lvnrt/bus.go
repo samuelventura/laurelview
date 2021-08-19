@@ -47,7 +47,8 @@ func NewBus(rt Runtime) Dispatch {
 			mut.Args = &StatusArgs{
 				Slave:    fmt.Sprintf("%v:%v:%v", bus.Host, bus.Port, query.slave),
 				Request:  query.request,
-				Response: response, //+ fmt.Sprint(err),
+				Response: response,
+				Error:    ErrorString(err),
 			}
 			rt.Post("self", mut)
 		}

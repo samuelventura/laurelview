@@ -20,12 +20,14 @@ type QueryArgs struct {
 	Response string
 	Count    uint
 	Total    uint
+	Error    string
 }
 
 type StatusArgs struct {
 	Slave    string
 	Request  string
 	Response string
+	Error    string
 }
 
 type BusArgs struct {

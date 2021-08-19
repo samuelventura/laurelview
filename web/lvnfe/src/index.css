@@ -5,13 +5,25 @@
     padding: 1em;
 }
 
-.request {
+.display .top {
     color: gray;
     font-size: 1em;
+    font-family: tahoma;
+}
+
+.display .request {
     text-align: start;
 }
 
-.response {
+.display .timing {
+    float: right;
+}
+
+.display .error {
+    color: tomato;
+}
+
+.display .response {
     color: green;
     font-size: 4em;
     text-align: end;

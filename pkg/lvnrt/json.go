@@ -45,6 +45,7 @@ func decodeMutationEx(bytes []byte, ws bool) (mut *Mutation, err error) {
 		args.Index = parseUint(argm["index"])
 		args.Request = argm["request"].(string)
 		args.Response = maybeString(argm["response"])
+		args.Error = maybeString(argm["error"])
 		args.Count = maybeUint(argm["count"])
 		args.Total = maybeUint(argm["total"])
 		mut.Args = args
@@ -117,6 +118,7 @@ func encodeArgs(name string, argi Any) (argm Map, err error) {
 		argm["index"] = args.Index
 		argm["request"] = args.Request
 		argm["response"] = args.Response
+		argm["error"] = args.Error
 		argm["count"] = args.Count
 		argm["total"] = args.Total
 	default:

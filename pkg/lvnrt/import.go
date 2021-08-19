@@ -30,6 +30,7 @@ var AssertTrue = lvsdk.AssertTrue
 var PanicIfError = lvsdk.PanicIfError
 var TraceRecover = lvsdk.TraceRecover
 var TraceIfError = lvsdk.TraceIfError
+var ErrorString = lvsdk.ErrorString
 var PanicLN = lvsdk.PanicLN
 var PanicF = lvsdk.PanicF
 

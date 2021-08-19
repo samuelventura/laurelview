@@ -6,8 +6,9 @@ import (
 )
 
 type hubSlaveDso struct {
-	request   string
-	response  string
+	lrequest  string
+	lresponse string
+	lerror    string
 	callbacks *list.List
 }
 
@@ -81,6 +82,7 @@ func NewHub(rt Runtime) Dispatch {
 				query.Index = index
 				query.Request = args.Request
 				query.Response = args.Response
+				query.Error = args.Error
 				query.Count = count.Count()
 				query.Total = total.Count()
 				mut.Args = query
@@ -88,8 +90,9 @@ func NewHub(rt Runtime) Dispatch {
 			}
 			args := &StatusArgs{}
 			args.Slave = address
-			args.Request = slave.request
-			args.Response = slave.response
+			args.Request = slave.lrequest
+			args.Response = slave.lresponse
+			args.Error = slave.lerror
 			statuses = append(statuses, func() {
 				callback(sid, args)
 			})
@@ -116,8 +119,9 @@ func NewHub(rt Runtime) Dispatch {
 		args := mut.Args.(*StatusArgs)
 		slave, ok := slaves[args.Slave]
 		if ok {
-			slave.request = args.Request
-			slave.response = args.Response
+			slave.lrequest = args.Request
+			slave.lresponse = args.Response
+			slave.lerror = args.Error
 			element := slave.callbacks.Front()
 			for element != nil {
 				value := element.Value

@@ -3,7 +3,7 @@
 
 #define MyAppId "LaurelView" 
 #define MyAppName "Laurel View"
-#define MyAppVersion "0.0.1"
+#define MyAppVersion "0.0.2"
 #define MyAppPublisher "Samuel Ventura"
 #define MyAppURL "https://github.com/samuelventura/laurelview"
 

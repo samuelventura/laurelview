@@ -8,7 +8,7 @@ export LV_DPM_ENDPOINT="${2:-:5003}"
 MOD="github.com/samuelventura/laurelview"
 mkdir -p pkg/lvnbe/build
 touch pkg/lvnbe/build/.empty
-mkfifo /tmp/lvdpm.fifo #keep lvdpm stdin open
+[[ ! -p "/tmp/lvdpm.fifo" ]] && mkfifo /tmp/lvdpm.fifo #keep lvdpm stdin open
 go install $MOD/cmd/lvdpm && (tail -f /tmp/lvdpm.fifo | lvdpm > /tmp/lvdpm.log) &
 go install $MOD/cmd/lvnbe
 go install $MOD/cmd/lvnrt

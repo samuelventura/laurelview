@@ -38,4 +38,13 @@ web/lvnfe #node react frontend
 - https://laurelview.io
 - First dpm duplicate update
 - Link node Laurels to cloud
+- iPhone bookmark shows react icon
+- Show latency and error in display
 - Executable version https://github.com/josephspurrier/goversioninfo
+
+# Known Laurel Unstabilities
+
+- Cold reset in second daisy chain device (transient errors ~1m50s)
+- Tara/Valley/Peak reset (transiente <400ms)
+- Second connection attempt
+- Connection drop

@@ -38,3 +38,10 @@ func AssertTrue(flag bool, args ...Any) {
 		PanicLN(args...)
 	}
 }
+
+func ErrorString(err error) string {
+	if err != nil {
+		return err.Error()
+	}
+	return ""
+}
