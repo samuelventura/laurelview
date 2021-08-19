@@ -31,6 +31,10 @@ web/lvnfe #node react frontend
 - Serial Port
 - Realtime Plot 
 - HTTPS certificate
+- Progressive PWA
+- MacOS installer
+- Single entry port
+- Kill service test
 - https://laurelview.io
 - First dpm duplicate update
 - Link node Laurels to cloud
