@@ -50,9 +50,10 @@ web/lvnfe #node react frontend
 - iPhone bookmark shows react icon
 - Executable version https://github.com/josephspurrier/goversioninfo
 
-# Known Laurel Unstabilities
+# Networking Issues
 
+- Golang takes ~10 to detect connection drop if panel powered of
 - Cold reset in second daisy chain device (transient errors ~1m50s)
 - Tara/Valley/Peak reset (transiente <400ms)
-- Second connection attempt
+- Second connection attempt makes next connection take ~20s
 - Connection drop

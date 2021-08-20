@@ -161,7 +161,9 @@ func NewBus(rt Runtime) Dispatch {
 							nerr, ok := err.(net.Error)
 							if ok && nerr.Timeout() {
 								//log.Info("TIMEOUT <", cmd)
-								continue
+								//takes 10s to detect drops
+								//continue
+								return false
 							} else {
 								return false
 							}

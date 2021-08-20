@@ -18,9 +18,11 @@ func main() {
 	defer log.Info("exited")
 	defer rt.Close()
 	defer TraceRecover(log.Warn)
-	rt.Setv("bus.dialtoms", int64(800))
-	rt.Setv("bus.writetoms", int64(800))
-	rt.Setv("bus.readtoms", int64(800))
+	//gets slow after double connection attempted
+	//takes >20s to connect on next attempt
+	rt.Setv("bus.dialtoms", int64(20000))
+	rt.Setv("bus.writetoms", int64(1000))
+	rt.Setv("bus.readtoms", int64(1000))
 	rt.Setv("bus.sleepms", int64(10))
 	rt.Setv("bus.retryms", int64(2000))
 	rt.Setv("bus.discardms", int64(100))
