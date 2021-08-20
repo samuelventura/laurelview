@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -25,7 +26,6 @@ func NewBus(rt Runtime) Dispatch {
 		ClearDispatch(dispatchs)
 	}
 	dispatchs["setup"] = func(mut *Mutation) {
-		delete(dispatchs, "bus")
 		dialtoms := rt.Getv("bus.dialtoms").(int64)
 		writetoms := rt.Getv("bus.writetoms").(int64)
 		readtoms := rt.Getv("bus.readtoms").(int64)
@@ -36,80 +36,91 @@ func NewBus(rt Runtime) Dispatch {
 		bus := mut.Args.(*BusArgs)
 		address := fmt.Sprintf("%v:%v", bus.Host, bus.Port)
 		log := PrefixLogger(rt.Log, "bus", address)
-		//size = 1 may be in reconnecting loop
-		queue := make(chan *busQueryDso, 1)
 		exit := make(Channel)
-		busy := false
-		status := func(query *busQueryDso, response string, err error) {
-			mut := &Mutation{}
-			mut.Sid = query.sid
-			mut.Name = "status"
-			mut.Args = &StatusArgs{
-				Slave:    fmt.Sprintf("%v:%v:%v", bus.Host, bus.Port, query.slave),
-				Request:  query.request,
-				Response: response,
-				Error:    ErrorString(err),
-			}
-			rt.Post("self", mut)
-		}
 		dispose = func() {
 			close(exit)
 		}
 		queries := list.New()
 		slaves := make(map[uint]*list.Element)
+		front := func() *list.Element {
+			ls := len(slaves)
+			lq := queries.Len()
+			element := queries.Front()
+			AssertTrue(ls == lq, "slaves != queries", ls, lq, element)
+			AssertTrue(element != nil || ls == 0, "ls > 0 and nil element", ls, element)
+			return element
+		}
 		push := func(sid string, slave uint, request string) {
+			element, ok := slaves[slave]
+			if ok {
+				delete(slaves, slave)
+				queries.Remove(element)
+			}
 			query := &busQueryDso{}
 			query.sid = sid
 			query.request = request
 			query.slave = slave
 			slaves[slave] = queries.PushBack(query)
 		}
-		feed := func() {
-			if busy {
-				return
-			}
-			ls := len(slaves)
-			lq := queries.Len()
-			element := queries.Front()
-			AssertTrue(ls == lq, "slaves != queries", ls, lq, element)
-			AssertTrue(element != nil || ls == 0, "ls > 0 and nil element", ls, element)
+		remove := func(slave uint) {
+			queries.Remove(slaves[slave])
+			delete(slaves, slave)
+		}
+		var mutex sync.Mutex
+		pop := func() *busQueryDso {
+			mutex.Lock()
+			defer mutex.Unlock()
+			element := front()
 			if element != nil {
-				//FIXME 20210814T013131.279 warn bus 127.0.0.1:54496 recover interface conversion: interface {} is nil, not *lvnrt.busQueryDso goroutine 39 [running]:
 				query := element.Value.(*busQueryDso)
-				queries.Remove(element)
 				request := busNextRequest(query.request)
 				push(query.sid, query.slave, request)
-				busy = true
-				queue <- query
+				return query
 			}
+			return nil
 		}
 		dispatchs["slave"] = func(mut *Mutation) {
+			mutex.Lock()
+			defer mutex.Unlock()
 			args := mut.Args.(*SlaveArgs)
-			element, ok := slaves[args.Slave]
-			//all transitions are valid
-			if args.Count == 0 {
-				delete(slaves, args.Slave)
-				queries.Remove(element)
-			} else {
-				if !ok {
-					push(mut.Sid, args.Slave, "read-value")
-				}
+			_, ok := slaves[args.Slave]
+			if args.Count == 0 && ok {
+				remove(args.Slave)
 			}
-			feed()
+			if args.Count > 0 && !ok {
+				push(mut.Sid, args.Slave, "read-value")
+			}
 		}
 		dispatchs["query"] = func(mut *Mutation) {
+			mutex.Lock()
+			defer mutex.Unlock()
 			args := mut.Args.(*QueryArgs)
-			element, ok := slaves[args.Index]
+			_, ok := slaves[args.Index]
 			AssertTrue(ok, "slave not found", args.Index)
-			queries.Remove(element)
 			push(mut.Sid, args.Index, args.Request)
-			feed()
 		}
-		dispatchs["status"] = func(mut *Mutation) {
-			AssertTrue(busy, "not busy")
-			busy = false
+		status_slave := func(query *busQueryDso, response string, err error) {
+			mut := &Mutation{}
+			mut.Sid = query.sid
+			mut.Name = "status-slave"
+			mut.Args = &StatusArgs{
+				Address:  fmt.Sprintf("%v:%v:%v", bus.Host, bus.Port, query.slave),
+				Request:  query.request,
+				Response: response,
+				Error:    ErrorString(err),
+			}
 			rt.Post("hub", mut)
-			feed()
+		}
+		status_buserr := func(err error) {
+			mut := &Mutation{}
+			mut.Name = "status-bus"
+			mut.Args = &StatusArgs{
+				Address:  fmt.Sprintf("%v:%v", bus.Host, bus.Port),
+				Request:  "Dial",
+				Response: "error",
+				Error:    ErrorString(err),
+			}
+			rt.Post("hub", mut)
 		}
 		read := func(conn net.Conn) bool {
 			cleaner.AddCloser(address, conn)
@@ -120,19 +131,24 @@ func NewBus(rt Runtime) Dispatch {
 				select {
 				case <-exit:
 					return true
-				case query := <-queue:
+				default:
+					query := pop()
+					if query == nil {
+						time.Sleep(Millis(sleepms))
+						continue
+					}
 					cmd := busRequestCode(query.request, query.slave)
+					//log.Info("REQUEST >", cmd, query)
 					err := socket.Discard(discardms)
 					TraceIfError(log.Trace, err)
 					if err != nil {
-						status(query, "error", err)
+						status_slave(query, "error", err)
 						return false
 					}
-					//log.Info("REQUEST >", cmd)
 					err = socket.WriteLine(cmd, writetoms)
 					TraceIfError(log.Trace, err)
 					if err != nil {
-						status(query, "error", err)
+						status_slave(query, "error", err)
 						return false
 					}
 					res := "ok"
@@ -140,7 +156,7 @@ func NewBus(rt Runtime) Dispatch {
 						res, err = socket.ReadLine(readtoms)
 						TraceIfError(log.Trace, err)
 						if err != nil {
-							status(query, "error", err)
+							status_slave(query, "error", err)
 							//do not close, may timeout after cold reset
 							nerr, ok := err.(net.Error)
 							if ok && nerr.Timeout() {
@@ -155,7 +171,7 @@ func NewBus(rt Runtime) Dispatch {
 						time.Sleep(Millis(resetms))
 					}
 					//log.Info("RESPONSE <", strings.TrimSpace(res))
-					status(query, strings.TrimSpace(res), nil)
+					status_slave(query, strings.TrimSpace(res), nil)
 				}
 			}
 		}
@@ -165,6 +181,7 @@ func NewBus(rt Runtime) Dispatch {
 				conn, err := net.DialTimeout("tcp", address, Millis(dialtoms))
 				TraceIfError(log.Trace, err)
 				if err != nil {
+					status_buserr(err)
 					to := Future(retryms)
 					for time.Now().Before(to) {
 						select {

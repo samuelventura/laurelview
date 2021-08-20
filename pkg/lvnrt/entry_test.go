@@ -15,7 +15,7 @@ func TestRtEntryBasic(t *testing.T) {
 	testSetupEntry(t, func(to TestOutput, rt Runtime, log Logger, conn *websocket.Conn, dp int) {
 		postSetup(conn, dp)
 		//first empty
-		to.MatchWait(t, 200, "trace", "read", "query", "client-1", "&{0   1 1}")
+		to.MatchWait(t, 200, "trace", "read", "query", "client-1", "&{0   1 1")
 		//read value
 		to.MatchWait(t, 200, "trace", "read", "query", "client-1", "&{0 read-value .1B1")
 		postQuery(conn, "reset-valley")
@@ -50,7 +50,7 @@ func TestRtEntryRemoveReceived(t *testing.T) {
 func TestRtEntryDisposeReceived(t *testing.T) {
 	testSetupEntry(t, func(to TestOutput, rt Runtime, log Logger, conn *websocket.Conn, dp int) {
 		postSetup(conn, dp)
-		to.MatchWait(t, 200, "trace", "read", "query", "client-1", "&{0   1 1}")
+		to.MatchWait(t, 200, "trace", "read", "query", "client-1", "&{0   1 1")
 		rt.Post("state", Mns("dispose", "tid"))
 		to.MatchWait(t, 200, "trace", "client-1", "out", "{dispose,tid")
 	})
@@ -78,12 +78,7 @@ func testSetupEntry(t *testing.T, callback func(to TestOutput, rt Runtime, log L
 	rt.Setd("hub", AsyncDispatch(log.Debug, NewHub(rt)))
 	rt.Setd("state", AsyncDispatch(log.Debug, NewState(rt)))
 	defer rt.Post("state", &Mutation{Name: "dispose"})
-	rt.Setf("bus", func(rt Runtime) Dispatch {
-		nrt := rt.Clone()
-		bus := AsyncDispatch(log.Debug, NewBus(nrt))
-		nrt.Setd("self", bus)
-		return bus
-	})
+	rt.Setf("bus", func(rt Runtime) Dispatch { return NewBus(rt) })
 	id := NewId("client")
 	entry := NewEntry(rt, id, ":0")
 	defer entry.Close()

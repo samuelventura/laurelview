@@ -10,6 +10,8 @@ type hubSlaveDso struct {
 	lresponse string
 	lerror    string
 	callbacks *list.List
+	parent    *list.List
+	self      *list.Element
 }
 
 type hubSessionDso struct {
@@ -21,6 +23,7 @@ func NewHub(rt Runtime) Dispatch {
 	log := PrefixLogger(rt.Log, "hub")
 	dispatchs := make(map[string]Dispatch)
 	slaves := make(map[string]*hubSlaveDso)
+	buses := make(map[string]*list.List)
 	sessions := make(map[string]*hubSessionDso)
 	dispatchs["dispose"] = func(mut *Mutation) {
 		defer DisposeArgs(mut.Args)
@@ -63,13 +66,22 @@ func NewHub(rt Runtime) Dispatch {
 		for i, it := range args.Items {
 			index := uint(i)
 			item := it
-			address := fmt.Sprintf("%v:%v:%v",
+			baddr := fmt.Sprintf("%v:%v",
+				item.Host, item.Port)
+			saddr := fmt.Sprintf("%v:%v:%v",
 				item.Host, item.Port, item.Slave)
-			slave, ok := slaves[address]
+			slave, ok := slaves[saddr]
 			if !ok {
 				slave = &hubSlaveDso{}
 				slave.callbacks = list.New()
-				slaves[address] = slave
+				slaves[saddr] = slave
+				parent, ok := buses[baddr]
+				if !ok {
+					parent = list.New()
+					buses[baddr] = parent
+				}
+				slave.parent = parent
+				slave.self = parent.PushBack(slave)
 			}
 			count := NewCount()
 			callback := func(sid string, args *StatusArgs) {
@@ -89,7 +101,7 @@ func NewHub(rt Runtime) Dispatch {
 				session.callback(mut)
 			}
 			args := &StatusArgs{}
-			args.Slave = address
+			args.Address = saddr
 			args.Request = slave.lrequest
 			args.Response = slave.lresponse
 			args.Error = slave.lerror
@@ -100,7 +112,11 @@ func NewHub(rt Runtime) Dispatch {
 			disposer := func() {
 				slave.callbacks.Remove(element)
 				if slave.callbacks.Len() == 0 {
-					delete(slaves, address)
+					delete(slaves, saddr)
+					slave.parent.Remove(slave.self)
+					if slave.parent.Len() == 0 {
+						delete(buses, baddr)
+					}
 				}
 			}
 			disposers = append(disposers, disposer)
@@ -114,19 +130,37 @@ func NewHub(rt Runtime) Dispatch {
 			action()
 		}
 	}
-	dispatchs["status"] = func(mut *Mutation) {
+	status := func(sid string, slave *hubSlaveDso, args *StatusArgs) {
+		slave.lrequest = args.Request
+		slave.lresponse = args.Response
+		slave.lerror = args.Error
+		element := slave.callbacks.Front()
+		for element != nil {
+			value := element.Value
+			callback := value.(func(sid string, args *StatusArgs))
+			callback(sid, args)
+			element = element.Next()
+		}
+	}
+	dispatchs["status-slave"] = func(mut *Mutation) {
 		sid := mut.Sid
 		args := mut.Args.(*StatusArgs)
-		slave, ok := slaves[args.Slave]
+		slave, ok := slaves[args.Address]
 		if ok {
-			slave.lrequest = args.Request
-			slave.lresponse = args.Response
-			slave.lerror = args.Error
-			element := slave.callbacks.Front()
+			status(sid, slave, args)
+		} else {
+			log.Debug(mut)
+		}
+	}
+	dispatchs["status-bus"] = func(mut *Mutation) {
+		sid := mut.Sid
+		args := mut.Args.(*StatusArgs)
+		parent, ok := buses[args.Address]
+		if ok {
+			element := parent.Front()
 			for element != nil {
-				value := element.Value
-				callback := value.(func(sid string, args *StatusArgs))
-				callback(sid, args)
+				slave := element.Value.(*hubSlaveDso)
+				status(sid, slave, args)
 				element = element.Next()
 			}
 		} else {

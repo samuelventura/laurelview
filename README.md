@@ -27,6 +27,15 @@ web/lvnfe #node react frontend
 
 ## v0.0.2
 
+- Latency and error in display
+- Dial error to all displays
+- Bus pull from feed channel
+- Select all/clear buttons
+- Disabled multiview button
+- Multiview fluid grid layout
+
+## Future
+
 - Branding
 - Serial Port
 - Realtime Plot 
@@ -36,10 +45,9 @@ web/lvnfe #node react frontend
 - Single entry port
 - Kill service test
 - https://laurelview.io
-- First dpm duplicate update
+- First dpm duplicate update (only in low latency?)
 - Link node Laurels to cloud
 - iPhone bookmark shows react icon
-- Show latency and error in display
 - Executable version https://github.com/josephspurrier/goversioninfo
 
 # Known Laurel Unstabilities

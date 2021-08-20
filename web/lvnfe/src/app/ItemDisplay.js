@@ -71,7 +71,8 @@ function ItemDisplay(props) {
   function requestText(request) {
     //falsy false, 0, "", null, undefined, NaN
     //truty "0"
-    return requestMap[request] || "------"
+    //show "Dial" request
+    return requestMap[request] || request || "------"
   }
 
   function responseText(response) {

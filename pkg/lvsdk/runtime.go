@@ -6,7 +6,6 @@ func DefaultRuntime() Runtime {
 
 type runtimeDso struct {
 	log       Log
-	self      Dispatch
 	values    map[string]Any
 	factories map[string]Factory
 	dispatchs map[string]Dispatch
@@ -16,23 +15,11 @@ type runtimeDso struct {
 func NewRuntime(log Log) Runtime {
 	rt := &runtimeDso{}
 	rt.log = log
-	rt.self = NopDispatch
 	rt.values = make(map[string]Any)
 	rt.factories = make(map[string]Factory)
 	rt.dispatchs = make(map[string]Dispatch)
 	rt.cleaners = make(map[string]Cleaner)
 	return rt
-}
-
-func (rt *runtimeDso) Clone() Runtime {
-	clone := &runtimeDso{}
-	clone.log = rt.log
-	clone.self = rt.self
-	clone.values = rt.values
-	clone.factories = rt.factories
-	clone.dispatchs = rt.dispatchs
-	clone.cleaners = rt.cleaners
-	return clone
 }
 
 func (rt *runtimeDso) PrefixLog(prefix ...Any) Logger {
@@ -56,11 +43,7 @@ func (rt *runtimeDso) Setf(name string, factory Factory) {
 }
 
 func (rt *runtimeDso) Setd(name string, dispatch Dispatch) {
-	if name == "self" {
-		rt.self = dispatch
-	} else {
-		rt.dispatchs[name] = dispatch
-	}
+	rt.dispatchs[name] = dispatch
 }
 
 func (rt *runtimeDso) Make(name string) Dispatch {
@@ -68,11 +51,8 @@ func (rt *runtimeDso) Make(name string) Dispatch {
 }
 
 func (rt *runtimeDso) Post(name string, mut *Mutation) {
-	if name == "self" {
-		rt.self(mut)
-	} else {
-		rt.dispatchs[name](mut)
-	}
+	rt.log("trace", "post", name, mut)
+	rt.dispatchs[name](mut)
 }
 
 func (rt *runtimeDso) Log(level string, args ...Any) {

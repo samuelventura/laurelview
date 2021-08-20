@@ -26,15 +26,10 @@ func main() {
 	rt.Setv("bus.discardms", int64(100))
 	rt.Setv("bus.resetms", int64(400))
 	rt.Setc("bus", NewCleaner(rt.PrefixLog("bus", "clean")))
-	rt.Setd("hub", AsyncDispatch(log.Trace, NewHub(rt)))
-	rt.Setd("state", AsyncDispatch(log.Trace, NewState(rt)))
+	rt.Setd("hub", AsyncDispatch(log.Debug, NewHub(rt)))
+	rt.Setd("state", AsyncDispatch(log.Debug, NewState(rt)))
 	defer rt.Post("state", &Mutation{Name: "dispose"})
-	rt.Setf("bus", func(rt Runtime) Dispatch {
-		nrt := rt.Clone()
-		bus := AsyncDispatch(log.Trace, NewBus(nrt))
-		nrt.Setd("self", bus)
-		return bus
-	})
+	rt.Setf("bus", func(rt Runtime) Dispatch { return NewBus(rt) })
 	ep := endpoint()
 	log.Info("endpoint", ep)
 	id := NewId("client")

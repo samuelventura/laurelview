@@ -30,3 +30,16 @@
     font-size: 4em;
     text-align: end;
 }
+
+.multi-grid {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: center;
+    align-items: center;
+    justify-content: center;
+}
+
+.multi-grid .front-panel {
+    width: 24em;
+    margin: 10px;
+}

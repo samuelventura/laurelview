@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowUp } from '@fortawesome/free-solid-svg-icons'
 import { faArrowDown } from '@fortawesome/free-solid-svg-icons'
@@ -29,9 +29,10 @@ function ItemBrowser(props) {
   const [showUpdate, setShowUpdate] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
   const [showView, setShowView] = useState(false)
-  const [itemSelected, setItemSelected] = useState({})
   const [showMultiView, setShowMultiView] = useState(false)
+  const [itemSelected, setItemSelected] = useState({})
 
+  //FIXME why only blur the arrows?
   const sortUpInput = useRef(null);
   const sortDownInput = useRef(null);
   const filterInput = useRef(null);
@@ -51,6 +52,27 @@ function ItemBrowser(props) {
       onSearchClick()
     }
   }
+
+  const viewItems = useMemo(() => {
+      const f = filter.toLowerCase()
+      const list = Object.values(props.state.items)
+      list.forEach(item => {
+        item.checked = selected[item.id] || false
+      })
+      const filtered = list.filter(item =>
+        item.name.toLowerCase().includes(f))
+      switch (sort) {
+        case "asc":
+          return filtered.sort((i1, i2) =>
+            i1.name.localeCompare(i2.name))
+        case "desc":
+          return filtered.sort((i1, i2) =>
+            i2.name.localeCompare(i1.name))
+        default:
+          return filtered
+      }
+  //props.state.items is reused and wont trigger change
+  }, [filter, sort, selected, props.state]);  
 
   //esc exits full screen on macos 
   //use X icon to reset filter instead
@@ -143,32 +165,14 @@ function ItemBrowser(props) {
   }
 
   function selectedItems() {
-    const items = viewItems()
-    return items.filter(item => selected[item.id])
+    return viewItems.filter(item => selected[item.id])
   }
 
-  function viewItems() {
-    const f = filter.toLowerCase()
-    const list = Object.values(props.state.items)
-    const filtered = list.filter(item =>
-      item.name.toLowerCase().includes(f))
-    switch (sort) {
-      case "asc":
-        return filtered.sort((i1, i2) =>
-          i1.name.localeCompare(i2.name))
-      case "desc":
-        return filtered.sort((i1, i2) =>
-          i2.name.localeCompare(i1.name))
-      default:
-        return filtered
-    }
-  }
-
-  const rows = viewItems().map(item =>
+  const rows = viewItems.map(item =>
     <tr key={item.id}>
       <td>
         <Form.Check type="checkbox" label={item.name}
-          value={item.selected} onChange={(e) => onSelectedChange(e, item)}></Form.Check>
+          checked={item.checked} onChange={(e) => onSelectedChange(e, item)}></Form.Check>
       </td>
       <td>
         <ButtonGroup>
@@ -191,10 +195,9 @@ function ItemBrowser(props) {
 
   function multibutton() {
     const items = selectedItems()
-    if (items.length > 0) {
-      return <Button onClick={() => showDialog("multiview")}
-        variant="link" size="sm">Multi View</Button>
-    }
+    const disabled = items.length === 0
+    return <Button onClick={() => showDialog("multiview")}
+      variant="link" disabled={disabled} size="sm">Multi View</Button>
   }
 
   function multiview(show) {
@@ -202,6 +205,14 @@ function ItemBrowser(props) {
     if (show && items.length > 0) {
       return <ItemMultiView show={showMultiView} items={items} handler={handleActions} />
     }
+  }
+
+  function selectAll(checked) {
+    const next = {}
+    viewItems.forEach(item => {
+      next[item.id] = checked
+    })
+    setSelected(next)
   }
 
   return (
@@ -246,6 +257,8 @@ function ItemBrowser(props) {
                 <FontAwesomeIcon icon={faArrowUp} /></Button>
               <Button ref={sortDownInput} onClick={() => handleSortChange("desc")} variant="link" size="sm">
                 <FontAwesomeIcon icon={faArrowDown} /></Button>
+              <Button onClick={()=>selectAll(true)} variant="link" size="sm" title="Select All">All</Button>                
+              <Button onClick={()=>selectAll(false)} variant="link" size="sm" title="Clear Selection">Clear</Button>                
             </th>
             <th>
               Actions {multibutton()}

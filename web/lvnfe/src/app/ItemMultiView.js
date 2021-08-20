@@ -70,19 +70,22 @@ function ItemMultiView(props) {
   }
 
   const displays = props.items.map((item, i) => {
-    return <div key={item.id}>
+    return <div key={item.id} className="front-panel">
         <h3>{item.name}</h3>
         <ItemDisplay query={query(i)} />
     </div>
   })
 
   return (
-    <Modal show={props.show} onHide={handleHide} backdrop="static" centered>
+    <Modal show={props.show} onHide={handleHide} 
+      backdrop="static" fullscreen centered>
       <Modal.Header closeButton>
         <Modal.Title>Multi View</Modal.Title>
       </Modal.Header>
       <Modal.Body>
+        <div className="multi-grid">
         {displays}
+        </div>
       </Modal.Body>
     </Modal>
   )

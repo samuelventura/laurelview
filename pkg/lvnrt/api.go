@@ -23,8 +23,10 @@ type QueryArgs struct {
 	Error    string
 }
 
+//slave or bus address depending on mutation
+//name being status-slave or status-bus
 type StatusArgs struct {
-	Slave    string
+	Address  string
 	Request  string
 	Response string
 	Error    string

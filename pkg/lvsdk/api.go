@@ -44,7 +44,6 @@ type Runtime interface {
 	Log(level string, args ...Any)
 	LevelOutput(level string) Output
 	PrefixLog(prefix ...Any) Logger
-	Clone() Runtime
 	Close()
 }
 
