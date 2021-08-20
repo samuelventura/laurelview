@@ -33,7 +33,6 @@ func NewBus(rt Runtime) Dispatch {
 		retryms := rt.Getv("bus.retryms").(int64)
 		resetms := rt.Getv("bus.resetms").(int64)
 		discardms := rt.Getv("bus.discardms").(int64)
-		keepalivems := rt.Getv("bus.keepalivems").(int64)
 		bus := mut.Args.(*BusArgs)
 		address := fmt.Sprintf("%v:%v", bus.Host, bus.Port)
 		log := PrefixLogger(rt.Log, "bus", address)
@@ -181,11 +180,8 @@ func NewBus(rt Runtime) Dispatch {
 			for {
 				conn, err := net.DialTimeout("tcp", address, Millis(dialtoms))
 				if err == nil {
-					err = conn.(*net.TCPConn).SetKeepAlive(true)
-					if err == nil {
-						millis := Millis(keepalivems)
-						err = conn.(*net.TCPConn).SetKeepAlivePeriod(millis)
-					}
+					//set data asap, do not wait for larger packet
+					err = conn.(*net.TCPConn).SetNoDelay(true)
 				}
 				TraceIfError(log.Trace, err)
 				if err != nil {
