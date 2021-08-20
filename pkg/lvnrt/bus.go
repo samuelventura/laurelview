@@ -33,6 +33,7 @@ func NewBus(rt Runtime) Dispatch {
 		retryms := rt.Getv("bus.retryms").(int64)
 		resetms := rt.Getv("bus.resetms").(int64)
 		discardms := rt.Getv("bus.discardms").(int64)
+		keepalivems := rt.Getv("bus.keepalivems").(int64)
 		bus := mut.Args.(*BusArgs)
 		address := fmt.Sprintf("%v:%v", bus.Host, bus.Port)
 		log := PrefixLogger(rt.Log, "bus", address)
@@ -142,13 +143,13 @@ func NewBus(rt Runtime) Dispatch {
 					err := socket.Discard(discardms)
 					TraceIfError(log.Trace, err)
 					if err != nil {
-						status_slave(query, "error", err)
+						status_slave(query, "error1", err)
 						return false
 					}
 					err = socket.WriteLine(cmd, writetoms)
 					TraceIfError(log.Trace, err)
 					if err != nil {
-						status_slave(query, "error", err)
+						status_slave(query, "error2", err)
 						return false
 					}
 					res := "ok"
@@ -156,7 +157,7 @@ func NewBus(rt Runtime) Dispatch {
 						res, err = socket.ReadLine(readtoms)
 						TraceIfError(log.Trace, err)
 						if err != nil {
-							status_slave(query, "error", err)
+							status_slave(query, "error3", err)
 							//do not close, may timeout after cold reset
 							nerr, ok := err.(net.Error)
 							if ok && nerr.Timeout() {
@@ -179,6 +180,13 @@ func NewBus(rt Runtime) Dispatch {
 			defer TraceRecover(log.Debug)
 			for {
 				conn, err := net.DialTimeout("tcp", address, Millis(dialtoms))
+				if err == nil {
+					err = conn.(*net.TCPConn).SetKeepAlive(true)
+					if err == nil {
+						millis := Millis(keepalivems)
+						err = conn.(*net.TCPConn).SetKeepAlivePeriod(millis)
+					}
+				}
 				TraceIfError(log.Trace, err)
 				if err != nil {
 					status_buserr(err)

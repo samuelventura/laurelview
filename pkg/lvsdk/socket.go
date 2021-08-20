@@ -37,7 +37,12 @@ func (s *socketDso) Close() {
 }
 
 func (s *socketDso) Discard(toms int64) error {
-	err := s.conn.SetReadDeadline(Future(toms))
+	//send one byte to detect connection drops
+	err := s.writeCr(toms)
+	if err != nil {
+		return err
+	}
+	err = s.conn.SetReadDeadline(Future(toms))
 	if err != nil {
 		return err
 	}
@@ -66,15 +71,7 @@ func (s *socketDso) WriteLine(req string, toms int64) error {
 	if err != nil {
 		return err
 	}
-	bytes = []byte{byte(13)}
-	n, err = s.conn.Write(bytes)
-	if err == nil && n != len(bytes) {
-		err = fmt.Errorf("wrote %v of %v", n, len(bytes))
-	}
-	if err != nil {
-		return err
-	}
-	return nil
+	return s.writeCr(toms)
 }
 
 func (s *socketDso) ReadLine(toms int64) (string, error) {
@@ -100,4 +97,20 @@ func (s *socketDso) ReadLine(toms int64) (string, error) {
 		buf.WriteByte(b)
 	}
 	return buf.String(), nil
+}
+
+func (s *socketDso) writeCr(toms int64) error {
+	err := s.conn.SetWriteDeadline(Future(toms))
+	if err != nil {
+		return err
+	}
+	bytes := []byte{byte(13)}
+	n, err := s.conn.Write(bytes)
+	if err == nil && n != len(bytes) {
+		err = fmt.Errorf("wrote %v of %v", n, len(bytes))
+	}
+	if err != nil {
+		return err
+	}
+	return nil
 }

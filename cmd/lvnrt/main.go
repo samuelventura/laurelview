@@ -25,6 +25,7 @@ func main() {
 	rt.Setv("bus.retryms", int64(2000))
 	rt.Setv("bus.discardms", int64(100))
 	rt.Setv("bus.resetms", int64(400))
+	rt.Setv("bus.keepalivems", int64(2000))
 	rt.Setc("bus", NewCleaner(rt.PrefixLog("bus", "clean")))
 	rt.Setd("hub", AsyncDispatch(log.Debug, NewHub(rt)))
 	rt.Setd("state", AsyncDispatch(log.Debug, NewState(rt)))
