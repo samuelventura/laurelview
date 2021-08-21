@@ -181,17 +181,6 @@ func NewBus(rt Runtime) Dispatch {
 			defer TraceRecover(log.Debug)
 			for {
 				conn, err := net.DialTimeout("tcp", address, Millis(dialtoms))
-				if err == nil {
-					defer conn.Close()
-					//connection drop detection macos=~9s
-					//set data asap, do not wait for larger packet
-					tcp := conn.(*net.TCPConn)
-					tcp.SetNoDelay(true)
-					tcp.SetLinger(0)
-					tcp.SetKeepAlive(true)
-					tcp.SetKeepAlivePeriod(Millis(1000))
-					tcp.SetWriteBuffer(0)
-				}
 				TraceIfError(log.Trace, err)
 				if err != nil {
 					status_buserr(err)

@@ -20,6 +20,14 @@ type socketDso struct {
 func NewSocketConn(conn net.Conn) Socket {
 	s := &socketDso{}
 	s.conn = conn
+	//connection drop detection macos=~9s
+	//set data asap, do not wait for larger packet
+	tcp := conn.(*net.TCPConn)
+	tcp.SetNoDelay(true)
+	tcp.SetLinger(0)
+	tcp.SetKeepAlive(true)
+	tcp.SetKeepAlivePeriod(Millis(1000))
+	tcp.SetWriteBuffer(0)
 	return s
 }
 

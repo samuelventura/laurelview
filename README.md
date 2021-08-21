@@ -33,6 +33,12 @@ web/lvnfe #node react frontend
 - Select all/clear buttons
 - Disabled multiview button
 - Multiview fluid grid layout
+- Golang fast conn drop detection
+- Latest Laurel node FW
+- Dark mode autoswitch
+- Favicon on public IP
+- Basic progressive PWA
+- Globe chrome favicon
 
 ## Future
 
