@@ -43,3 +43,13 @@
     width: 24em;
     margin: 10px;
 }
+
+/* align button with text */
+.table-header button {
+    vertical-align: 1px;
+}
+
+.modal-header button {
+    color: gray;
+    vertical-align: 2px;
+}

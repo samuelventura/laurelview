@@ -33,11 +33,15 @@ web/lvnfe #node react frontend
 - Select all/clear buttons
 - Disabled multiview button
 - Multiview fluid grid layout
+- Basic progressive PWA
+- Toggle fullscreen
+- Headers valign
+- Round icon for Android https://maskable.app/editor
+- Square icon for iOS https://maskable.app/editor
+- Resilient view modals
 - Golang fast conn drop detection
 - Latest Laurel node FW
 - Dark mode autoswitch
-- Favicon on public IP
-- Basic progressive PWA
 - Globe chrome favicon
 
 ## Future

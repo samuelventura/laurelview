@@ -74,7 +74,8 @@ function ItemView(props) {
   }
 
   return (
-    <Modal show={props.show} onHide={handleHide} backdrop="static" centered>
+    <Modal show={props.show} onHide={handleHide} backdrop="static" 
+      centered>
       <Modal.Header closeButton>
         <Modal.Title>{props.item.name}</Modal.Title>
       </Modal.Header>

@@ -251,7 +251,7 @@ function ItemBrowser(props) {
 
       <Table striped bordered hover>
         <thead>
-          <tr>
+          <tr className="table-header">
             <th>Name &nbsp;
               <Button ref={sortUpInput} onClick={() => handleSortChange("asc")} variant="link" size="sm">
                 <FontAwesomeIcon icon={faArrowUp} /></Button>
