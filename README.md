@@ -34,15 +34,15 @@ web/lvnfe #node react frontend
 - Disabled multiview button
 - Multiview fluid grid layout
 - Basic progressive PWA
-- Toggle fullscreen
-- Headers valign
 - Round icon for Android https://maskable.app/editor
 - Square icon for iOS https://maskable.app/editor
+- Globe chrome favicon https://realfavicongenerator.net/
+- Toggle fullscreen (F11 is windows level)
+- Headers valign (Elevated in Safari iOS)
 - Resilient view modals
 - Golang fast conn drop detection
 - Latest Laurel node FW
 - Dark mode autoswitch
-- Globe chrome favicon
 
 ## Future
 
