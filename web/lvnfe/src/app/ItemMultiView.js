@@ -62,7 +62,7 @@ function ItemMultiView(props) {
     return socket.createRt(handler, "/index")
   }, [props])
   
-  const [isFullscreen, setIsFullscreen] = useFullscreenStatus(document.body)
+  const [isFullscreen, setIsFullscreen] = useFullscreenStatus()
 
   function toggleFullScreen() {
     setIsFullscreen(!isFullscreen)

@@ -1,12 +1,14 @@
 //https://github.com/Darth-Knoppix/example-react-fullscreen/blob/master/src/utils/useFullscreenStatus.js
 import React from "react";
 
-export default function useFullscreenStatus(element) {
+export default function useFullscreenStatus() {
   const [isFullscreen, setIsFullscreen] = React.useState(calculateFullscreen());
 
+  //safari iOS does not support fullscreen API
   const setFullscreen = (fullscreenEnabled) => {
+    if (!document.fullscreenEnabled) return;
     if (fullscreenEnabled) {
-      element
+      document.body
       .requestFullscreen()
       .then(() => {
         setIsFullscreen(calculateFullscreen());
@@ -33,7 +35,7 @@ export default function useFullscreenStatus(element) {
 }
 
 function calculateFullscreen() {
-  return document[getBrowserFullscreenElementProp()] != null
+  return document[getBrowserFullscreenElementProp()] === document.body
 }
 
 function getBrowserFullscreenElementProp() {
@@ -46,6 +48,6 @@ function getBrowserFullscreenElementProp() {
   } else if (typeof document.webkitFullscreenElement !== "undefined") {
     return "webkitFullscreenElement";
   } else {
-    throw new Error("fullscreenElement is not supported by this browser");
+    return "notfound"
   }
 }
