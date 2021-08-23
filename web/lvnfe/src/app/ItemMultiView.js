@@ -28,7 +28,7 @@ function ItemMultiView(props) {
       }
       case "send": {
         const next = { ...state }
-        next.queries = props.items.map(() => { return {}})
+        next.queries = props.items.map(() => { return {} })
         next.send = args
         return next
       }
@@ -61,8 +61,8 @@ function ItemMultiView(props) {
     }
     return socket.createRt(handler, "/index")
   }, [props])
-  
-  const [isFullscreen, setIsFullscreen] = useFullscreenStatus()
+
+  const [hasFullscreen, isFullscreen, setIsFullscreen] = useFullscreenStatus()
 
   function toggleFullScreen() {
     setIsFullscreen(!isFullscreen)
@@ -70,11 +70,9 @@ function ItemMultiView(props) {
 
   function fullScreenButton() {
     //hide button if not supported
-    if (document.fullscreenEnabled) {
-      const icon = isFullscreen ? faCompress : faExpand
-      return <Button variant="link" onClick={toggleFullScreen} 
-        title="Toggle Full Screen"><FontAwesomeIcon icon={icon} /></Button>  
-    }
+    const icon = isFullscreen ? faCompress : faExpand
+    return <Button variant="link" onClick={toggleFullScreen}
+      title="Toggle Full Screen" disabled={!hasFullscreen}><FontAwesomeIcon icon={icon} /></Button>
   }
 
   function handleHide() {
@@ -82,7 +80,7 @@ function ItemMultiView(props) {
     if (isFullscreen) {
       setIsFullscreen(false)
       //looks dark during transition
-      setTimeout(()=>props.handler({ action }), 100)  
+      setTimeout(() => props.handler({ action }), 100)
     } else {
       props.handler({ action })
     }
@@ -97,20 +95,20 @@ function ItemMultiView(props) {
 
   const displays = props.items.map((item, i) => {
     return <div key={item.id} className="front-panel">
-        <h3>{item.name}</h3>
-        <ItemDisplay query={query(i)} />
+      <h3>{item.name}</h3>
+      <ItemDisplay query={query(i)} />
     </div>
   })
 
   return (
-    <Modal show={props.show} onHide={handleHide} 
+    <Modal show={props.show} onHide={handleHide}
       backdrop="static" fullscreen centered>
       <Modal.Header closeButton bsPrefix="modal-header">
-        <Modal.Title>{fullScreenButton()}Multi View</Modal.Title> 
+        <Modal.Title>{fullScreenButton()}Multi View</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <div className="multi-grid">
-        {displays}
+          {displays}
         </div>
       </Modal.Body>
     </Modal>
