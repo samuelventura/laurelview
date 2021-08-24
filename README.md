@@ -80,3 +80,4 @@ web/lvnfe #node react frontend
 - https://realfavicongenerator.net/
 - https://caniuse.com/?search=a2hs
 - https://favicon.io/favicon-converter/
+- https://github.com/audreyfeldroy/favicon-cheat-sheet
