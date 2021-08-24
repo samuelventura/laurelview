@@ -79,3 +79,4 @@ web/lvnfe #node react frontend
 - https://maskable.app/editor
 - https://realfavicongenerator.net/
 - https://caniuse.com/?search=a2hs
+- https://favicon.io/favicon-converter/
