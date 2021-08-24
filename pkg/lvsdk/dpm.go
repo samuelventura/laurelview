@@ -20,7 +20,7 @@ type dpmDso struct {
 	listen  net.Listener
 	cleaner Cleaner
 	done    Channel
-	delay   int64
+	delay   int
 	echos   *regexp.Regexp
 }
 
@@ -34,7 +34,7 @@ func NewDpm(log Logger, address string, delay int) Dpm {
 	te.echos = regexp.MustCompile(`^\*.B\d\r$`)
 	te.id = NewId("dpm")
 	te.done = make(Channel)
-	te.delay = int64(delay)
+	te.delay = delay
 	te.listen = listen
 	go te.aloop()
 	return te

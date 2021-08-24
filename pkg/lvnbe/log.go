@@ -83,7 +83,7 @@ type testOutput interface {
 	out(string, ...Any)
 	assertEmpty(t *testing.T)
 	matchNext(t *testing.T, args ...string) []string
-	matchWait(t *testing.T, toms uint64, args ...string) []string
+	matchWait(t *testing.T, toms uint, args ...string) []string
 }
 
 func newTestOutput() testOutput {
@@ -152,7 +152,7 @@ func (to *testOutputState) matchNext(t *testing.T, args ...string) []string {
 	return array
 }
 
-func (to *testOutputState) matchWait(t *testing.T, toms uint64, args ...string) []string {
+func (to *testOutputState) matchWait(t *testing.T, toms uint, args ...string) []string {
 	matchers := to.compile(args)
 	array := to.popWait(toms)
 	for array != nil {
@@ -183,7 +183,7 @@ func (to *testOutputState) pop() []string {
 	return nil
 }
 
-func (to *testOutputState) popWait(toms uint64) []string {
+func (to *testOutputState) popWait(toms uint) []string {
 	onems := time.Duration(1) * time.Millisecond
 	tod := time.Duration(toms) * time.Millisecond
 	dl := time.Now().Add(tod)

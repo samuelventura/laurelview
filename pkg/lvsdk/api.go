@@ -33,10 +33,12 @@ type Factory = func(Runtime) Dispatch
 //6) self overlay (removed)
 
 type Runtime interface {
+	SetId(name string, id Id)
 	SetValue(name string, value Any)
 	SetFactory(name string, factory Factory)
 	SetDispatch(name string, dispatch Dispatch)
 	SetCleaner(name string, cleaner Cleaner)
+	GetId(name string) Id
 	GetValue(name string) Any
 	GetCleaner(name string) Cleaner
 	GetFactory(name string) Factory
@@ -44,6 +46,7 @@ type Runtime interface {
 	Log(level string, args ...Any)
 	LevelOutput(level string) Output
 	PrefixLog(prefix ...Any) Logger
+	Closed() Channel
 	Close()
 }
 

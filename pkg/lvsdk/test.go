@@ -21,7 +21,7 @@ type TestOutput interface {
 	Close()
 	AssertEmpty(t *testing.T)
 	Log(level string, args ...Any)
-	MatchWait(t *testing.T, toms int64, args ...string) []string
+	MatchWait(t *testing.T, toms int, args ...string) []string
 	MatchNext(t *testing.T, args ...string) []string
 	Dispatch(name string) Dispatch
 	Logger(prefix ...Any) Logger
@@ -81,7 +81,7 @@ func (to *testOutputDso) MatchNext(t *testing.T, args ...string) []string {
 	return array
 }
 
-func (to *testOutputDso) MatchWait(t *testing.T, toms int64, args ...string) []string {
+func (to *testOutputDso) MatchWait(t *testing.T, toms int, args ...string) []string {
 	matchers := to.compile(args)
 	dl := Future(toms)
 	array := to.popWait(toms)
@@ -139,7 +139,7 @@ func (to *testOutputDso) popArray() []string {
 	return nil
 }
 
-func (to *testOutputDso) popWait(toms int64) []string {
+func (to *testOutputDso) popWait(toms int) []string {
 	onems := Millis(1)
 	dl := Future(toms)
 	array := to.popArray()

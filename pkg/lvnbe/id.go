@@ -7,7 +7,7 @@ import (
 )
 
 type idState struct {
-	count  uint64
+	count  uint
 	prefix string
 	mutex  sync.Mutex
 }
@@ -30,7 +30,7 @@ func (id *idState) Next() string {
 	return fmt.Sprintf("%s-%d-%d", id.prefix, count, now)
 }
 
-func (id *idState) next() uint64 {
+func (id *idState) next() uint {
 	defer id.mutex.Unlock()
 	id.mutex.Lock()
 	id.count++

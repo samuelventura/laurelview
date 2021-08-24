@@ -7,9 +7,9 @@ import (
 )
 
 type Socket interface {
-	WriteLine(req string, toms int64) error
-	ReadLine(toms int64) (string, error)
-	Discard(toms int64) error
+	WriteLine(req string, toms int) error
+	ReadLine(toms int) (string, error)
+	Discard(toms int) error
 	Close()
 }
 
@@ -33,7 +33,7 @@ func NewSocketConn(conn net.Conn) Socket {
 
 func NewSocket(address string, toms int) Socket {
 	s := &socketDso{}
-	to := Millis(int64(toms))
+	to := Millis(toms)
 	conn, err := net.DialTimeout("tcp", address, to)
 	PanicIfError(err)
 	s.conn = conn
@@ -44,7 +44,7 @@ func (s *socketDso) Close() {
 	s.conn.Close()
 }
 
-func (s *socketDso) Discard(toms int64) error {
+func (s *socketDso) Discard(toms int) error {
 	err := s.conn.SetReadDeadline(Future(toms))
 	if err != nil {
 		return err
@@ -61,7 +61,7 @@ func (s *socketDso) Discard(toms int64) error {
 	return err
 }
 
-func (s *socketDso) WriteLine(req string, toms int64) error {
+func (s *socketDso) WriteLine(req string, toms int) error {
 	err := s.conn.SetWriteDeadline(Future(toms))
 	if err != nil {
 		return err
@@ -85,7 +85,7 @@ func (s *socketDso) WriteLine(req string, toms int64) error {
 	return nil
 }
 
-func (s *socketDso) ReadLine(toms int64) (string, error) {
+func (s *socketDso) ReadLine(toms int) (string, error) {
 	err := s.conn.SetReadDeadline(Future(toms))
 	if err != nil {
 		return "", err
