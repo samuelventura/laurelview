@@ -9,8 +9,8 @@ package lvsdk
 //- trace is to see everything
 //- debug is to see suspicious interactions
 //- info is to announce launch setup
-//- warn if to alert of suspicious global stats
-//- error if to notify of suspicious global stats
+//- warn is to alert of suspicious global stats
+//- error is to notify of suspicious global stats
 //- error should also highlight hacking activity
 // FIXME implement global stats monitor (managed, ...)
 
@@ -28,19 +28,19 @@ type Factory = func(Runtime) Dispatch
 //1) config
 //2) factories
 //3) dispatchs
-//4) log (contextualized)
-//5) self overlay
-//6) cleaners
+//4) log (prefixed)
+//5) cleaners
+//6) self overlay (removed)
 
 type Runtime interface {
-	Getv(name string) Any
-	Setv(name string, value Any)
-	Setf(name string, factory Factory)
-	Setd(name string, dispatch Dispatch)
-	Setc(name string, cleaner Cleaner)
-	Getc(name string) Cleaner
-	Make(name string) Dispatch
-	Post(name string, mut *Mutation)
+	SetValue(name string, value Any)
+	SetFactory(name string, factory Factory)
+	SetDispatch(name string, dispatch Dispatch)
+	SetCleaner(name string, cleaner Cleaner)
+	GetValue(name string) Any
+	GetCleaner(name string) Cleaner
+	GetFactory(name string) Factory
+	GetDispatch(name string) Dispatch
 	Log(level string, args ...Any)
 	LevelOutput(level string) Output
 	PrefixLog(prefix ...Any) Logger

@@ -30,41 +30,64 @@ func (rt *runtimeDso) LevelOutput(level string) Output {
 	return LevelOutput(rt.log, level)
 }
 
-func (rt *runtimeDso) Getv(name string) Any {
-	return rt.values[name]
-}
-
-func (rt *runtimeDso) Setv(name string, value Any) {
+func (rt *runtimeDso) SetValue(name string, value Any) {
 	rt.values[name] = value
 }
 
-func (rt *runtimeDso) Setf(name string, factory Factory) {
+func (rt *runtimeDso) SetFactory(name string, factory Factory) {
 	rt.factories[name] = factory
 }
 
-func (rt *runtimeDso) Setd(name string, dispatch Dispatch) {
+func (rt *runtimeDso) SetDispatch(name string, dispatch Dispatch) {
 	rt.dispatchs[name] = dispatch
 }
 
-func (rt *runtimeDso) Make(name string) Dispatch {
-	return rt.factories[name](rt)
+func (rt *runtimeDso) SetCleaner(name string, cleaner Cleaner) {
+	rt.cleaners[name] = cleaner
 }
 
-func (rt *runtimeDso) Post(name string, mut *Mutation) {
-	rt.log("trace", "post", name, mut)
-	rt.dispatchs[name](mut)
+func (rt *runtimeDso) GetValue(name string) Any {
+	value, ok := rt.values[name]
+	if ok {
+		return value
+	} else {
+		PanicLN("value not found", name)
+		return nil
+	}
+}
+
+func (rt *runtimeDso) GetCleaner(name string) Cleaner {
+	cleaner, ok := rt.cleaners[name]
+	if ok {
+		return cleaner
+	} else {
+		PanicLN("cleaner not found", name)
+		return nil
+	}
+}
+
+func (rt *runtimeDso) GetFactory(name string) Factory {
+	fact, ok := rt.factories[name]
+	if ok {
+		return fact
+	} else {
+		PanicLN("factory not found", name)
+		return nil
+	}
+}
+
+func (rt *runtimeDso) GetDispatch(name string) Dispatch {
+	disp, ok := rt.dispatchs[name]
+	if ok {
+		return disp
+	} else {
+		PanicLN("dispatch not found", name)
+		return nil
+	}
 }
 
 func (rt *runtimeDso) Log(level string, args ...Any) {
 	rt.log(level, args...)
-}
-
-func (rt *runtimeDso) Setc(name string, cleaner Cleaner) {
-	rt.cleaners[name] = cleaner
-}
-
-func (rt *runtimeDso) Getc(name string) Cleaner {
-	return rt.cleaners[name]
 }
 
 func (rt *runtimeDso) Close() {

@@ -17,22 +17,23 @@ func TestRtBusDpm(t *testing.T) {
 	dpm.Echo()
 	rt := NewRuntime(to.Log)
 	defer rt.Close()
-	rt.Setv("bus.dialtoms", int64(400))
-	rt.Setv("bus.writetoms", int64(400))
-	rt.Setv("bus.readtoms", int64(400))
-	rt.Setv("bus.discardms", int64(0))
-	rt.Setv("bus.sleepms", int64(10))
-	rt.Setv("bus.retryms", int64(2000))
-	rt.Setv("bus.resetms", int64(0))
-	rt.Setc("bus", NewCleaner(rt.PrefixLog("bus", "clean")))
-	rt.Setd("hub", to.Dispatch("hub"))
-	rt.Setd("bus", AsyncDispatch(log.Debug, NewBus(rt)))
-	rt.Post("bus", M("setup", "tid", &BusArgs{
+	rt.SetValue("bus.dialtoms", int64(400))
+	rt.SetValue("bus.writetoms", int64(400))
+	rt.SetValue("bus.readtoms", int64(400))
+	rt.SetValue("bus.discardms", int64(0))
+	rt.SetValue("bus.sleepms", int64(10))
+	rt.SetValue("bus.retryms", int64(2000))
+	rt.SetValue("bus.resetms", int64(0))
+	rt.SetCleaner("bus", NewCleaner(rt.PrefixLog("bus", "clean")))
+	rt.SetDispatch("hub", to.Dispatch("hub"))
+	rt.SetDispatch("bus", AsyncDispatch(log.Debug, NewBus(rt)))
+	busDispatch := rt.GetDispatch("bus")
+	busDispatch(M("setup", "tid", &BusArgs{
 		Host: "127.0.0.1",
 		Port: dpm.Port(),
 	}))
 	for i := 1; i < 32; i++ {
-		rt.Post("bus", M("slave", "tid", &SlaveArgs{
+		busDispatch(M("slave", "tid", &SlaveArgs{
 			Slave: uint(i),
 			Count: 1,
 		}))
@@ -41,7 +42,7 @@ func TestRtBusDpm(t *testing.T) {
 		to.MatchWait(t, 200, "trace", "hub", fmt.Sprintf("read-value .%vB1", busSlaveId(uint(i))))
 	}
 	for i := 1; i < 32; i++ {
-		rt.Post("bus", M("query", "tid", &QueryArgs{
+		busDispatch(M("query", "tid", &QueryArgs{
 			Index:   uint(i),
 			Request: "reset-peak",
 		}))
@@ -50,7 +51,7 @@ func TestRtBusDpm(t *testing.T) {
 		to.MatchWait(t, 200, "trace", "dpm", "true", fmt.Sprintf(".%vB2.0D.", busSlaveId(uint(i))))
 	}
 	for i := 1; i < 32; i++ {
-		rt.Post("bus", M("query", "tid", &QueryArgs{
+		busDispatch(M("query", "tid", &QueryArgs{
 			Index:   uint(i),
 			Request: "reset-valley",
 		}))
@@ -58,7 +59,7 @@ func TestRtBusDpm(t *testing.T) {
 		to.MatchWait(t, 200, "trace", "dpm", "true", fmt.Sprintf(".%vB3.0D.", busSlaveId(uint(i))))
 	}
 	for i := 1; i < 32; i++ {
-		rt.Post("bus", M("query", "tid", &QueryArgs{
+		busDispatch(M("query", "tid", &QueryArgs{
 			Index:   uint(i),
 			Request: "apply-tara",
 		}))
@@ -66,7 +67,7 @@ func TestRtBusDpm(t *testing.T) {
 		to.MatchWait(t, 200, "trace", "dpm", "true", fmt.Sprintf(".%vB1.0D.", busSlaveId(uint(i))))
 	}
 	for i := 1; i < 32; i++ {
-		rt.Post("bus", M("query", "tid", &QueryArgs{
+		busDispatch(M("query", "tid", &QueryArgs{
 			Index:   uint(i),
 			Request: "reset-tara",
 		}))
@@ -74,7 +75,7 @@ func TestRtBusDpm(t *testing.T) {
 		to.MatchWait(t, 200, "trace", "dpm", "true", fmt.Sprintf(".%vB1.0D.", busSlaveId(uint(i))))
 	}
 	for i := 1; i < 32; i++ {
-		rt.Post("bus", M("query", "tid", &QueryArgs{
+		busDispatch(M("query", "tid", &QueryArgs{
 			Index:   uint(i),
 			Request: "reset-cold",
 		}))
@@ -82,18 +83,18 @@ func TestRtBusDpm(t *testing.T) {
 		to.MatchWait(t, 200, "trace", "dpm", "true", fmt.Sprintf(".%vB1.0D.", busSlaveId(uint(i))))
 	}
 	for i := 1; i < 32; i++ {
-		rt.Post("bus", M("slave", "tid", &SlaveArgs{
+		busDispatch(M("slave", "tid", &SlaveArgs{
 			Slave: uint(i),
 			Count: 2,
 		}))
 	}
 	for i := 1; i < 32; i++ {
-		rt.Post("bus", M("slave", "tid", &SlaveArgs{
+		busDispatch(M("slave", "tid", &SlaveArgs{
 			Slave: uint(i),
 			Count: 0,
 		}))
 	}
-	rt.Post("bus", Mns("dispose", "tid"))
+	busDispatch(Mns("dispose", "tid"))
 }
 
 func TestRtSlaveId(t *testing.T) {

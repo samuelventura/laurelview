@@ -27,7 +27,7 @@ func NewState(rt Runtime) Dispatch {
 			session.disposer()
 			delete(sessions, sid)
 		}
-		rt.Post("hub", mut)
+		rt.GetDispatch("hub")(mut)
 	}
 	dispatchs["add"] = func(mut *Mutation) {
 		sid := mut.Sid
@@ -38,7 +38,7 @@ func NewState(rt Runtime) Dispatch {
 		session.buses = make(map[uint]*stateBusDso)
 		session.slaves = make(map[uint]uint)
 		sessions[sid] = session
-		rt.Post("hub", mut)
+		rt.GetDispatch("hub")(mut)
 	}
 	dispatchs["remove"] = func(mut *Mutation) {
 		sid := mut.Sid
@@ -46,7 +46,7 @@ func NewState(rt Runtime) Dispatch {
 		if ok { //duplicate cleanup
 			session.disposer()
 			delete(sessions, sid)
-			rt.Post("hub", mut)
+			rt.GetDispatch("hub")(mut)
 		} else {
 			log.Debug(mut)
 		}
@@ -68,7 +68,7 @@ func NewState(rt Runtime) Dispatch {
 			bus, ok := buses[address]
 			if !ok {
 				bus = &stateBusDso{}
-				bus.dispatch = rt.Make("bus")
+				bus.dispatch = rt.GetFactory("bus")(rt)
 				bus.slaves = make(map[uint]Count)
 				args := &BusArgs{}
 				args.Host = item.Host
@@ -124,7 +124,7 @@ func NewState(rt Runtime) Dispatch {
 				disposer()
 			}
 		}
-		rt.Post("hub", mut)
+		rt.GetDispatch("hub")(mut)
 	}
 	dispatchs["query"] = func(mut *Mutation) {
 		sid := mut.Sid

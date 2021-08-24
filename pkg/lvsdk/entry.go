@@ -1,4 +1,4 @@
-package lvnrt
+package lvsdk
 
 import (
 	"fmt"
@@ -25,8 +25,8 @@ type entryDso struct {
 type clientDso struct {
 	sid      string
 	log      Logger
-	rt       Runtime
 	conn     *websocket.Conn
+	dispatch Dispatch
 	callback chan *Mutation
 }
 
@@ -77,7 +77,7 @@ func (entry *entryDso) handle(ctx *fasthttp.RequestCtx) {
 		ipp := conn.RemoteAddr().String()
 		client := &clientDso{}
 		client.conn = conn
-		client.rt = entry.rt
+		client.dispatch = entry.rt.GetDispatch(string(ctx.Path()))
 		client.sid = fmt.Sprintf("%v_%v", id, ipp)
 		client.log = entry.rt.PrefixLog(client.sid)
 		client.callback = make(chan *Mutation)
@@ -90,43 +90,32 @@ func (entry *entryDso) handle(ctx *fasthttp.RequestCtx) {
 }
 
 func (client *clientDso) loop() {
-	mut, err := client.read()
-	if err != nil {
-		client.log.Error(err)
-		return
-	}
-	_, ok := mut.Args.(*SetupArgs)
-	if !ok {
-		client.log.Error("setup", mut)
-		return
-	}
 	defer client.wait()
 	defer client.remove()
 	client.add()
-	client.rt.GetDispatch("state")(mut)
 	go client.reader()
-	for mutation := range client.callback {
-		bytes := encodeMutation(mutation)
-		err := client.conn.WriteMessage(websocket.TextMessage, bytes)
+	mt := websocket.TextMessage
+	for mut := range client.callback {
+		bytes, err := encodeMutation(mut)
+		PanicIfError(err)
+		err = client.conn.WriteMessage(mt, bytes)
 		PanicIfError(err)
 	}
+}
+
+func (client *clientDso) add() {
+	mut := &Mutation{}
+	mut.Sid = client.sid
+	mut.Name = "$add"
+	mut.Args = client.writer
+	client.dispatch(mut)
 }
 
 func (client *clientDso) remove() {
 	mut := &Mutation{}
 	mut.Sid = client.sid
-	mut.Name = "remove"
-	client.rt.GetDispatch("state")(mut)
-}
-
-func (client *clientDso) add() {
-	args := &AddArgs{}
-	args.Callback = client.writer
-	mut := &Mutation{}
-	mut.Sid = client.sid
-	mut.Name = "add"
-	mut.Args = args
-	client.rt.GetDispatch("state")(mut)
+	mut.Name = "$remove"
+	client.dispatch(mut)
 }
 
 func (client *clientDso) wait() {
@@ -139,12 +128,10 @@ func (client *clientDso) writer(mut *Mutation) {
 	defer TraceRecover(client.log.Debug)
 	client.log.Trace("out", mut)
 	switch mut.Name {
-	case "setup", "query":
-		client.callback <- mut
-	case "remove", "dispose":
+	case "$remove", "$dispose":
 		close(client.callback)
 	default:
-		client.log.Debug("unknown mutation", mut.Name)
+		client.callback <- mut
 	}
 }
 
@@ -158,7 +145,7 @@ func (client *clientDso) reader() {
 			client.log.Trace(err)
 			return
 		}
-		client.rt.GetDispatch("state")(mut)
+		client.dispatch(mut)
 	}
 }
 
@@ -169,14 +156,13 @@ func (client *clientDso) read() (mut *Mutation, err error) {
 		return
 	}
 	if websocket.TextMessage != mt {
-		err = fmt.Errorf("websocket.TextMessage !=%v", mt)
+		err = fmt.Errorf("websocket.TextMessage != %v", mt)
 		return
 	}
-	//may throw on invalid json format
-	//FIXME test needed to ensure incomming misformats properly handled
+	//FIXME this may panic, testing needed
 	mut, err = decodeMutation(msg)
 	if err != nil {
-		err = fmt.Errorf("decodeMutation %w", err)
+		err = fmt.Errorf("decode %w", err)
 		return
 	}
 	mut.Sid = client.sid

@@ -18,7 +18,7 @@ type busQueryDso struct {
 func NewBus(rt Runtime) Dispatch {
 	dispose := NopAction
 	log := PrefixLogger(rt.Log, "bus")
-	cleaner := rt.Getc("bus")
+	cleaner := rt.GetCleaner("bus")
 	dispatchs := make(map[string]Dispatch)
 	dispatchs["dispose"] = func(mut *Mutation) {
 		defer DisposeArgs(mut.Args)
@@ -26,13 +26,13 @@ func NewBus(rt Runtime) Dispatch {
 		ClearDispatch(dispatchs)
 	}
 	dispatchs["setup"] = func(mut *Mutation) {
-		dialtoms := rt.Getv("bus.dialtoms").(int64)
-		writetoms := rt.Getv("bus.writetoms").(int64)
-		readtoms := rt.Getv("bus.readtoms").(int64)
-		sleepms := rt.Getv("bus.sleepms").(int64)
-		retryms := rt.Getv("bus.retryms").(int64)
-		resetms := rt.Getv("bus.resetms").(int64)
-		discardms := rt.Getv("bus.discardms").(int64)
+		dialtoms := rt.GetValue("bus.dialtoms").(int64)
+		writetoms := rt.GetValue("bus.writetoms").(int64)
+		readtoms := rt.GetValue("bus.readtoms").(int64)
+		sleepms := rt.GetValue("bus.sleepms").(int64)
+		retryms := rt.GetValue("bus.retryms").(int64)
+		resetms := rt.GetValue("bus.resetms").(int64)
+		discardms := rt.GetValue("bus.discardms").(int64)
 		bus := mut.Args.(*BusArgs)
 		address := fmt.Sprintf("%v:%v", bus.Host, bus.Port)
 		log := PrefixLogger(rt.Log, "bus", address)
@@ -109,7 +109,7 @@ func NewBus(rt Runtime) Dispatch {
 				Response: response,
 				Error:    ErrorString(err),
 			}
-			rt.Post("hub", mut)
+			rt.GetDispatch("hub")(mut)
 		}
 		status_buserr := func(err error) {
 			mut := &Mutation{}
@@ -120,7 +120,7 @@ func NewBus(rt Runtime) Dispatch {
 				Response: "error",
 				Error:    ErrorString(err),
 			}
-			rt.Post("hub", mut)
+			rt.GetDispatch("hub")(mut)
 		}
 		read := func(conn net.Conn) bool {
 			cleaner.AddCloser(address, conn)

@@ -11,10 +11,10 @@ func TestRtStateBasic(t *testing.T) {
 	rt := NewRuntime(to.Log)
 	defer rt.Close()
 	bid := NewId("bus")
-	rt.Setf("bus", func(Runtime) Dispatch {
+	rt.SetFactory("bus", func(Runtime) Dispatch {
 		return to.Dispatch(bid.Next())
 	})
-	rt.Setd("hub", to.Dispatch("hub"))
+	rt.SetDispatch("hub", to.Dispatch("hub"))
 	disp := AsyncDispatch(log.Warn, NewState(rt))
 	disp(&Mutation{Name: "add", Sid: "tid", Args: &AddArgs{
 		Callback: to.Dispatch("entry"),
