@@ -3,13 +3,13 @@
   "name": "LaurelView",
   "icons": [
     {
-      "src": "maskable_icon_x192.png",
+      "src": "any_icon_x192.png",
       "type": "image/png",
       "sizes": "192x192",
       "purpose": "any"
     },
     {
-      "src": "maskable_icon_x512.png",
+      "src": "any_icon_x512.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any"

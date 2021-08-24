@@ -67,3 +67,15 @@ web/lvnfe #node react frontend
 - Tara/Valley/Peak reset (transiente <400ms)
 - Second connection attempt makes next connection take ~20s
 - Connection drop
+
+# Audits
+
+- https://web.dev/measure/
+- https://web.dev/vitals/
+- https://www.pwabuilder.com/
+
+# Resources
+
+- https://maskable.app/editor
+- https://realfavicongenerator.net/
+- https://caniuse.com/?search=a2hs
