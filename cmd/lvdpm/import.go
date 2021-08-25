@@ -1,13 +1,16 @@
 package main
 
-import "github.com/samuelventura/laurelview/pkg/lvsdk"
+import (
+	"github.com/samuelventura/laurelview/pkg/lvnrt"
+	"github.com/samuelventura/laurelview/pkg/lvsdk"
+)
 
 var M = lvsdk.M
 var Mn = lvsdk.Mn
 var Mna = lvsdk.Mna
 var Mns = lvsdk.Mns
 var NewId = lvsdk.NewId
-var NewDpm = lvsdk.NewDpm
+var NewDpm = lvnrt.NewDpm
 var NewCount = lvsdk.NewCount
 var NewSocket = lvsdk.NewSocket
 var NewCleaner = lvsdk.NewCleaner

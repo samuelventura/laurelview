@@ -22,7 +22,7 @@ func main() {
 	ep := endpoint()
 	log.Info("endpoint", ep)
 	dpm := lvnrt.NewDpm(log, ep, 400)
-	defer dpm.Close()
+	defer dpm.Close(true)
 	log.Info("port", dpm.Port())
 	exit := make(chan bool)
 	go stdin(exit)

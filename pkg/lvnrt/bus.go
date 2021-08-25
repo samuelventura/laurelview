@@ -214,25 +214,34 @@ func busSlaveId(slave uint) string {
 	return "invalid"
 }
 
+const busReadValue = "*#B1"
+const busReadPeak = "*#B2"
+const busReadValley = "*#B3"
+const busResetPeak = "*#C3"
+const busResetValley = "*#C9"
+const busApplyTara = "*#CA"
+const busResetTara = "*#CB"
+const busResetCold = "*#C0"
+
 func busRequestCode(request string, slave uint) string {
 	id := busSlaveId(slave)
 	switch request {
 	case "read-value":
-		return fmt.Sprintf("*%vB1", id)
+		return strings.Replace(busReadValue, "#", id, 1)
 	case "read-peak":
-		return fmt.Sprintf("*%vB2", id)
+		return strings.Replace(busReadPeak, "#", id, 1)
 	case "read-valley":
-		return fmt.Sprintf("*%vB3", id)
+		return strings.Replace(busReadValley, "#", id, 1)
 	case "reset-peak":
-		return fmt.Sprintf("*%vC3", id)
+		return strings.Replace(busResetPeak, "#", id, 1)
 	case "reset-valley":
-		return fmt.Sprintf("*%vC9", id)
+		return strings.Replace(busResetValley, "#", id, 1)
 	case "apply-tara":
-		return fmt.Sprintf("*%vCA", id)
+		return strings.Replace(busApplyTara, "#", id, 1)
 	case "reset-tara":
-		return fmt.Sprintf("*%vCB", id)
+		return strings.Replace(busResetTara, "#", id, 1)
 	case "reset-cold":
-		return fmt.Sprintf("*%vC0", id)
+		return strings.Replace(busResetCold, "#", id, 1)
 	}
 	PanicLN("invalid request", request)
 	return "invalid"

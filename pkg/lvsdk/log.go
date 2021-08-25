@@ -45,46 +45,6 @@ func LevelOutput(log Log, level string) Output {
 	}
 }
 
-type prefixLog struct {
-	prefix []Any
-	log    Log
-}
-
-func PrefixLogger(log Log, prefix ...Any) Logger {
-	l := &prefixLog{}
-	l.log = log
-	l.prefix = prefix
-	return l
-}
-
-func (l *prefixLog) Log(level string, args ...Any) {
-	l.log(level, l.prefix, args)
-}
-
-func (l *prefixLog) Trace(args ...Any) {
-	l.log("trace", l.prefix, args)
-}
-
-func (l *prefixLog) Debug(args ...Any) {
-	l.log("debug", l.prefix, args)
-}
-
-func (l *prefixLog) Info(args ...Any) {
-	l.log("info", l.prefix, args)
-}
-
-func (l *prefixLog) Warn(args ...Any) {
-	l.log("warn", l.prefix, args)
-}
-
-func (l *prefixLog) Error(args ...Any) {
-	l.log("error", l.prefix, args)
-}
-
-func (l *prefixLog) Panic(args ...Any) {
-	l.log("panic", l.prefix, args)
-}
-
 func DefaultOutput() Output {
 	done := make(Channel)
 	queue := make(chan []Any, 128)
@@ -117,21 +77,16 @@ func DefaultLog() Log {
 	logLevelFromEnv()
 	output := DefaultOutput()
 	log := func(level string, args ...Any) {
-		if level != "" {
+		//FIXME overlapped output
+		switch level {
+		case "":
+			output()
+		default:
 			if isLogPrintable(level) {
 				now := time.Now()
 				when := now.Format("20060102T150405.000")
 				output(when, level, args)
 			}
-			if level == "panic" {
-				//FIXME overlapped output
-				buf := new(strings.Builder)
-				print := flatPrintln(buf)
-				print(args)
-				panic(buf.String())
-			}
-		} else {
-			output()
 		}
 	}
 	log("info", "log-level", logLevel)

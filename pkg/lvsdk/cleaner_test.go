@@ -38,7 +38,11 @@ func TestSdkCleaner(t *testing.T) {
 	to.MatchWait(t, 200, "trace", "action1")
 	to.MatchWait(t, 200, "trace", "close", "id2")
 	to.MatchWait(t, 200, "trace", "action2")
-	to.MatchWait(t, 200, "trace", "count", "0", "0")
+	cleaner.Status(func(any Any) {
+		c := any.(*cleanerDso)
+		log.Trace("status", c.closed, len(c.items), c.order.Len())
+	})
+	to.MatchWait(t, 200, "trace", "status", "true", "0", "0")
 	// immediate removal of anything arriving after close
 	cleaner.AddAction("id3", func() {
 		log.Trace("action3")
@@ -46,4 +50,9 @@ func TestSdkCleaner(t *testing.T) {
 	to.MatchWait(t, 200, "trace", "add", "id3")
 	to.MatchWait(t, 200, "trace", "close", "id3")
 	to.MatchWait(t, 200, "trace", "action3")
+	cleaner.Status(func(any Any) {
+		c := any.(*cleanerDso)
+		log.Trace("status", c.closed, len(c.items), c.order.Len())
+	})
+	to.MatchWait(t, 200, "trace", "status", "true", "0", "0")
 }

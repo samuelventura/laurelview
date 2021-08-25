@@ -7,7 +7,6 @@ var Mn = lvsdk.Mn
 var Mna = lvsdk.Mna
 var Mns = lvsdk.Mns
 var NewId = lvsdk.NewId
-var NewDpm = lvsdk.NewDpm
 var NewCount = lvsdk.NewCount
 var NewSocket = lvsdk.NewSocket
 var NewCleaner = lvsdk.NewCleaner
@@ -37,6 +36,7 @@ var PanicF = lvsdk.PanicF
 var LevelOutput = lvsdk.LevelOutput
 var PrefixLogger = lvsdk.PrefixLogger
 
+var Readable = lvsdk.Readable
 var Future = lvsdk.Future
 var Millis = lvsdk.Millis
 

@@ -25,12 +25,13 @@ type Dispatch = func(*Mutation)
 type Factory = func(Runtime) Dispatch
 
 //Runtime Provides
-//1) config
+//1) config values
 //2) factories
 //3) dispatchs
 //4) log (prefixed)
 //5) cleaners
-//6) self overlay (removed)
+//6) ids
+//7) self overlay (removed)
 
 type Runtime interface {
 	SetId(name string, id Id)
@@ -47,9 +48,12 @@ type Runtime interface {
 	LevelOutput(level string) Output
 	PrefixLog(prefix ...Any) Logger
 	Closed() Channel
-	Close()
+	Close() Channel
 }
 
+//panic conflicts with nop logger
+//should a nop logger panic or not?
+//keep panics separated until resolved
 type Logger interface {
 	Log(string, ...Any)
 	Trace(...Any)
@@ -57,7 +61,6 @@ type Logger interface {
 	Info(...Any)
 	Warn(...Any)
 	Error(...Any)
-	Panic(...Any)
 }
 
 func NopAction()                  {}

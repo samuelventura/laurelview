@@ -10,6 +10,7 @@ type Cleaner interface {
 	AddCloser(id string, closer io.Closer)
 	AddChannel(id string, channel Channel)
 	Remove(id string)
+	Status(func(Any))
 	Close()
 }
 
@@ -58,7 +59,7 @@ func (c *cleanerDso) Remove(id string) {
 	c.queue <- func() {
 		item, ok := c.items[id]
 		if ok {
-			c.safe(item)
+			c.remove(item)
 		} else {
 			c.log.Debug("nf404", id)
 		}
@@ -71,10 +72,15 @@ func (c *cleanerDso) Close() {
 		item := c.order.Front()
 		for item != nil {
 			next := item.Next()
-			c.safe(item)
+			c.remove(item)
 			item = next
 		}
-		c.log.Trace("count", len(c.items), c.order.Len())
+	}
+}
+
+func (c *cleanerDso) Status(callback func(Any)) {
+	c.queue <- func() {
+		callback(c)
 	}
 }
 
@@ -88,11 +94,11 @@ func (c *cleanerDso) override(id string) {
 	item, ok := c.items[id]
 	if ok {
 		c.log.Debug("override", id)
-		c.safe(item)
+		c.remove(item)
 	}
 }
 
-func (c *cleanerDso) safe(item *list.Element) {
+func (c *cleanerDso) remove(item *list.Element) {
 	TraceRecover(c.log.Debug)
 	action := item.Value.(Action)
 	c.order.Remove(item)
@@ -104,7 +110,6 @@ func (c *cleanerDso) add(id string, action Action) {
 	item := c.order.PushBack(action)
 	c.items[id] = item
 	if c.closed {
-		c.log.Trace("close", id)
-		c.safe(item)
+		c.remove(item)
 	}
 }

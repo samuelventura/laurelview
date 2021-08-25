@@ -6,6 +6,7 @@ func DefaultRuntime() Runtime {
 
 type runtimeDso struct {
 	log       Log
+	id        string
 	logger    Logger
 	cleaner   Cleaner
 	closed    Channel
@@ -16,16 +17,15 @@ type runtimeDso struct {
 	cleaners  map[string]Cleaner
 }
 
+//pass a prefixed log instead of assigning an id
 func NewRuntime(log Log) Runtime {
-	return NewRuntimeId(log, "drt")
-}
-
-func NewRuntimeId(log Log, id string) Runtime {
 	rt := &runtimeDso{}
 	rt.log = log
-	rt.logger = PrefixLogger(log, id)
-	rt.cleaner = NewCleaner(rt.logger)
+	rt.logger = PrefixLogger(log)
+	clogger := PrefixLogger(log, "cleaner")
+	rt.cleaner = NewCleaner(clogger)
 	rt.closed = make(Channel)
+	rt.ids = make(map[string]Id)
 	rt.values = make(map[string]Any)
 	rt.factories = make(map[string]Factory)
 	rt.dispatchs = make(map[string]Dispatch)
@@ -120,7 +120,11 @@ func (rt *runtimeDso) Closed() Channel {
 	return rt.closed
 }
 
-func (rt *runtimeDso) Close() {
+//no clear way to make it idempotent
+func (rt *runtimeDso) Close() Channel {
 	close(rt.closed)
 	rt.cleaner.Close()
+	done := make(Channel)
+	rt.cleaner.AddChannel(rt.id, done)
+	return done
 }
