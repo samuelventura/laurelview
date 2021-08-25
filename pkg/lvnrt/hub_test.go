@@ -10,18 +10,21 @@ func TestRtHubBasic(t *testing.T) {
 	log := to.Logger()
 	rt := NewRuntime(to.Log)
 	defer WaitClose(rt.Close)
-	disp := AsyncDispatch(log.Warn, NewHub(rt))
-	disp(&Mutation{Name: ":add", Sid: "tid", Args: to.Dispatch("entry")})
-	disp(&Mutation{Name: "setup", Sid: "tid", Args: []*ItemArgs{{"host", 0, 1}}})
-	to.MatchWait(t, 200, "trace", "hub", "{setup,tid,.*SetupArgs,&{")
+	disp := AsyncDispatch(log, NewHub(rt))
+	disp(Mnsa(":add", "tid", to.Dispatch("entry")))
+	disp(Mnsa("setup", "tid", []*ItemArgs{{"host", 0, 1}}))
+	to.MatchWait(t, 200, "trace", "hub", "{setup,tid,.*ItemArgs,")
 	to.MatchWait(t, 200, "trace", "entry", "{query,tid,.*QueryArgs,&{0   1 1")
-	disp(&Mutation{Name: "status-slave", Sid: "tid", Args: &StatusArgs{
+	disp(Mnsa("status-slave", "tid", &StatusArgs{
 		Address:  "host:0:1",
 		Request:  "read-value",
 		Response: "value",
-	}})
+	}))
 	to.MatchWait(t, 200, "trace", "entry", "{query,tid,.*QueryArgs,&{0 read-value value 2 2")
-	disp(&Mutation{Name: ":remove", Sid: "tid"})
+	disp(Mns(":remove", "tid"))
 	to.MatchWait(t, 200, "trace", "entry", "{:remove,tid")
-	disp(&Mutation{Name: ":dispose", Sid: "tid"})
+	disp(Mns(":dispose", "tid"))
+	to.MatchWait(t, 200, "trace", "hub", "{:dispose,tid")
+	disp(Mns(":dispose", "tid"))
+	to.MatchWait(t, 200, "debug", "hub", "{:dispose,tid")
 }

@@ -51,13 +51,13 @@ function ItemView(props) {
           const json = props.item.json
           const item = JSON.parse(json)
           const items = [item]
-          args({ name, args: { items } })
+          args({ name, args: items })
           break
         }
         default: //linter complains
       }
     }
-    return socket.createRt(handler, "/index")
+    return socket.createRt(handler, "/rt")
   }, [props])
 
   function handleQuery(request) {

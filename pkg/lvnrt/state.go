@@ -17,6 +17,7 @@ type stateSessionDso struct {
 
 func NewState(rt Runtime) Dispatch {
 	log := PrefixLogger(rt.Log, "state")
+	hubDispatch := rt.GetDispatch("hub")
 	dispatchs := make(map[string]Dispatch)
 	sessions := make(map[string]*stateSessionDso)
 	buses := make(map[string]*stateBusDso)
@@ -27,7 +28,7 @@ func NewState(rt Runtime) Dispatch {
 			session.disposer()
 			delete(sessions, sid)
 		}
-		rt.GetDispatch("hub")(mut)
+		hubDispatch(mut)
 	}
 	dispatchs[":add"] = func(mut *Mutation) {
 		sid := mut.Sid
@@ -38,7 +39,7 @@ func NewState(rt Runtime) Dispatch {
 		session.buses = make(map[uint]*stateBusDso)
 		session.slaves = make(map[uint]uint)
 		sessions[sid] = session
-		rt.GetDispatch("hub")(mut)
+		hubDispatch(mut)
 	}
 	dispatchs[":remove"] = func(mut *Mutation) {
 		sid := mut.Sid
@@ -46,7 +47,7 @@ func NewState(rt Runtime) Dispatch {
 		if ok { //duplicate cleanup
 			session.disposer()
 			delete(sessions, sid)
-			rt.GetDispatch("hub")(mut)
+			hubDispatch(mut)
 		} else {
 			log.Debug(mut)
 		}
@@ -124,7 +125,7 @@ func NewState(rt Runtime) Dispatch {
 				disposer()
 			}
 		}
-		rt.GetDispatch("hub")(mut)
+		hubDispatch(mut)
 	}
 	dispatchs["query"] = func(mut *Mutation) {
 		sid := mut.Sid

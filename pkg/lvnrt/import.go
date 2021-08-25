@@ -6,6 +6,7 @@ var M = lvsdk.M
 var Mn = lvsdk.Mn
 var Mna = lvsdk.Mna
 var Mns = lvsdk.Mns
+var Mnsa = lvsdk.Mnsa
 var NewId = lvsdk.NewId
 var NewCount = lvsdk.NewCount
 var NewSocket = lvsdk.NewSocket

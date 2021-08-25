@@ -52,14 +52,14 @@ function ItemMultiView(props) {
         case "send": {
           const name = "setup"
           const items = props.items.map(item => JSON.parse(item.json))
-          env.log({ name, args: { items } })
-          args({ name, args: { items } })
+          env.log({ name, args: items })
+          args({ name, args: items })
           break
         }
         default: //linter complains
       }
     }
-    return socket.createRt(handler, "/index")
+    return socket.createRt(handler, "/rt")
   }, [props])
 
   const [hasFullscreen, isFullscreen, setIsFullscreen] = useFullscreenStatus()

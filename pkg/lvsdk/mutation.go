@@ -28,6 +28,10 @@ func Mna(name string, args Any) *Mutation {
 	return &Mutation{Name: name, Args: args}
 }
 
+func Mnsa(name string, sid string, args Any) *Mutation {
+	return &Mutation{Name: name, Sid: sid, Args: args}
+}
+
 func (m *Mutation) String() string {
 	buf := new(strings.Builder)
 	var typ string

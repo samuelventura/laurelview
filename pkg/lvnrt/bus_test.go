@@ -25,7 +25,7 @@ func TestRtBusDpm(t *testing.T) {
 	rt.SetValue("bus.retryms", 2000)
 	rt.SetValue("bus.resetms", 0)
 	rt.SetDispatch("hub", to.Dispatch("hub"))
-	rt.SetDispatch("bus", AsyncDispatch(log.Debug, NewBus(rt)))
+	rt.SetDispatch("bus", AsyncDispatch(log, NewBus(rt)))
 	busDispatch := rt.GetDispatch("bus")
 	busDispatch(M("setup", "tid", &BusArgs{
 		Host: "127.0.0.1",
@@ -94,6 +94,9 @@ func TestRtBusDpm(t *testing.T) {
 		}))
 	}
 	busDispatch(Mns(":dispose", "tid"))
+	to.MatchWait(t, 200, "trace", "bus", "{:dispose,tid")
+	busDispatch(Mns(":dispose", "tid"))
+	to.MatchWait(t, 200, "debug", "bus", "{:dispose,tid")
 }
 
 func TestRtSlaveId(t *testing.T) {

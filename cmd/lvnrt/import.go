@@ -9,6 +9,7 @@ var NewBus = lvnrt.NewBus
 var NewHub = lvnrt.NewHub
 var NewState = lvnrt.NewState
 var NewEntry = lvsdk.NewEntry
+var NewCheckin = lvnrt.NewCheckin
 
 var M = lvsdk.M
 var Mn = lvsdk.Mn

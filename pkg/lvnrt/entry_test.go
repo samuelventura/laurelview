@@ -51,8 +51,9 @@ func TestRtEntryRemoveReceived(t *testing.T) {
 func TestRtEntryDisposeReceived(t *testing.T) {
 	testSetupEntry(t, func(to TestOutput, rt Runtime, log Logger, conn *websocket.Conn, dp int) {
 		testEntryPostSetup(conn, dp)
+		stateDispatch := rt.GetDispatch("state")
 		to.MatchWait(t, 200, "trace", "read", "query", "entry-1", "map||index:0||count:1||total:1")
-		rt.GetDispatch("state")(Mns(":dispose", "tid"))
+		stateDispatch(Mns(":dispose", "tid"))
 		to.MatchWait(t, 200, "trace", "entry-1", "out", "{:dispose,tid")
 	})
 }
@@ -75,12 +76,13 @@ func testSetupEntry(t *testing.T, callback func(to TestOutput, rt Runtime, log L
 	rt.SetValue("bus.retryms", 2000)
 	rt.SetValue("bus.resetms", 0)
 	rt.SetValue("entry.endpoint", ":0")
-	rt.SetDispatch("hub", AsyncDispatch(log.Debug, NewHub(rt)))
-	rt.SetDispatch("state", AsyncDispatch(log.Debug, NewState(rt)))
+	rt.SetDispatch("hub", AsyncDispatch(log, NewHub(rt)))
+	rt.SetDispatch("state", AsyncDispatch(log, NewState(rt)))
 	rt.SetDispatch("checkin", NewCheckin(rt))
-	defer rt.GetDispatch("state")(Mn(":dispose"))
+	checkinDispatch := rt.GetDispatch("checkin")
+	defer checkinDispatch(Mn(":dispose"))
 	rt.SetFactory("bus", func(rt Runtime) Dispatch { return NewBus(rt) })
-	rt.SetDispatch("/ws/test", rt.GetDispatch("checkin"))
+	rt.SetDispatch("/ws/test", checkinDispatch)
 	entry := NewEntry(rt)
 	defer entry.Close()
 	log.Info("port", entry.Port())
@@ -126,7 +128,7 @@ func testEntryReadMutation(conn *websocket.Conn) *Mutation {
 
 func testEntryPostSetup(conn *websocket.Conn, port int) {
 	args := []*ItemArgs{{Host: "127.0.0.1", Port: uint(port), Slave: 1}}
-	mut := &Mutation{Name: "setup", Args: args}
+	mut := Mna("setup", args)
 	bytes, err := EncodeMutation(mut)
 	PanicIfError(err)
 	err = conn.WriteMessage(websocket.TextMessage, bytes)
@@ -137,7 +139,7 @@ func testEntryPostQuery(conn *websocket.Conn, request string) {
 	args := &QueryArgs{}
 	args.Index = 0
 	args.Request = request
-	mut := &Mutation{Name: "query", Args: args}
+	mut := Mna("query", args)
 	bytes, err := EncodeMutation(mut)
 	PanicIfError(err)
 	err = conn.WriteMessage(websocket.TextMessage, bytes)

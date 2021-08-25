@@ -17,6 +17,7 @@ type busQueryDso struct {
 
 func NewBus(rt Runtime) Dispatch {
 	dispose := NopAction
+	hubDispatch := rt.GetDispatch("hub")
 	log := PrefixLogger(rt.Log, "bus")
 	cleaner := NewCleaner(PrefixLogger(rt.Log, "bus", "cleaner"))
 	dispatchs := make(map[string]Dispatch)
@@ -109,7 +110,7 @@ func NewBus(rt Runtime) Dispatch {
 				Response: response,
 				Error:    ErrorString(err),
 			}
-			rt.GetDispatch("hub")(mut)
+			hubDispatch(mut)
 		}
 		status_buserr := func(err error) {
 			mut := &Mutation{}
@@ -120,7 +121,7 @@ func NewBus(rt Runtime) Dispatch {
 				Response: "error",
 				Error:    ErrorString(err),
 			}
-			rt.GetDispatch("hub")(mut)
+			hubDispatch(mut)
 		}
 		read := func(conn net.Conn) bool {
 			cleaner.AddCloser(address, conn)

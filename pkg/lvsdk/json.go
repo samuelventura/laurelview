@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"strconv"
 )
 
 func EncodeMutation(mut *Mutation) (bytes []byte, err error) {
@@ -46,24 +47,6 @@ func DecodeMutation(bytes []byte) (mut *Mutation, err error) {
 	return
 }
 
-func maybeMap(mm Map, key string, def Map) (res Map, err error) {
-	val, err := getValue(mm, key)
-	if err != nil {
-		res = def
-		err = nil
-		return
-	}
-	switch cur := val.(type) {
-	case Map:
-		res = cur
-		return
-	default:
-		typ := reflect.TypeOf(val)
-		err = fmt.Errorf("invalid type `%v:%v`", key, typ)
-		return
-	}
-}
-
 func ParseString(mm Map, key string) (res string, err error) {
 	val, err := getValue(mm, key)
 	if err != nil {
@@ -88,6 +71,14 @@ func ParseUint(mm Map, key string) (res uint, err error) {
 	switch cur := val.(type) {
 	case float64:
 		res = uint(cur)
+		return
+	case string:
+		u64, err2 := strconv.ParseUint(cur, 10, 64)
+		if err2 != nil {
+			err = err2
+			return
+		}
+		res = uint(u64)
 		return
 	default:
 		typ := reflect.TypeOf(val)
@@ -124,6 +115,14 @@ func MaybeUint(mm Map, key string, def uint) (res uint, err error) {
 	switch cur := val.(type) {
 	case float64:
 		res = uint(cur)
+		return
+	case string:
+		u64, err2 := strconv.ParseUint(cur, 10, 64)
+		if err2 != nil {
+			err = err2
+			return
+		}
+		res = uint(u64)
 		return
 	default:
 		typ := reflect.TypeOf(val)

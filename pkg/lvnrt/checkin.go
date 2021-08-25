@@ -2,34 +2,10 @@ package lvnrt
 
 //sync to panic in entry client
 func NewCheckin(rt Runtime) Dispatch {
-	state := rt.GetDispatch("state")
+	stateDispatch := rt.GetDispatch("state")
 	log := rt.PrefixLog("checkin")
 	return func(mut *Mutation) {
 		switch mut.Name {
-		case ":add":
-			state(mut)
-		case ":remove":
-			state(mut)
-		case "setup":
-			args := mut.Args.([]Any)
-			items := make([]*ItemArgs, 0, len(args))
-			for _, mii := range args {
-				mi := mii.(Map)
-				item := &ItemArgs{}
-				host, err := ParseString(mi, "host")
-				PanicIfError(err)
-				item.Host = host
-				port, err := ParseUint(mi, "port")
-				PanicIfError(err)
-				item.Port = port
-				slave, err := ParseUint(mi, "slave")
-				PanicIfError(err)
-				item.Slave = slave
-				items = append(items, item)
-			}
-			nmut := *mut
-			nmut.Args = items
-			state(&nmut)
 		case "query":
 			args := mut.Args.(Map)
 			query := &QueryArgs{}
@@ -53,7 +29,33 @@ func NewCheckin(rt Runtime) Dispatch {
 			query.Total = total
 			nmut := *mut
 			nmut.Args = query
-			state(&nmut)
+			stateDispatch(&nmut)
+		case "setup":
+			args := mut.Args.([]Any)
+			items := make([]*ItemArgs, 0, len(args))
+			for _, mii := range args {
+				mi := mii.(Map)
+				item := &ItemArgs{}
+				host, err := ParseString(mi, "host")
+				PanicIfError(err)
+				item.Host = host
+				port, err := ParseUint(mi, "port")
+				PanicIfError(err)
+				item.Port = port
+				slave, err := ParseUint(mi, "slave")
+				PanicIfError(err)
+				item.Slave = slave
+				items = append(items, item)
+			}
+			nmut := *mut
+			nmut.Args = items
+			stateDispatch(&nmut)
+		case ":add":
+			stateDispatch(mut)
+		case ":remove":
+			stateDispatch(mut)
+		case ":dispose":
+			stateDispatch(mut)
 		default:
 			log.Debug(mut)
 		}

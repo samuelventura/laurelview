@@ -18,18 +18,27 @@ func MapDispatch(log Logger, dispmap map[string]Dispatch) Dispatch {
 	}
 }
 
-func AsyncDispatch(output Output, dispatch Dispatch) Dispatch {
+//like cleaner should never close anything and aim for idempotency
+//it needs to be pair with state immutability for real efficacy
+func AsyncDispatch(log Logger, dispatch Dispatch) Dispatch {
 	queue := make(chan *Mutation)
+	catch := func(mut *Mutation) {
+		r := recover()
+		if r != nil {
+			log.Error("recover", mut, r)
+		}
+	}
+	safe := func(disp Dispatch, mut *Mutation) {
+		defer catch(mut)
+		disp(mut)
+	}
 	loop := func() {
-		defer TraceRecover(output)
 		for mut := range queue {
-			dispatch(mut)
+			safe(dispatch, mut)
 		}
 	}
 	go loop()
 	return func(mut *Mutation) {
-		//do not close queue nor state dispose
-		//let map dispatch report the ignore
 		queue <- mut
 	}
 }

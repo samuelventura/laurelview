@@ -2,7 +2,6 @@ package lvsdk
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -45,9 +44,17 @@ func TestSdkJson_parseStringInvalidType(t *testing.T) {
 	assert.Equal(t, "invalid type `key:bool`", err.Error())
 }
 
-func TestSdkJson_parseUintSuccess(t *testing.T) {
+func TestSdkJson_parseUintSuccessFloat(t *testing.T) {
 	mm := make(Map)
 	mm["key"] = float64(1)
+	val, err := ParseUint(mm, "key")
+	PanicIfError(err)
+	assert.Equal(t, uint(1), val)
+}
+
+func TestSdkJson_parseUintSuccessString(t *testing.T) {
+	mm := make(Map)
+	mm["key"] = "1"
 	val, err := ParseUint(mm, "key")
 	PanicIfError(err)
 	assert.Equal(t, uint(1), val)
@@ -90,9 +97,17 @@ func TestSdkJson_maybeStringInvalidType(t *testing.T) {
 	assert.Equal(t, "invalid type `key:bool`", err.Error())
 }
 
-func TestSdkJson_maybeUintSuccess(t *testing.T) {
+func TestSdkJson_maybeUintSuccessFloat(t *testing.T) {
 	mm := make(Map)
 	mm["key"] = float64(1)
+	val, err := MaybeUint(mm, "key", 2)
+	PanicIfError(err)
+	assert.Equal(t, uint(1), val)
+}
+
+func TestSdkJson_maybeUintSuccessString(t *testing.T) {
+	mm := make(Map)
+	mm["key"] = "1"
 	val, err := MaybeUint(mm, "key", 2)
 	PanicIfError(err)
 	assert.Equal(t, uint(1), val)
@@ -111,38 +126,6 @@ func TestSdkJson_maybeUintInvalidType(t *testing.T) {
 	mm["key"] = true
 	_, err := MaybeUint(mm, "key", 2)
 	assert.Equal(t, "invalid type `key:bool`", err.Error())
-}
-
-func TestSdkJson_maybeMapSuccess(t *testing.T) {
-	mm := make(Map)
-	km := make(Map)
-	mm["key"] = km
-	val, err := maybeMap(mm, "key", nil)
-	PanicIfError(err)
-	assert.Equal(t, testMapPointer(km), testMapPointer(val))
-}
-
-func TestSdkJson_maybeMapDefault(t *testing.T) {
-	mm := make(Map)
-	km := make(Map)
-	dm := make(Map)
-	mm["key"] = km
-	val, err := maybeMap(mm, "nf", dm)
-	PanicIfError(err)
-	assert.NotEqual(t, testMapPointer(dm), testMapPointer(km))
-	assert.NotEqual(t, testMapPointer(km), testMapPointer(val))
-	assert.Equal(t, testMapPointer(dm), testMapPointer(val))
-}
-
-func TestSdkJson_maybeMapInvalidType(t *testing.T) {
-	mm := make(Map)
-	mm["key"] = true
-	_, err := maybeMap(mm, "key", nil)
-	assert.Equal(t, "invalid type `key:bool`", err.Error())
-}
-
-func testMapPointer(mm Map) string {
-	return fmt.Sprintf("%p", mm)
 }
 
 func TestSdkJson_encodeMutationSuccess(t *testing.T) {
