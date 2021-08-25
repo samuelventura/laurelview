@@ -13,54 +13,56 @@ import (
 
 func TestRtEntryBasic(t *testing.T) {
 	testSetupEntry(t, func(to TestOutput, rt Runtime, log Logger, conn *websocket.Conn, dp int) {
-		postSetup(conn, dp)
+		testEntryPostSetup(conn, dp)
 		//first empty
-		to.MatchWait(t, 200, "trace", "read", "query", "client-1", "&{0   1 1")
+		to.MatchWait(t, 200, "trace", "read", "query", "entry-1", "map||index:0||count:1||total:1")
 		//read value
-		to.MatchWait(t, 200, "trace", "read", "query", "client-1", "&{0 read-value .1B1")
-		postQuery(conn, "reset-valley")
-		to.MatchWait(t, 200, "trace", "read", "query", "client-1", "&{0 reset-valley ok")
-		to.MatchWait(t, 200, "trace", "read", "query", "client-1", "&{0 read-valley .1B3")
-		postQuery(conn, "reset-peak")
-		to.MatchWait(t, 200, "trace", "read", "query", "client-1", "&{0 reset-peak ok")
-		to.MatchWait(t, 200, "trace", "read", "query", "client-1", "&{0 read-peak .1B2")
-		postQuery(conn, "apply-tara")
-		to.MatchWait(t, 200, "trace", "read", "query", "client-1", "&{0 apply-tara ok")
-		to.MatchWait(t, 200, "trace", "read", "query", "client-1", "&{0 read-value .1B1")
-		postQuery(conn, "reset-tara")
-		to.MatchWait(t, 200, "trace", "read", "query", "client-1", "&{0 reset-tara ok")
-		to.MatchWait(t, 200, "trace", "read", "query", "client-1", "&{0 read-value .1B1")
+		to.MatchWait(t, 200, "trace", "read", "query", "entry-1", "map||index:0||count:2||total:2||request:read-value||response:.1B1")
+		testEntryPostQuery(conn, "reset-valley")
+		to.MatchWait(t, 200, "trace", "read", "query", "entry-1", "map||index:0||request:reset-valley||response:ok")
+		to.MatchWait(t, 200, "trace", "read", "query", "entry-1", "map||index:0||request:read-valley||response:.1B3")
+		testEntryPostQuery(conn, "reset-peak")
+		to.MatchWait(t, 200, "trace", "read", "query", "entry-1", "map||index:0||request:reset-peak||response:ok")
+		to.MatchWait(t, 200, "trace", "read", "query", "entry-1", "map||index:0||request:read-peak||response:.1B2")
+		testEntryPostQuery(conn, "apply-tara")
+		to.MatchWait(t, 200, "trace", "read", "query", "entry-1", "map||index:0||request:apply-tara||response:ok")
+		to.MatchWait(t, 200, "trace", "read", "query", "entry-1", "map||index:0||request:read-value||response:.1B1")
+		testEntryPostQuery(conn, "reset-tara")
+		to.MatchWait(t, 200, "trace", "read", "query", "entry-1", "map||index:0||request:reset-tara||response:ok")
+		to.MatchWait(t, 200, "trace", "read", "query", "entry-1", "map||index:0||request:read-value||response:.1B1")
 		conn.Close()
-		to.MatchWait(t, 200, "trace", "state", "{remove,client-1")
-		to.MatchWait(t, 200, "trace", "hub", "{remove,client-1")
-		to.MatchWait(t, 200, "trace", "client-1", "out", "{remove,client-1")
+		to.MatchWait(t, 200, "trace", "state", "{:remove,entry-1")
+		to.MatchWait(t, 200, "trace", "hub", "{:remove,entry-1")
+		to.MatchWait(t, 200, "trace", "entry-1", "out", "{:remove,entry-1")
 	})
 }
 
 func TestRtEntryRemoveReceived(t *testing.T) {
 	testSetupEntry(t, func(to TestOutput, rt Runtime, log Logger, conn *websocket.Conn, dp int) {
-		postSetup(conn, dp)
+		testEntryPostSetup(conn, dp)
+		to.MatchWait(t, 200, "trace", "read", "query", "entry-1", "map||index:0||count:1||total:1")
 		conn.Close()
-		to.MatchWait(t, 200, "trace", "state", "{remove,client-1")
-		to.MatchWait(t, 200, "trace", "hub", "{remove,client-1")
-		to.MatchWait(t, 200, "trace", "client-1", "out", "{remove,client-1")
+		to.MatchWait(t, 200, "trace", "state", "{:remove,entry-1")
+		to.MatchWait(t, 200, "trace", "hub", "{:remove,entry-1")
+		to.MatchWait(t, 200, "trace", "entry-1", "out", "{:remove,entry-1")
 	})
 }
 
 func TestRtEntryDisposeReceived(t *testing.T) {
 	testSetupEntry(t, func(to TestOutput, rt Runtime, log Logger, conn *websocket.Conn, dp int) {
-		postSetup(conn, dp)
-		to.MatchWait(t, 200, "trace", "read", "query", "client-1", "&{0   1 1")
-		rt.GetDispatch("state")(Mns("dispose", "tid"))
-		to.MatchWait(t, 200, "trace", "client-1", "out", "{dispose,tid")
+		testEntryPostSetup(conn, dp)
+		to.MatchWait(t, 200, "trace", "read", "query", "entry-1", "map||index:0||count:1||total:1")
+		rt.GetDispatch("state")(Mns(":dispose", "tid"))
+		to.MatchWait(t, 200, "trace", "entry-1", "out", "{:dispose,tid")
 	})
 }
 
 func testSetupEntry(t *testing.T, callback func(to TestOutput, rt Runtime, log Logger, conn *websocket.Conn, dp int)) {
 	to := NewTestOutput()
+	defer to.Close() //wait flush
 	log := to.Logger()
 	dpm := NewDpm(log, ":0", 0)
-	defer dpm.Close(true)
+	defer WaitClose(dpm.Close)
 	log.Info("dpm", "port", dpm.Port())
 	dpm.Echo()
 	rt := NewRuntime(to.Log)
@@ -72,34 +74,33 @@ func testSetupEntry(t *testing.T, callback func(to TestOutput, rt Runtime, log L
 	rt.SetValue("bus.sleepms", 10)
 	rt.SetValue("bus.retryms", 2000)
 	rt.SetValue("bus.resetms", 0)
-	rt.SetCleaner("bus", NewCleaner(log))
-	defer log.Log("") //wait flush
-	defer TraceRecover(log.Warn)
+	rt.SetValue("entry.endpoint", ":0")
 	rt.SetDispatch("hub", AsyncDispatch(log.Debug, NewHub(rt)))
 	rt.SetDispatch("state", AsyncDispatch(log.Debug, NewState(rt)))
-	defer rt.GetDispatch("state")(&Mutation{Name: "dispose"})
+	rt.SetDispatch("checkin", NewCheckin(rt))
+	defer rt.GetDispatch("state")(Mn(":dispose"))
 	rt.SetFactory("bus", func(rt Runtime) Dispatch { return NewBus(rt) })
-	id := NewId("client")
-	entry := NewEntry(rt, id, ":0")
+	rt.SetDispatch("/ws/test", rt.GetDispatch("checkin"))
+	entry := NewEntry(rt)
 	defer entry.Close()
 	log.Info("port", entry.Port())
-	conn := connect(entry.Port())
+	conn := testEntryConnect(entry.Port(), "/ws/test")
 	defer conn.Close()
 	log.Trace("client", conn.LocalAddr())
-	go readLoop(log.Trace, conn)
+	go testEntryReadLoop(log.Trace, conn)
 	callback(to, rt, log, conn, int(dpm.Port()))
 }
 
-func connect(port int) *websocket.Conn {
-	url := fmt.Sprintf("ws://localhost:%v/ws/index", port)
+func testEntryConnect(port int, path string) *websocket.Conn {
+	url := fmt.Sprintf("ws://localhost:%v%v", port, path)
 	conn, _, err := websocket.DefaultDialer.Dial(url, nil)
 	PanicIfError(err)
 	return conn
 }
 
-func readLoop(output Output, conn *websocket.Conn) {
+func testEntryReadLoop(output Output, conn *websocket.Conn) {
 	for {
-		mut := readMutation(conn)
+		mut := testEntryReadMutation(conn)
 		if mut.Name == "" {
 			return
 		}
@@ -107,7 +108,7 @@ func readLoop(output Output, conn *websocket.Conn) {
 	}
 }
 
-func readMutation(conn *websocket.Conn) *Mutation {
+func testEntryReadMutation(conn *websocket.Conn) *Mutation {
 	conn.SetReadDeadline(time.Now().Add(time.Millisecond * 400))
 	mt, bytes, err := conn.ReadMessage()
 	if err != nil {
@@ -116,28 +117,29 @@ func readMutation(conn *websocket.Conn) *Mutation {
 	if mt != websocket.TextMessage {
 		PanicF("Invalid msg type %v", mt)
 	}
-	mut, err := decodeMutationEx(bytes, true)
+	mut, err := DecodeMutation(bytes)
 	if err != nil {
 		return &Mutation{}
 	}
 	return mut
 }
 
-func postSetup(conn *websocket.Conn, port int) {
-	args := &SetupArgs{}
-	args.Items = []*ItemArgs{{"127.0.0.1", uint(port), 1}}
+func testEntryPostSetup(conn *websocket.Conn, port int) {
+	args := []*ItemArgs{{Host: "127.0.0.1", Port: uint(port), Slave: 1}}
 	mut := &Mutation{Name: "setup", Args: args}
-	bytes := encodeMutation(mut)
-	err := conn.WriteMessage(websocket.TextMessage, bytes)
+	bytes, err := EncodeMutation(mut)
+	PanicIfError(err)
+	err = conn.WriteMessage(websocket.TextMessage, bytes)
 	PanicIfError(err)
 }
 
-func postQuery(conn *websocket.Conn, request string) {
+func testEntryPostQuery(conn *websocket.Conn, request string) {
 	args := &QueryArgs{}
 	args.Index = 0
 	args.Request = request
 	mut := &Mutation{Name: "query", Args: args}
-	bytes := encodeMutation(mut)
-	err := conn.WriteMessage(websocket.TextMessage, bytes)
+	bytes, err := EncodeMutation(mut)
+	PanicIfError(err)
+	err = conn.WriteMessage(websocket.TextMessage, bytes)
 	PanicIfError(err)
 }

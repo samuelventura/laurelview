@@ -30,6 +30,13 @@ func Mna(name string, args Any) *Mutation {
 
 func (m *Mutation) String() string {
 	buf := new(strings.Builder)
-	fmt.Fprintf(buf, "{%s,%s,%v}", m.Name, m.Sid, reflect.ValueOf(m.Args))
+	var typ string
+	switch m.Args.(type) {
+	case nil:
+		typ = "<nil>"
+	default:
+		typ = reflect.TypeOf(m.Args).String()
+	}
+	fmt.Fprintf(buf, "{%s,%s,%s,%v}", m.Name, m.Sid, typ, m.Args)
 	return buf.String()
 }

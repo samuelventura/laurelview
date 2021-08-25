@@ -25,7 +25,7 @@ func NewHub(rt Runtime) Dispatch {
 	slaves := make(map[string]*hubSlaveDso)
 	buses := make(map[string]*list.List)
 	sessions := make(map[string]*hubSessionDso)
-	dispatchs["dispose"] = func(mut *Mutation) {
+	dispatchs[":dispose"] = func(mut *Mutation) {
 		defer DisposeArgs(mut.Args)
 		ClearDispatch(dispatchs)
 		for _, session := range sessions {
@@ -33,17 +33,17 @@ func NewHub(rt Runtime) Dispatch {
 			session.callback(mut)
 		}
 	}
-	dispatchs["add"] = func(mut *Mutation) {
+	dispatchs[":add"] = func(mut *Mutation) {
 		sid := mut.Sid
-		args := mut.Args.(*AddArgs)
+		args := mut.Args.(Dispatch)
 		_, ok := sessions[sid]
 		AssertTrue(!ok, "duplicated sid", sid)
 		session := &hubSessionDso{}
-		session.callback = args.Callback
+		session.callback = args
 		session.disposer = NopAction
 		sessions[sid] = session
 	}
-	dispatchs["remove"] = func(mut *Mutation) {
+	dispatchs[":remove"] = func(mut *Mutation) {
 		sid := mut.Sid
 		session, ok := sessions[sid]
 		if ok { //duplicated cleanup
@@ -56,14 +56,14 @@ func NewHub(rt Runtime) Dispatch {
 	}
 	dispatchs["setup"] = func(mut *Mutation) {
 		sid := mut.Sid
-		args := mut.Args.(*SetupArgs)
+		args := mut.Args.([]*ItemArgs)
 		session, ok := sessions[sid]
 		AssertTrue(ok, "non-existent sid", sid)
 		session.disposer()
-		disposers := make([]Action, 0, len(args.Items))
-		statuses := make([]Action, 0, len(args.Items))
+		disposers := make([]Action, 0, len(args))
+		statuses := make([]Action, 0, len(args))
 		total := NewCount()
-		for i, it := range args.Items {
+		for i, it := range args {
 			index := uint(i)
 			item := it
 			baddr := fmt.Sprintf("%v:%v",

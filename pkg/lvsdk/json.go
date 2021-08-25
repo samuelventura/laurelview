@@ -6,7 +6,7 @@ import (
 	"reflect"
 )
 
-func encodeMutation(mut *Mutation) (bytes []byte, err error) {
+func EncodeMutation(mut *Mutation) (bytes []byte, err error) {
 	mm := make(Map)
 	mm["sid"] = mut.Sid
 	mm["name"] = mut.Name
@@ -21,7 +21,7 @@ func encodeMutation(mut *Mutation) (bytes []byte, err error) {
 	}
 }
 
-func decodeMutation(bytes []byte) (mut *Mutation, err error) {
+func DecodeMutation(bytes []byte) (mut *Mutation, err error) {
 	var mmi Any
 	err = json.Unmarshal(bytes, &mmi)
 	if err != nil {
@@ -29,12 +29,12 @@ func decodeMutation(bytes []byte) (mut *Mutation, err error) {
 	}
 	mm := mmi.(Map)
 	mut = &Mutation{}
-	name, err := parseString(mm, "name")
+	name, err := ParseString(mm, "name")
 	if err != nil {
 		return
 	}
 	mut.Name = name
-	sid, err := maybeString(mm, "sid", "")
+	sid, err := MaybeString(mm, "sid", "")
 	if err != nil {
 		return
 	}
@@ -64,7 +64,7 @@ func maybeMap(mm Map, key string, def Map) (res Map, err error) {
 	}
 }
 
-func parseString(mm Map, key string) (res string, err error) {
+func ParseString(mm Map, key string) (res string, err error) {
 	val, err := getValue(mm, key)
 	if err != nil {
 		return
@@ -80,7 +80,23 @@ func parseString(mm Map, key string) (res string, err error) {
 	}
 }
 
-func maybeString(mm Map, key string, def string) (res string, err error) {
+func ParseUint(mm Map, key string) (res uint, err error) {
+	val, err := getValue(mm, key)
+	if err != nil {
+		return
+	}
+	switch cur := val.(type) {
+	case float64:
+		res = uint(cur)
+		return
+	default:
+		typ := reflect.TypeOf(val)
+		err = fmt.Errorf("invalid type `%v:%v`", key, typ)
+		return
+	}
+}
+
+func MaybeString(mm Map, key string, def string) (res string, err error) {
 	val, err := getValue(mm, key)
 	if err != nil {
 		err = nil
@@ -90,6 +106,24 @@ func maybeString(mm Map, key string, def string) (res string, err error) {
 	switch cur := val.(type) {
 	case string:
 		res = cur
+		return
+	default:
+		typ := reflect.TypeOf(val)
+		err = fmt.Errorf("invalid type `%v:%v`", key, typ)
+		return
+	}
+}
+
+func MaybeUint(mm Map, key string, def uint) (res uint, err error) {
+	val, err := getValue(mm, key)
+	if err != nil {
+		err = nil
+		res = def
+		return
+	}
+	switch cur := val.(type) {
+	case float64:
+		res = uint(cur)
 		return
 	default:
 		typ := reflect.TypeOf(val)

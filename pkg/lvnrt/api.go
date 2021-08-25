@@ -1,26 +1,18 @@
 package lvnrt
 
-type AddArgs struct {
-	Callback Dispatch
-}
-
-type SetupArgs struct {
-	Items []*ItemArgs
-}
-
 type ItemArgs struct {
-	Host  string
-	Port  uint
-	Slave uint
+	Host  string `json:"host"`
+	Port  uint   `json:"port"`
+	Slave uint   `json:"slave"`
 }
 
 type QueryArgs struct {
-	Index    uint
-	Request  string
-	Response string
-	Count    uint
-	Total    uint
-	Error    string
+	Index    uint   `json:"index"`
+	Request  string `json:"request"`
+	Response string `json:"response"`
+	Count    uint   `json:"count"`
+	Total    uint   `json:"total"`
+	Error    string `json:"error"`
 }
 
 //slave or bus address depending on mutation

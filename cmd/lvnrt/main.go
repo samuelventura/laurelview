@@ -14,9 +14,9 @@ func main() {
 	signal.Notify(ctrlc, os.Interrupt)
 	rt := lvsdk.DefaultRuntime()
 	log := rt.PrefixLog("main")
-	defer log.Log("") //wait flush
+	defer CloseLog(log.Log) //wait flush
 	defer log.Info("exited")
-	defer rt.Close()
+	defer WaitClose(rt.Close)
 	defer TraceRecover(log.Warn)
 	//gets slow after double connection attempted
 	//takes >20s to connect on next attempt
@@ -27,16 +27,16 @@ func main() {
 	rt.SetValue("bus.retryms", 2000)
 	rt.SetValue("bus.discardms", 100)
 	rt.SetValue("bus.resetms", 400)
-	rt.SetCleaner("bus", NewCleaner(rt.PrefixLog("bus", "clean")))
 	rt.SetDispatch("hub", AsyncDispatch(log.Debug, NewHub(rt)))
 	stateDispatch := AsyncDispatch(log.Debug, NewState(rt))
 	rt.SetDispatch("state", stateDispatch)
-	defer stateDispatch(&Mutation{Name: "dispose"})
+	defer stateDispatch(&Mutation{Name: ":dispose"})
 	rt.SetFactory("bus", func(rt Runtime) Dispatch { return NewBus(rt) })
 	ep := endpoint()
 	log.Info("endpoint", ep)
-	id := NewId("client")
-	entry := NewEntry(rt, id, ep)
+	rt.SetValue("entry.endpoint", ep)
+	rt.SetDispatch("/ws/rt", stateDispatch)
+	entry := NewEntry(rt)
 	defer entry.Close()
 	log.Info("port", entry.Port())
 	exit := make(chan bool)

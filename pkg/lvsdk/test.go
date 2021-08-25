@@ -4,12 +4,12 @@ import (
 	"container/list"
 	"fmt"
 	"regexp"
+	"strings"
 	"sync"
 	"testing"
 	"time"
 )
 
-//FIXME simpler timeout model
 type testOutputDso struct {
 	list    *list.List
 	mutex   sync.Mutex
@@ -18,13 +18,18 @@ type testOutputDso struct {
 }
 
 type TestOutput interface {
-	Close()
 	AssertEmpty(t *testing.T)
 	Log(level string, args ...Any)
 	MatchWait(t *testing.T, toms int, args ...string) []string
 	MatchNext(t *testing.T, args ...string) []string
 	Dispatch(name string) Dispatch
 	Logger(prefix ...Any) Logger
+	Trace(...Any)
+	Debug(...Any)
+	Info(...Any)
+	Warn(...Any)
+	Error(...Any)
+	Close()
 }
 
 func NewTestOutput() TestOutput {
@@ -36,7 +41,7 @@ func NewTestOutput() TestOutput {
 }
 
 func (to *testOutputDso) Close() {
-	to.log("") //wait flush
+	CloseLog(to.log) //wait flush
 }
 
 func (to *testOutputDso) Dispatch(name string) Dispatch {
@@ -60,22 +65,42 @@ func (to *testOutputDso) Log(level string, args ...Any) {
 	to.pushArray(array)
 }
 
+func (to *testOutputDso) Trace(args ...Any) {
+	to.Log("trace", args)
+}
+
+func (to *testOutputDso) Debug(args ...Any) {
+	to.Log("debug", args)
+}
+
+func (to *testOutputDso) Info(args ...Any) {
+	to.Log("info", args)
+}
+
+func (to *testOutputDso) Warn(args ...Any) {
+	to.Log("warn", args)
+}
+
+func (to *testOutputDso) Error(args ...Any) {
+	to.Log("error", args)
+}
+
 func (to *testOutputDso) AssertEmpty(t *testing.T) {
 	array := to.popArray()
 	for array != nil {
-		t.Errorf("not empty %v", array)
+		PanicF("not empty %v", array)
 	}
 }
 
 func (to *testOutputDso) MatchNext(t *testing.T, args ...string) []string {
 	array := to.popArray()
 	for array == nil {
-		t.Errorf("empty pop")
+		PanicF("empty pop")
 		return nil
 	}
 	matchers := to.compile(args)
 	if !to.matches(args, matchers) {
-		t.Errorf("%v is no match for %v", array, args)
+		PanicF("%v is no match for %v", array, args)
 		return nil
 	}
 	return array
@@ -94,24 +119,40 @@ func (to *testOutputDso) MatchWait(t *testing.T, toms int, args ...string) []str
 		}
 		array = to.popWait(toms)
 	}
-	t.Errorf("no match for %v", args)
+	PanicF("no match for %v", args)
 	return nil
 }
 
-func (to *testOutputDso) compile(args []string) []*regexp.Regexp {
-	matchers := make([]*regexp.Regexp, 0, len(args))
+func (to *testOutputDso) compile(args []string) []func(string) bool {
+	matchers := make([]func(string) bool, 0, len(args))
 	for _, arg := range args {
-		matchers = append(matchers, regexp.MustCompile(arg))
+		parts := strings.Split(arg, "||")
+		if len(parts) == 1 {
+			matchers = append(matchers, regexp.MustCompile(arg).MatchString)
+		} else {
+			submatchers := make([]func(string) bool, 0, len(parts))
+			for _, part := range parts {
+				submatchers = append(submatchers, regexp.MustCompile(part).MatchString)
+			}
+			matchers = append(matchers, func(value string) bool {
+				for _, matcher := range submatchers {
+					if !matcher(value) {
+						return false
+					}
+				}
+				return true
+			})
+		}
 	}
 	return matchers
 }
 
-func (to *testOutputDso) matches(array []string, matchers []*regexp.Regexp) bool {
+func (to *testOutputDso) matches(array []string, matchers []func(string) bool) bool {
 	if len(array) >= len(matchers) {
 		count := len(matchers)
 		for i, matcher := range matchers {
 			value := array[i]
-			if matcher.MatchString(value) {
+			if matcher(value) {
 				count--
 			}
 		}

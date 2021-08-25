@@ -33,12 +33,23 @@ var ErrorString = lvsdk.ErrorString
 var PanicLN = lvsdk.PanicLN
 var PanicF = lvsdk.PanicF
 
+var CloseLog = lvsdk.CloseLog
 var LevelOutput = lvsdk.LevelOutput
 var PrefixLogger = lvsdk.PrefixLogger
+
+var NewEntry = lvsdk.NewEntry
+var WaitClose = lvsdk.WaitClose
 
 var Readable = lvsdk.Readable
 var Future = lvsdk.Future
 var Millis = lvsdk.Millis
+
+var EncodeMutation = lvsdk.EncodeMutation
+var DecodeMutation = lvsdk.DecodeMutation
+var ParseUint = lvsdk.ParseUint
+var ParseString = lvsdk.ParseString
+var MaybeUint = lvsdk.MaybeUint
+var MaybeString = lvsdk.MaybeString
 
 type Log = lvsdk.Log
 type Output = lvsdk.Output

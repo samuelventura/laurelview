@@ -4,18 +4,12 @@ func SendChannel(channel Channel, any Any) {
 	channel <- any
 }
 
-//FIXME pattern not mature
-func CloseChannel(channel Channel) {
-	select {
-	case <-channel:
-	default:
-		close(channel)
-	}
+func WaitChannel(channel Channel) Any {
+	any := <-channel
+	return any
 }
 
-//FIXME pattern not mature
-func WaitChannel(channel Channel, output Output) {
-	output("waiting channel...")
-	<-channel
-	output("waiting channel done")
+func WaitClose(close func() Channel) Any {
+	any := <-close()
+	return any
 }

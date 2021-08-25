@@ -8,7 +8,7 @@ import (
 var NewBus = lvnrt.NewBus
 var NewHub = lvnrt.NewHub
 var NewState = lvnrt.NewState
-var NewEntry = lvnrt.NewEntry
+var NewEntry = lvsdk.NewEntry
 
 var M = lvsdk.M
 var Mn = lvsdk.Mn
@@ -41,10 +41,13 @@ var TraceIfError = lvsdk.TraceIfError
 var PanicLN = lvsdk.PanicLN
 var PanicF = lvsdk.PanicF
 
+var CloseLog = lvsdk.CloseLog
 var DefaultLog = lvsdk.DefaultLog
 var DefaultOutput = lvsdk.DefaultOutput
 var LevelOutput = lvsdk.LevelOutput
 var PrefixLogger = lvsdk.PrefixLogger
+
+var WaitClose = lvsdk.WaitClose
 
 var Future = lvsdk.Future
 var Millis = lvsdk.Millis

@@ -20,7 +20,7 @@ func NewState(rt Runtime) Dispatch {
 	dispatchs := make(map[string]Dispatch)
 	sessions := make(map[string]*stateSessionDso)
 	buses := make(map[string]*stateBusDso)
-	dispatchs["dispose"] = func(mut *Mutation) {
+	dispatchs[":dispose"] = func(mut *Mutation) {
 		defer DisposeArgs(mut.Args)
 		ClearDispatch(dispatchs)
 		for sid, session := range sessions {
@@ -29,7 +29,7 @@ func NewState(rt Runtime) Dispatch {
 		}
 		rt.GetDispatch("hub")(mut)
 	}
-	dispatchs["add"] = func(mut *Mutation) {
+	dispatchs[":add"] = func(mut *Mutation) {
 		sid := mut.Sid
 		_, ok := sessions[sid]
 		AssertTrue(!ok, "duplicated sid", sid)
@@ -40,7 +40,7 @@ func NewState(rt Runtime) Dispatch {
 		sessions[sid] = session
 		rt.GetDispatch("hub")(mut)
 	}
-	dispatchs["remove"] = func(mut *Mutation) {
+	dispatchs[":remove"] = func(mut *Mutation) {
 		sid := mut.Sid
 		session, ok := sessions[sid]
 		if ok { //duplicate cleanup
@@ -53,14 +53,14 @@ func NewState(rt Runtime) Dispatch {
 	}
 	dispatchs["setup"] = func(mut *Mutation) {
 		sid := mut.Sid
-		args := mut.Args.(*SetupArgs)
+		args := mut.Args.([]*ItemArgs)
 		session, ok := sessions[sid]
 		AssertTrue(ok, "non-existent sid", sid)
 		session.disposer()
 		session.buses = make(map[uint]*stateBusDso)
 		session.slaves = make(map[uint]uint)
-		disposers := make([]Action, 0, len(args.Items))
-		for i, it := range args.Items {
+		disposers := make([]Action, 0, len(args))
+		for i, it := range args {
 			index := uint(i)
 			item := it
 			address := fmt.Sprintf("%v:%v",
@@ -113,7 +113,7 @@ func NewState(rt Runtime) Dispatch {
 					delete(buses, address)
 					mut := &Mutation{}
 					mut.Sid = sid
-					mut.Name = "dispose"
+					mut.Name = ":dispose"
 					bus.dispatch(mut)
 				}
 			}

@@ -45,6 +45,9 @@ func LevelOutput(log Log, level string) Output {
 	}
 }
 
+//idempotent close
+//first close waits for flush
+//second close returns immediately
 func DefaultOutput() Output {
 	done := make(Channel)
 	queue := make(chan []Any, 128)
@@ -52,7 +55,6 @@ func DefaultOutput() Output {
 	loop := func() {
 		for args := range queue {
 			if len(args) == 0 {
-				//do not close queue
 				select {
 				case <-done:
 				default:
@@ -66,21 +68,27 @@ func DefaultOutput() Output {
 	go loop()
 	return func(args ...Any) {
 		queue <- args
-		//wait for flush
 		if len(args) == 0 {
 			<-done
 		}
 	}
 }
 
+func CloseOutput(output Output) {
+	output()
+}
+
+func CloseLog(log Log) {
+	log(":dispose")
+}
+
 func DefaultLog() Log {
 	logLevelFromEnv()
 	output := DefaultOutput()
 	log := func(level string, args ...Any) {
-		//FIXME overlapped output
 		switch level {
-		case "":
-			output()
+		case ":dispose":
+			CloseOutput(output)
 		default:
 			if isLogPrintable(level) {
 				now := time.Now()
@@ -89,7 +97,7 @@ func DefaultLog() Log {
 			}
 		}
 	}
-	log("info", "log-level", logLevel)
+	log("info", "level", logLevel)
 	return log
 }
 

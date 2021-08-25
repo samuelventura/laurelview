@@ -12,7 +12,7 @@ func TestRtDpm(t *testing.T) {
 	defer to.Close()
 	log := to.Logger()
 	dpm := NewDpm(log, ":0", 0)
-	defer dpm.Close(true)
+	defer WaitClose(dpm.Close)
 	address := fmt.Sprintf("127.0.0.1:%v", dpm.Port())
 	socket := NewSocket(address, 400)
 	defer socket.Close()

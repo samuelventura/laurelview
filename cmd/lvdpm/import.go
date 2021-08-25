@@ -36,10 +36,13 @@ var TraceIfError = lvsdk.TraceIfError
 var PanicLN = lvsdk.PanicLN
 var PanicF = lvsdk.PanicF
 
+var CloseLog = lvsdk.CloseLog
 var DefaultLog = lvsdk.DefaultLog
 var DefaultOutput = lvsdk.DefaultOutput
 var LevelOutput = lvsdk.LevelOutput
 var PrefixLogger = lvsdk.PrefixLogger
+
+var WaitClose = lvsdk.WaitClose
 
 var Future = lvsdk.Future
 var Millis = lvsdk.Millis

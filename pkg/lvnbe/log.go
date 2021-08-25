@@ -11,6 +11,10 @@ import (
 	"time"
 )
 
+func CloseOutput(output Output) {
+	output("")
+}
+
 func DefaultOutput() Output {
 	LogLevelFromEnv()
 	var queue = make(chan Action, 128)
@@ -38,7 +42,7 @@ func DefaultOutput() Output {
 			<-done
 		}
 	}
-	output("info", "log-level", LogLevel)
+	output("info", "level", LogLevel)
 	return output
 }
 
@@ -94,7 +98,7 @@ func newTestOutput() testOutput {
 }
 
 func (to *testOutputState) close() {
-	to.output("") //wait flush
+	CloseOutput(to.output) //wait flush
 }
 
 func (to *testOutputState) out(level string, args ...Any) {

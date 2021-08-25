@@ -9,7 +9,7 @@ import (
 )
 
 type Dpm interface {
-	Close(wait bool) Channel
+	Close() Channel
 	Port() uint
 	Echo()
 }
@@ -42,13 +42,10 @@ func (dpm *dpmDso) Port() uint {
 	return uint(dpm.listen.Addr().(*net.TCPAddr).Port)
 }
 
-func (dpm *dpmDso) Close(wait bool) Channel {
+func (dpm *dpmDso) Close() Channel {
 	dpm.cleaner.Close()
 	done := make(Channel)
 	dpm.cleaner.AddChannel("done", done)
-	if wait {
-		<-done
-	}
 	return done
 }
 

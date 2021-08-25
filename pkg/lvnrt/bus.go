@@ -18,9 +18,9 @@ type busQueryDso struct {
 func NewBus(rt Runtime) Dispatch {
 	dispose := NopAction
 	log := PrefixLogger(rt.Log, "bus")
-	cleaner := rt.GetCleaner("bus")
+	cleaner := NewCleaner(PrefixLogger(rt.Log, "bus", "cleaner"))
 	dispatchs := make(map[string]Dispatch)
-	dispatchs["dispose"] = func(mut *Mutation) {
+	dispatchs[":dispose"] = func(mut *Mutation) {
 		defer DisposeArgs(mut.Args)
 		defer dispose()
 		ClearDispatch(dispatchs)

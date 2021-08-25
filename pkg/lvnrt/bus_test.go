@@ -12,11 +12,11 @@ func TestRtBusDpm(t *testing.T) {
 	defer to.Close()
 	log := to.Logger()
 	dpm := NewDpm(log, ":0", 0)
-	defer dpm.Close(true)
+	defer WaitClose(dpm.Close)
 	log.Info("dpm", "port", dpm.Port())
 	dpm.Echo()
 	rt := NewRuntime(to.Log)
-	defer rt.Close()
+	defer WaitClose(rt.Close)
 	rt.SetValue("bus.dialtoms", 400)
 	rt.SetValue("bus.writetoms", 400)
 	rt.SetValue("bus.readtoms", 400)
@@ -24,7 +24,6 @@ func TestRtBusDpm(t *testing.T) {
 	rt.SetValue("bus.sleepms", 10)
 	rt.SetValue("bus.retryms", 2000)
 	rt.SetValue("bus.resetms", 0)
-	rt.SetCleaner("bus", NewCleaner(rt.PrefixLog("bus", "clean")))
 	rt.SetDispatch("hub", to.Dispatch("hub"))
 	rt.SetDispatch("bus", AsyncDispatch(log.Debug, NewBus(rt)))
 	busDispatch := rt.GetDispatch("bus")
@@ -94,7 +93,7 @@ func TestRtBusDpm(t *testing.T) {
 			Count: 0,
 		}))
 	}
-	busDispatch(Mns("dispose", "tid"))
+	busDispatch(Mns(":dispose", "tid"))
 }
 
 func TestRtSlaveId(t *testing.T) {

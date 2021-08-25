@@ -14,7 +14,7 @@ func main() {
 	ctrlc := make(chan os.Signal, 1)
 	signal.Notify(ctrlc, os.Interrupt)
 	output := lvnbe.DefaultOutput()
-	defer output("") //wait flush
+	defer lvnbe.CloseOutput(output) //wait flush
 	defer output("info", "exited")
 	defer lvnbe.TraceRecover(output)
 	var db = relative("db3")
