@@ -1,4 +1,4 @@
-package lvnbe
+package lvndb
 
 import (
 	"testing"

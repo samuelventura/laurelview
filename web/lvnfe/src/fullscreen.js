@@ -3,6 +3,8 @@ import React from "react";
 
 import env from "./environ"
 
+const trace = false
+
 export default function useFullscreenStatus() {
   const [isFullscreen, setIsFullscreen] = React.useState(calculateFullscreen());
 
@@ -30,7 +32,7 @@ export default function useFullscreenStatus() {
 
   function updateIsFullscreen() {
     const status = calculateFullscreen()
-    env.log("setIsFullscreen", status)
+    if (trace) env.log("setIsFullscreen", status)
     setIsFullscreen(status)
   }
 
@@ -40,15 +42,15 @@ export default function useFullscreenStatus() {
     return () => { document[key] = undefined }
   });
 
-  env.log("hasFullscreen", hasFullscreen())
+  if (trace) env.log("hasFullscreen", hasFullscreen())
   return [hasFullscreen(), isFullscreen, setFullscreen];
 }
 
 function hasFullscreen() {
-  env.log("onfullscreenchangeKey", onfullscreenchangeKey())
-  env.log("fullscreenElementKey", fullscreenElementKey())
-  env.log("exitFullscreenKey", exitFullscreenKey())
-  env.log("requestFullscreenKey", requestFullscreenKey())
+  if (trace) env.log("onfullscreenchangeKey", onfullscreenchangeKey())
+  if (trace) env.log("fullscreenElementKey", fullscreenElementKey())
+  if (trace) env.log("exitFullscreenKey", exitFullscreenKey())
+  if (trace) env.log("requestFullscreenKey", requestFullscreenKey())
   return (typeof document[fullscreenElementKey()] !== "undefined")
     && (typeof document[exitFullscreenKey()] !== "undefined")
     && (typeof document[onfullscreenchangeKey()] !== "undefined")

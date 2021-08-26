@@ -10,7 +10,7 @@ import (
 
 type Dpm interface {
 	Close() Channel
-	Port() uint
+	Port() int
 	Echo()
 }
 
@@ -18,6 +18,7 @@ type dpmDso struct {
 	id      Id
 	delay   int
 	log     Logger
+	port    int
 	cleaner Cleaner
 	listen  net.Listener
 	echos   *regexp.Regexp
@@ -31,6 +32,7 @@ func NewDpm(log Logger, address string, delay int) Dpm {
 	clog := PrefixLogger(log.Log, "dpm", "cleaner")
 	te.cleaner = NewCleaner(clog)
 	te.echos = regexp.MustCompile(`^\*.B\d\r$`)
+	te.port = listen.Addr().(*net.TCPAddr).Port
 	te.id = NewId("dpm")
 	te.delay = delay
 	te.listen = listen
@@ -38,8 +40,8 @@ func NewDpm(log Logger, address string, delay int) Dpm {
 	return te
 }
 
-func (dpm *dpmDso) Port() uint {
-	return uint(dpm.listen.Addr().(*net.TCPAddr).Port)
+func (dpm *dpmDso) Port() int {
+	return dpm.port
 }
 
 func (dpm *dpmDso) Close() Channel {

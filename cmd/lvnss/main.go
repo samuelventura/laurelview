@@ -12,7 +12,6 @@ import (
 var logger service.Logger
 var exit chan bool
 var dbe chan bool
-var drt chan bool
 
 type program struct{}
 
@@ -24,7 +23,6 @@ func (p *program) Start(s service.Service) (err error) {
 			err = fmt.Errorf("recover %v", r)
 		}
 	}()
-	drt = daemon("lvnrt", exit)
 	dbe = daemon("lvnbe", exit)
 	return nil
 }
@@ -33,10 +31,6 @@ func (p *program) Stop(s service.Service) error {
 	close(exit)
 	select {
 	case <-dbe:
-	case <-time.After(3 * time.Second):
-	}
-	select {
-	case <-drt:
 	case <-time.After(3 * time.Second):
 	}
 	return nil

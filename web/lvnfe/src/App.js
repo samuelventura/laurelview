@@ -20,7 +20,7 @@ function App() {
         next.session = session
         next.online = true
         next.items = {}
-        args.items.forEach(item => { 
+        args.forEach(item => { 
           next.items[item.id] = item
         })
         return next
@@ -32,7 +32,7 @@ function App() {
       }
       case "delete": {
         const next = {...state}
-        delete next.items[args.id]
+        delete next.items[args]
         return next
       }
       case "update": {
@@ -82,7 +82,7 @@ function App() {
   }
 
   useEffect(() => {
-    return socket.createWc(dispatch, "/index")
+    return socket.create(dispatch, "/db")
   }, [])
 
   return (

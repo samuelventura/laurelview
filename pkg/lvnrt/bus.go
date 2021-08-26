@@ -21,12 +21,12 @@ func NewBus(rt Runtime) Dispatch {
 	log := PrefixLogger(rt.Log, "bus")
 	cleaner := NewCleaner(PrefixLogger(rt.Log, "bus", "cleaner"))
 	dispatchs := make(map[string]Dispatch)
-	dispatchs[":dispose"] = func(mut *Mutation) {
+	dispatchs[":dispose"] = func(mut Mutation) {
 		defer DisposeArgs(mut.Args)
 		defer dispose()
 		ClearDispatch(dispatchs)
 	}
-	dispatchs["setup"] = func(mut *Mutation) {
+	dispatchs["setup"] = func(mut Mutation) {
 		dialtoms := rt.GetValue("bus.dialtoms").(int)
 		writetoms := rt.GetValue("bus.writetoms").(int)
 		readtoms := rt.GetValue("bus.readtoms").(int)
@@ -34,7 +34,7 @@ func NewBus(rt Runtime) Dispatch {
 		retryms := rt.GetValue("bus.retryms").(int)
 		resetms := rt.GetValue("bus.resetms").(int)
 		discardms := rt.GetValue("bus.discardms").(int)
-		bus := mut.Args.(*BusArgs)
+		bus := mut.Args.(BusArgs)
 		address := fmt.Sprintf("%v:%v", bus.Host, bus.Port)
 		log := PrefixLogger(rt.Log, "bus", address)
 		exit := make(Channel)
@@ -80,10 +80,10 @@ func NewBus(rt Runtime) Dispatch {
 			}
 			return nil
 		}
-		dispatchs["slave"] = func(mut *Mutation) {
+		dispatchs["slave"] = func(mut Mutation) {
 			mutex.Lock()
 			defer mutex.Unlock()
-			args := mut.Args.(*SlaveArgs)
+			args := mut.Args.(SlaveArgs)
 			_, ok := slaves[args.Slave]
 			if args.Count == 0 && ok {
 				remove(args.Slave)
@@ -92,19 +92,19 @@ func NewBus(rt Runtime) Dispatch {
 				push(mut.Sid, args.Slave, "read-value")
 			}
 		}
-		dispatchs["query"] = func(mut *Mutation) {
+		dispatchs["query"] = func(mut Mutation) {
 			mutex.Lock()
 			defer mutex.Unlock()
-			args := mut.Args.(*QueryArgs)
+			args := mut.Args.(QueryArgs)
 			_, ok := slaves[args.Index]
 			AssertTrue(ok, "slave not found", args.Index)
 			push(mut.Sid, args.Index, args.Request)
 		}
 		status_slave := func(query *busQueryDso, response string, err error) {
-			mut := &Mutation{}
+			mut := Mutation{}
 			mut.Sid = query.sid
 			mut.Name = "status-slave"
-			mut.Args = &StatusArgs{
+			mut.Args = StatusArgs{
 				Address:  fmt.Sprintf("%v:%v:%v", bus.Host, bus.Port, query.slave),
 				Request:  query.request,
 				Response: response,
@@ -113,9 +113,9 @@ func NewBus(rt Runtime) Dispatch {
 			hubDispatch(mut)
 		}
 		status_buserr := func(err error) {
-			mut := &Mutation{}
+			mut := Mutation{}
 			mut.Name = "status-bus"
-			mut.Args = &StatusArgs{
+			mut.Args = StatusArgs{
 				Address:  fmt.Sprintf("%v:%v", bus.Host, bus.Port),
 				Request:  "Dial",
 				Response: "error",

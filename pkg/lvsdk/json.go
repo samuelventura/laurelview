@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-func EncodeMutation(mut *Mutation) (bytes []byte, err error) {
+func EncodeMutation(mut Mutation) (bytes []byte, err error) {
 	mm := make(Map)
 	mm["sid"] = mut.Sid
 	mm["name"] = mut.Name
@@ -22,14 +22,14 @@ func EncodeMutation(mut *Mutation) (bytes []byte, err error) {
 	}
 }
 
-func DecodeMutation(bytes []byte) (mut *Mutation, err error) {
+func DecodeMutation(bytes []byte) (mut Mutation, err error) {
 	var mmi Any
 	err = json.Unmarshal(bytes, &mmi)
 	if err != nil {
 		return
 	}
 	mm := mmi.(Map)
-	mut = &Mutation{}
+	mut = Mutation{}
 	name, err := ParseString(mm, "name")
 	if err != nil {
 		return
@@ -75,7 +75,7 @@ func ParseUint(mm Map, key string) (res uint, err error) {
 	case string:
 		u64, err2 := strconv.ParseUint(cur, 10, 64)
 		if err2 != nil {
-			err = err2
+			err = fmt.Errorf("parse error %v:%w", key, err2)
 			return
 		}
 		res = uint(u64)
@@ -119,7 +119,27 @@ func MaybeUint(mm Map, key string, def uint) (res uint, err error) {
 	case string:
 		u64, err2 := strconv.ParseUint(cur, 10, 64)
 		if err2 != nil {
-			err = err2
+			err = fmt.Errorf("parse error %v:%w", key, err2)
+			return
+		}
+		res = uint(u64)
+		return
+	default:
+		typ := reflect.TypeOf(val)
+		err = fmt.Errorf("invalid type `%v:%v`", key, typ)
+		return
+	}
+}
+
+func CastUint(val Any, key string) (res uint, err error) {
+	switch cur := val.(type) {
+	case float64:
+		res = uint(cur)
+		return
+	case string:
+		u64, err2 := strconv.ParseUint(cur, 10, 64)
+		if err2 != nil {
+			err = fmt.Errorf("parse error %v:%w", key, err2)
 			return
 		}
 		res = uint(u64)

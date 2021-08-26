@@ -59,7 +59,7 @@ function ItemMultiView(props) {
         default: //linter complains
       }
     }
-    return socket.createRt(handler, "/rt")
+    return socket.create(handler, "/rt")
   }, [props])
 
   const [hasFullscreen, isFullscreen, setIsFullscreen] = useFullscreenStatus()

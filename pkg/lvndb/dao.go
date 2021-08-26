@@ -1,4 +1,4 @@
-package lvnbe
+package lvndb
 
 import (
 	"gorm.io/driver/sqlite"
@@ -9,8 +9,8 @@ type Dao interface {
 	Close()
 	All() []ItemDro
 	Delete(id uint)
-	Create(name string, json string) *ItemDro
-	Update(id uint, name string, json string) *ItemDro
+	Create(name string, json string) ItemDro
+	Update(id uint, name string, json string) ItemDro
 }
 
 type ItemDro struct {
@@ -46,11 +46,11 @@ func (dao *daoDso) All() (items []ItemDro) {
 	return
 }
 
-func (dao *daoDso) Create(name string, json string) *ItemDro {
+func (dao *daoDso) Create(name string, json string) ItemDro {
 	row := &ItemDro{Name: name, Json: json}
 	result := dao.db.Create(row)
 	PanicIfError(result.Error)
-	return row
+	return *row
 }
 
 func (dao *daoDso) Delete(id uint) {
@@ -58,7 +58,7 @@ func (dao *daoDso) Delete(id uint) {
 	PanicIfError(result.Error)
 }
 
-func (dao *daoDso) Update(id uint, name string, json string) *ItemDro {
+func (dao *daoDso) Update(id uint, name string, json string) ItemDro {
 	row := &ItemDro{}
 	result := dao.db.First(row, id)
 	PanicIfError(result.Error)
@@ -66,5 +66,5 @@ func (dao *daoDso) Update(id uint, name string, json string) *ItemDro {
 	row.Json = json
 	result = dao.db.Save(row)
 	PanicIfError(result.Error)
-	return row
+	return *row
 }

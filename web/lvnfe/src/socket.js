@@ -1,14 +1,10 @@
 import env from "./environ"
 
-function createWc(dispatch, path) {
-  return create(dispatch, path, env.wsWcURL)
+function create(dispatch, path) {
+  return createSocket(dispatch, path, env.wsURL)
 }
 
-function createRt(dispatch, path) {
-  return create(dispatch, path, env.wsRtURL)
-}
-
-function create(dispatch, path, base) {
+function createSocket(dispatch, path, base) {
   let toms = 0
   let to = null
   let ws = null
@@ -17,7 +13,9 @@ function create(dispatch, path, base) {
 
   function safe(action) {
     try { action() }
-    catch(e) { env.log("exception", e) }
+    catch(e) { 
+      //env.log("exception", e) 
+    }
   }
 
   function dispose() {
@@ -63,7 +61,9 @@ function create(dispatch, path, base) {
       env.log("ws.open", event)
       closed = false
       dispatch({name: "send", args: send})
-      toms = 0
+      //server close conn immediately on invalid path
+      //avoid reconecting at full speed
+      toms = 1000
     }
   }
   to = setTimeout(connect, 0)
@@ -74,6 +74,6 @@ function send(msg) {
   env.log("nop.send", msg)
 }
 
-var socket = {createWc, createRt, send}
+var socket = {create, send}
 
 export default socket

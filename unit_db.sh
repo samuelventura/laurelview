@@ -6,5 +6,3 @@ export LV_LOGLEVEL="${2:-info}"
 MOD="github.com/samuelventura/laurelview"
 go clean -testcache 
 go test $MOD/pkg/lvndb -v -run $TEST_SCOPE
-go test $MOD/pkg/lvnrt -v -run $TEST_SCOPE
-go test $MOD/pkg/lvsdk -v -run $TEST_SCOPE

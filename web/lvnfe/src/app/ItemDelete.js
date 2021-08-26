@@ -12,8 +12,7 @@ function ItemDelete(props) {
 
   function handleAction() {
     const action = "delete"
-    const id = props.item.id
-    const args = { id }
+    const args = props.item.id
     props.handler({ action, args })
     handleHide()
   }

@@ -7,7 +7,7 @@ func ClearDispatch(dispatchs map[string]Dispatch) {
 }
 
 func MapDispatch(log Logger, dispmap map[string]Dispatch) Dispatch {
-	return func(mut *Mutation) {
+	return func(mut Mutation) {
 		dispatch, ok := dispmap[mut.Name]
 		if ok {
 			log.Trace(mut)
@@ -21,14 +21,14 @@ func MapDispatch(log Logger, dispmap map[string]Dispatch) Dispatch {
 //like cleaner should never close anything and aim for idempotency
 //it needs to be pair with state immutability for real efficacy
 func AsyncDispatch(log Logger, dispatch Dispatch) Dispatch {
-	queue := make(chan *Mutation)
-	catch := func(mut *Mutation) {
+	queue := make(chan Mutation)
+	catch := func(mut Mutation) {
 		r := recover()
 		if r != nil {
 			log.Error("recover", mut, r)
 		}
 	}
-	safe := func(disp Dispatch, mut *Mutation) {
+	safe := func(disp Dispatch, mut Mutation) {
 		defer catch(mut)
 		disp(mut)
 	}
@@ -38,7 +38,7 @@ func AsyncDispatch(log Logger, dispatch Dispatch) Dispatch {
 		}
 	}
 	go loop()
-	return func(mut *Mutation) {
+	return func(mut Mutation) {
 		queue <- mut
 	}
 }

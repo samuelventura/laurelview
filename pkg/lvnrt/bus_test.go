@@ -7,7 +7,90 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRtBusDpm(t *testing.T) {
+func TestRtBusDispose(t *testing.T) {
+	testSetupBus(func(to TestOutput, rt Runtime, disp Dispatch, dpmPort int) {
+		disp(Mns(":dispose", "tid"))
+		to.MatchWait(t, 200, "trace", "bus", "{:dispose,tid")
+		disp(Mns(":dispose", "tid"))
+		to.MatchWait(t, 200, "debug", "bus", "{:dispose,tid")
+	})
+}
+func TestRtBusBasicDpm(t *testing.T) {
+	testSetupBus(func(to TestOutput, rt Runtime, disp Dispatch, dpmPort int) {
+		disp(M("setup", "tid", BusArgs{
+			Host: "127.0.0.1",
+			Port: uint(dpmPort),
+		}))
+		for i := 1; i < 32; i++ {
+			disp(M("slave", "tid", SlaveArgs{
+				Slave: uint(i),
+				Count: 1,
+			}))
+			//first one repeats (should only happen with echo test server)
+			to.MatchWait(t, 200, "trace", "dpm", "true", fmt.Sprintf(".%vB1.0D.", busSlaveId(uint(i))))
+			to.MatchWait(t, 200, "trace", "hub", fmt.Sprintf("read-value .%vB1", busSlaveId(uint(i))))
+		}
+		for i := 1; i < 32; i++ {
+			disp(M("query", "tid", QueryArgs{
+				Index:   uint(i),
+				Request: "reset-peak",
+			}))
+			//lack of order warranty prevents from testing hub as well
+			to.MatchWait(t, 200, "trace", "dpm", "false", fmt.Sprintf(".%vC3.0D.", busSlaveId(uint(i))))
+			to.MatchWait(t, 200, "trace", "dpm", "true", fmt.Sprintf(".%vB2.0D.", busSlaveId(uint(i))))
+		}
+		for i := 1; i < 32; i++ {
+			disp(M("query", "tid", QueryArgs{
+				Index:   uint(i),
+				Request: "reset-valley",
+			}))
+			to.MatchWait(t, 200, "trace", "dpm", "false", fmt.Sprintf(".%vC9.0D.", busSlaveId(uint(i))))
+			to.MatchWait(t, 200, "trace", "dpm", "true", fmt.Sprintf(".%vB3.0D.", busSlaveId(uint(i))))
+		}
+		for i := 1; i < 32; i++ {
+			disp(M("query", "tid", QueryArgs{
+				Index:   uint(i),
+				Request: "apply-tara",
+			}))
+			to.MatchWait(t, 200, "trace", "dpm", "false", fmt.Sprintf(".%vCA.0D.", busSlaveId(uint(i))))
+			to.MatchWait(t, 200, "trace", "dpm", "true", fmt.Sprintf(".%vB1.0D.", busSlaveId(uint(i))))
+		}
+		for i := 1; i < 32; i++ {
+			disp(M("query", "tid", QueryArgs{
+				Index:   uint(i),
+				Request: "reset-tara",
+			}))
+			to.MatchWait(t, 200, "trace", "dpm", "false", fmt.Sprintf(".%vCB.0D.", busSlaveId(uint(i))))
+			to.MatchWait(t, 200, "trace", "dpm", "true", fmt.Sprintf(".%vB1.0D.", busSlaveId(uint(i))))
+		}
+		for i := 1; i < 32; i++ {
+			disp(M("query", "tid", QueryArgs{
+				Index:   uint(i),
+				Request: "reset-cold",
+			}))
+			to.MatchWait(t, 200, "trace", "dpm", "false", fmt.Sprintf(".%vC0.0D.", busSlaveId(uint(i))))
+			to.MatchWait(t, 200, "trace", "dpm", "true", fmt.Sprintf(".%vB1.0D.", busSlaveId(uint(i))))
+		}
+		for i := 1; i < 32; i++ {
+			disp(M("slave", "tid", SlaveArgs{
+				Slave: uint(i),
+				Count: 2,
+			}))
+		}
+		for i := 1; i < 32; i++ {
+			disp(M("slave", "tid", SlaveArgs{
+				Slave: uint(i),
+				Count: 0,
+			}))
+		}
+		disp(Mns(":dispose", "tid"))
+		to.MatchWait(t, 200, "trace", "bus", "{:dispose,tid")
+		disp(Mns(":dispose", "tid"))
+		to.MatchWait(t, 200, "debug", "bus", "{:dispose,tid")
+	})
+}
+
+func testSetupBus(callback func(to TestOutput, rt Runtime, disp Dispatch, dpmPort int)) {
 	to := NewTestOutput()
 	defer to.Close()
 	log := to.Logger()
@@ -25,78 +108,8 @@ func TestRtBusDpm(t *testing.T) {
 	rt.SetValue("bus.retryms", 2000)
 	rt.SetValue("bus.resetms", 0)
 	rt.SetDispatch("hub", to.Dispatch("hub"))
-	rt.SetDispatch("bus", AsyncDispatch(log, NewBus(rt)))
-	busDispatch := rt.GetDispatch("bus")
-	busDispatch(M("setup", "tid", &BusArgs{
-		Host: "127.0.0.1",
-		Port: dpm.Port(),
-	}))
-	for i := 1; i < 32; i++ {
-		busDispatch(M("slave", "tid", &SlaveArgs{
-			Slave: uint(i),
-			Count: 1,
-		}))
-		//first one repeats (should only happen with echo test server)
-		to.MatchWait(t, 200, "trace", "dpm", "true", fmt.Sprintf(".%vB1.0D.", busSlaveId(uint(i))))
-		to.MatchWait(t, 200, "trace", "hub", fmt.Sprintf("read-value .%vB1", busSlaveId(uint(i))))
-	}
-	for i := 1; i < 32; i++ {
-		busDispatch(M("query", "tid", &QueryArgs{
-			Index:   uint(i),
-			Request: "reset-peak",
-		}))
-		//lack of order warranty prevents from testing hub as well
-		to.MatchWait(t, 200, "trace", "dpm", "false", fmt.Sprintf(".%vC3.0D.", busSlaveId(uint(i))))
-		to.MatchWait(t, 200, "trace", "dpm", "true", fmt.Sprintf(".%vB2.0D.", busSlaveId(uint(i))))
-	}
-	for i := 1; i < 32; i++ {
-		busDispatch(M("query", "tid", &QueryArgs{
-			Index:   uint(i),
-			Request: "reset-valley",
-		}))
-		to.MatchWait(t, 200, "trace", "dpm", "false", fmt.Sprintf(".%vC9.0D.", busSlaveId(uint(i))))
-		to.MatchWait(t, 200, "trace", "dpm", "true", fmt.Sprintf(".%vB3.0D.", busSlaveId(uint(i))))
-	}
-	for i := 1; i < 32; i++ {
-		busDispatch(M("query", "tid", &QueryArgs{
-			Index:   uint(i),
-			Request: "apply-tara",
-		}))
-		to.MatchWait(t, 200, "trace", "dpm", "false", fmt.Sprintf(".%vCA.0D.", busSlaveId(uint(i))))
-		to.MatchWait(t, 200, "trace", "dpm", "true", fmt.Sprintf(".%vB1.0D.", busSlaveId(uint(i))))
-	}
-	for i := 1; i < 32; i++ {
-		busDispatch(M("query", "tid", &QueryArgs{
-			Index:   uint(i),
-			Request: "reset-tara",
-		}))
-		to.MatchWait(t, 200, "trace", "dpm", "false", fmt.Sprintf(".%vCB.0D.", busSlaveId(uint(i))))
-		to.MatchWait(t, 200, "trace", "dpm", "true", fmt.Sprintf(".%vB1.0D.", busSlaveId(uint(i))))
-	}
-	for i := 1; i < 32; i++ {
-		busDispatch(M("query", "tid", &QueryArgs{
-			Index:   uint(i),
-			Request: "reset-cold",
-		}))
-		to.MatchWait(t, 200, "trace", "dpm", "false", fmt.Sprintf(".%vC0.0D.", busSlaveId(uint(i))))
-		to.MatchWait(t, 200, "trace", "dpm", "true", fmt.Sprintf(".%vB1.0D.", busSlaveId(uint(i))))
-	}
-	for i := 1; i < 32; i++ {
-		busDispatch(M("slave", "tid", &SlaveArgs{
-			Slave: uint(i),
-			Count: 2,
-		}))
-	}
-	for i := 1; i < 32; i++ {
-		busDispatch(M("slave", "tid", &SlaveArgs{
-			Slave: uint(i),
-			Count: 0,
-		}))
-	}
-	busDispatch(Mns(":dispose", "tid"))
-	to.MatchWait(t, 200, "trace", "bus", "{:dispose,tid")
-	busDispatch(Mns(":dispose", "tid"))
-	to.MatchWait(t, 200, "debug", "bus", "{:dispose,tid")
+	disp := AsyncDispatch(log, NewBus(rt))
+	callback(to, rt, disp, dpm.Port())
 }
 
 func TestRtSlaveId(t *testing.T) {

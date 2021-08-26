@@ -2,7 +2,6 @@ package lvsdk
 
 import (
 	"fmt"
-	"runtime/debug"
 )
 
 //FIXME cumulative panic recover
@@ -10,7 +9,7 @@ func TraceRecover(output Output) {
 	r := recover()
 	if r != nil {
 		output("recover", r)
-		output("recover", r, string(debug.Stack()))
+		//output("recover", r, string(debug.Stack()))
 	}
 }
 

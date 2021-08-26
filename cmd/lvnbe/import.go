@@ -1,15 +1,10 @@
 package main
 
 import (
+	"github.com/samuelventura/laurelview/pkg/lvndb"
 	"github.com/samuelventura/laurelview/pkg/lvnrt"
 	"github.com/samuelventura/laurelview/pkg/lvsdk"
 )
-
-var NewBus = lvnrt.NewBus
-var NewHub = lvnrt.NewHub
-var NewState = lvnrt.NewState
-var NewEntry = lvsdk.NewEntry
-var NewCheckin = lvnrt.NewCheckin
 
 var M = lvsdk.M
 var Mn = lvsdk.Mn
@@ -29,6 +24,7 @@ var NopAction = lvsdk.NopAction
 var NopDispatch = lvsdk.NopDispatch
 var NopOutput = lvsdk.NopOutput
 var NopFactory = lvsdk.NopFactory
+var NopHandler = lvsdk.NopHandler
 
 var AsyncDispatch = lvsdk.AsyncDispatch
 var ClearDispatch = lvsdk.ClearDispatch
@@ -53,6 +49,10 @@ var WaitClose = lvsdk.WaitClose
 var Future = lvsdk.Future
 var Millis = lvsdk.Millis
 
+var NewEntry = lvsdk.NewEntry
+var NewDao = lvndb.NewDao
+
+type Entry = lvsdk.Entry
 type Log = lvsdk.Log
 type Output = lvsdk.Output
 type Map = lvsdk.Map

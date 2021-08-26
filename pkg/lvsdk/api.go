@@ -1,5 +1,7 @@
 package lvsdk
 
+import "github.com/valyala/fasthttp"
+
 //Guidelines
 //- catch invalid params on entry
 //- global launch setting to info level
@@ -21,8 +23,9 @@ type Queue = chan Action
 type Channel = chan Any
 type Any = interface{}
 type Action = func()
-type Dispatch = func(*Mutation)
+type Dispatch = func(Mutation)
 type Factory = func(Runtime) Dispatch
+type Handler = func(log Logger, ctx *fasthttp.RequestCtx)
 
 //Runtime Provides
 //1) config values
@@ -59,7 +62,8 @@ type Logger interface {
 	Error(...Any)
 }
 
-func NopAction()                  {}
-func NopOutput(...Any)            {}
-func NopDispatch(*Mutation)       {}
-func NopFactory(Runtime) Dispatch { return NopDispatch }
+func NopAction()                                      {}
+func NopOutput(...Any)                                {}
+func NopDispatch(Mutation)                            {}
+func NopFactory(Runtime) Dispatch                     { return NopDispatch }
+func NopHandler(log Logger, ctx *fasthttp.RequestCtx) {}

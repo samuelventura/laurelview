@@ -74,6 +74,13 @@ func TestSdkJson_parseUintInvalidType(t *testing.T) {
 	assert.Equal(t, "invalid type `key:bool`", err.Error())
 }
 
+func TestSdkJson_parseUintInvalidFormat(t *testing.T) {
+	mm := make(Map)
+	mm["key"] = "true"
+	_, err := ParseUint(mm, "key")
+	assert.Equal(t, `parse error key:strconv.ParseUint: parsing "true": invalid syntax`, err.Error())
+}
+
 func TestSdkJson_maybeStringSuccess(t *testing.T) {
 	mm := make(Map)
 	mm["key"] = "value"
@@ -128,8 +135,41 @@ func TestSdkJson_maybeUintInvalidType(t *testing.T) {
 	assert.Equal(t, "invalid type `key:bool`", err.Error())
 }
 
+func TestSdkJson_maybeUintInvalidFormat(t *testing.T) {
+	mm := make(Map)
+	mm["key"] = "true"
+	_, err := MaybeUint(mm, "key", 2)
+	assert.Equal(t, `parse error key:strconv.ParseUint: parsing "true": invalid syntax`, err.Error())
+}
+
+func TestSdkJson_castUintSuccessFloat(t *testing.T) {
+	any := Any(float64(1))
+	val, err := CastUint(any, "key")
+	PanicIfError(err)
+	assert.Equal(t, uint(1), val)
+}
+
+func TestSdkJson_castUintSuccessString(t *testing.T) {
+	any := Any("1")
+	val, err := CastUint(any, "key")
+	PanicIfError(err)
+	assert.Equal(t, uint(1), val)
+}
+
+func TestSdkJson_castUintInvalidType(t *testing.T) {
+	any := Any(true)
+	_, err := CastUint(any, "key")
+	assert.Equal(t, "invalid type `key:bool`", err.Error())
+}
+
+func TestSdkJson_castUintInvalidFormat(t *testing.T) {
+	any := Any("true")
+	_, err := CastUint(any, "key")
+	assert.Equal(t, `parse error key:strconv.ParseUint: parsing "true": invalid syntax`, err.Error())
+}
+
 func TestSdkJson_encodeMutationSuccess(t *testing.T) {
-	mut := &Mutation{}
+	mut := Mutation{}
 	mut.Name = "name"
 	mut.Sid = "sid"
 	bytes, err := EncodeMutation(mut)

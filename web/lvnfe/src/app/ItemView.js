@@ -57,7 +57,7 @@ function ItemView(props) {
         default: //linter complains
       }
     }
-    return socket.createRt(handler, "/rt")
+    return socket.create(handler, "/rt")
   }, [props])
 
   function handleQuery(request) {

@@ -19,10 +19,12 @@ type entryDso struct {
 	id       Id
 	log      Logger
 	rt       Runtime
+	buflen   int
 	endpoint string
 	cleaner  Cleaner
 	listener net.Listener
 	upgrader websocket.FastHTTPUpgrader
+	static   Handler
 }
 
 type clientDso struct {
@@ -30,10 +32,12 @@ type clientDso struct {
 	log      Logger
 	conn     *websocket.Conn
 	dispatch Dispatch
-	callback chan *Mutation
+	callback chan Mutation
 }
 
 func NewEntry(rt Runtime) Entry {
+	buflen := rt.GetValue("entry.buflen").(int)
+	static := rt.GetValue("entry.static").(Handler)
 	endpoint := rt.GetValue("entry.endpoint").(string)
 	listener, err := net.Listen("tcp", endpoint)
 	PanicIfError(err)
@@ -41,6 +45,8 @@ func NewEntry(rt Runtime) Entry {
 	entry := &entryDso{}
 	entry.id = NewId("entry")
 	entry.rt = rt
+	entry.buflen = buflen
+	entry.static = static
 	entry.endpoint = endpoint
 	entry.log = rt.PrefixLog("entry")
 	entry.cleaner = cleaner
@@ -82,6 +88,10 @@ func (entry *entryDso) origin(ctx *fasthttp.RequestCtx) bool {
 func (entry *entryDso) handle(ctx *fasthttp.RequestCtx) {
 	defer TraceRecover(entry.log.Debug)
 	path := string(ctx.Path())
+	if !strings.HasPrefix(path, "/ws/") {
+		entry.static(entry.log, ctx)
+		return
+	}
 	err := entry.upgrader.Upgrade(ctx, func(conn *websocket.Conn) {
 		defer TraceRecover(entry.log.Debug)
 		defer conn.Close()
@@ -98,7 +108,7 @@ func (entry *entryDso) handle(ctx *fasthttp.RequestCtx) {
 		client.sid = sid
 		client.conn = conn
 		client.dispatch = dispatch
-		client.callback = make(chan *Mutation)
+		client.callback = make(chan Mutation, entry.buflen)
 		client.loop()
 	})
 	if err != nil {
@@ -122,7 +132,7 @@ func (client *clientDso) loop() {
 }
 
 func (client *clientDso) add() {
-	mut := &Mutation{}
+	mut := Mutation{}
 	mut.Sid = client.sid
 	mut.Name = ":add"
 	mut.Args = client.writer
@@ -130,7 +140,7 @@ func (client *clientDso) add() {
 }
 
 func (client *clientDso) remove() {
-	mut := &Mutation{}
+	mut := Mutation{}
 	mut.Sid = client.sid
 	mut.Name = ":remove"
 	client.dispatch(mut)
@@ -141,8 +151,7 @@ func (client *clientDso) wait() {
 	}
 }
 
-//FIXME is remove/dispose being received? test it
-func (client *clientDso) writer(mut *Mutation) {
+func (client *clientDso) writer(mut Mutation) {
 	defer TraceRecover(client.log.Debug)
 	client.log.Trace("out", mut)
 	switch mut.Name {
@@ -165,6 +174,7 @@ func (client *clientDso) reader() {
 		}
 		if !strings.HasPrefix(mut.Name, ":") {
 			client.log.Trace("in", mut)
+			mut.Sid = client.sid
 			client.dispatch(mut)
 		} else {
 			client.log.Trace("nop", mut)
@@ -172,7 +182,7 @@ func (client *clientDso) reader() {
 	}
 }
 
-func (client *clientDso) read() (mut *Mutation, err error) {
+func (client *clientDso) read() (mut Mutation, err error) {
 	mt, msg, err := client.conn.ReadMessage()
 	if err != nil {
 		err = fmt.Errorf("conn.ReadMessage %w", err)
@@ -188,6 +198,5 @@ func (client *clientDso) read() (mut *Mutation, err error) {
 		err = fmt.Errorf("decode %w", err)
 		return
 	}
-	mut.Sid = client.sid
 	return
 }

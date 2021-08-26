@@ -15,7 +15,7 @@ type hubSlaveDso struct {
 }
 
 type hubSessionDso struct {
-	callback func(mutation *Mutation)
+	callback func(mutation Mutation)
 	disposer Action
 }
 
@@ -25,7 +25,7 @@ func NewHub(rt Runtime) Dispatch {
 	slaves := make(map[string]*hubSlaveDso)
 	buses := make(map[string]*list.List)
 	sessions := make(map[string]*hubSessionDso)
-	dispatchs[":dispose"] = func(mut *Mutation) {
+	dispatchs[":dispose"] = func(mut Mutation) {
 		defer DisposeArgs(mut.Args)
 		ClearDispatch(dispatchs)
 		for _, session := range sessions {
@@ -33,7 +33,7 @@ func NewHub(rt Runtime) Dispatch {
 			session.callback(mut)
 		}
 	}
-	dispatchs[":add"] = func(mut *Mutation) {
+	dispatchs[":add"] = func(mut Mutation) {
 		sid := mut.Sid
 		args := mut.Args.(Dispatch)
 		_, ok := sessions[sid]
@@ -43,7 +43,7 @@ func NewHub(rt Runtime) Dispatch {
 		session.disposer = NopAction
 		sessions[sid] = session
 	}
-	dispatchs[":remove"] = func(mut *Mutation) {
+	dispatchs[":remove"] = func(mut Mutation) {
 		sid := mut.Sid
 		session, ok := sessions[sid]
 		if ok { //duplicated cleanup
@@ -54,9 +54,9 @@ func NewHub(rt Runtime) Dispatch {
 			log.Debug(mut)
 		}
 	}
-	dispatchs["setup"] = func(mut *Mutation) {
+	dispatchs["setup"] = func(mut Mutation) {
 		sid := mut.Sid
-		args := mut.Args.([]*ItemArgs)
+		args := mut.Args.([]ItemArgs)
 		session, ok := sessions[sid]
 		AssertTrue(ok, "non-existent sid", sid)
 		session.disposer()
@@ -84,13 +84,13 @@ func NewHub(rt Runtime) Dispatch {
 				slave.self = parent.PushBack(slave)
 			}
 			count := NewCount()
-			callback := func(sid string, args *StatusArgs) {
+			callback := func(sid string, args StatusArgs) {
 				count.Inc()
 				total.Inc()
-				mut := &Mutation{}
+				mut := Mutation{}
 				mut.Sid = sid
 				mut.Name = "query"
-				query := &QueryArgs{}
+				query := QueryArgs{}
 				query.Index = index
 				query.Request = args.Request
 				query.Response = args.Response
@@ -100,7 +100,7 @@ func NewHub(rt Runtime) Dispatch {
 				mut.Args = query
 				session.callback(mut)
 			}
-			args := &StatusArgs{}
+			args := StatusArgs{}
 			args.Address = saddr
 			args.Request = slave.lrequest
 			args.Response = slave.lresponse
@@ -130,21 +130,21 @@ func NewHub(rt Runtime) Dispatch {
 			action()
 		}
 	}
-	status := func(sid string, slave *hubSlaveDso, args *StatusArgs) {
+	status := func(sid string, slave *hubSlaveDso, args StatusArgs) {
 		slave.lrequest = args.Request
 		slave.lresponse = args.Response
 		slave.lerror = args.Error
 		element := slave.callbacks.Front()
 		for element != nil {
 			value := element.Value
-			callback := value.(func(sid string, args *StatusArgs))
+			callback := value.(func(sid string, args StatusArgs))
 			callback(sid, args)
 			element = element.Next()
 		}
 	}
-	dispatchs["status-slave"] = func(mut *Mutation) {
+	dispatchs["status-slave"] = func(mut Mutation) {
 		sid := mut.Sid
-		args := mut.Args.(*StatusArgs)
+		args := mut.Args.(StatusArgs)
 		slave, ok := slaves[args.Address]
 		if ok {
 			status(sid, slave, args)
@@ -152,9 +152,9 @@ func NewHub(rt Runtime) Dispatch {
 			log.Debug(mut)
 		}
 	}
-	dispatchs["status-bus"] = func(mut *Mutation) {
+	dispatchs["status-bus"] = func(mut Mutation) {
 		sid := mut.Sid
-		args := mut.Args.(*StatusArgs)
+		args := mut.Args.(StatusArgs)
 		parent, ok := buses[args.Address]
 		if ok {
 			element := parent.Front()

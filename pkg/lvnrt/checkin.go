@@ -4,11 +4,11 @@ package lvnrt
 func NewCheckin(rt Runtime) Dispatch {
 	stateDispatch := rt.GetDispatch("state")
 	log := rt.PrefixLog("checkin")
-	return func(mut *Mutation) {
+	return func(mut Mutation) {
 		switch mut.Name {
 		case "query":
 			args := mut.Args.(Map)
-			query := &QueryArgs{}
+			query := QueryArgs{}
 			index, err := ParseUint(args, "index")
 			PanicIfError(err)
 			query.Index = index
@@ -27,15 +27,15 @@ func NewCheckin(rt Runtime) Dispatch {
 			total, err := MaybeUint(args, "total", 0)
 			PanicIfError(err)
 			query.Total = total
-			nmut := *mut
+			nmut := mut
 			nmut.Args = query
-			stateDispatch(&nmut)
+			stateDispatch(nmut)
 		case "setup":
 			args := mut.Args.([]Any)
-			items := make([]*ItemArgs, 0, len(args))
+			items := make([]ItemArgs, 0, len(args))
 			for _, mii := range args {
 				mi := mii.(Map)
-				item := &ItemArgs{}
+				item := ItemArgs{}
 				host, err := ParseString(mi, "host")
 				PanicIfError(err)
 				item.Host = host
@@ -47,9 +47,9 @@ func NewCheckin(rt Runtime) Dispatch {
 				item.Slave = slave
 				items = append(items, item)
 			}
-			nmut := *mut
+			nmut := mut
 			nmut.Args = items
-			stateDispatch(&nmut)
+			stateDispatch(nmut)
 		case ":add":
 			stateDispatch(mut)
 		case ":remove":

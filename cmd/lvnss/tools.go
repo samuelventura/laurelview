@@ -9,7 +9,6 @@ import (
 
 func environDefaults() {
 	environDefault("LV_NBE_ENDPOINT", "0.0.0.0:31601")
-	environDefault("LV_NRT_ENDPOINT", "0.0.0.0:31602")
 }
 
 func environDefault(name string, defval string) {

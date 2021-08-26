@@ -12,27 +12,27 @@ type Mutation struct {
 	Args Any
 }
 
-func M(name string, sid string, args Any) *Mutation {
-	return &Mutation{Name: name, Sid: sid, Args: args}
+func M(name string, sid string, args Any) Mutation {
+	return Mutation{Name: name, Sid: sid, Args: args}
 }
 
-func Mn(name string) *Mutation {
-	return &Mutation{Name: name}
+func Mn(name string) Mutation {
+	return Mutation{Name: name}
 }
 
-func Mns(name string, sid string) *Mutation {
-	return &Mutation{Name: name, Sid: sid}
+func Mns(name string, sid string) Mutation {
+	return Mutation{Name: name, Sid: sid}
 }
 
-func Mna(name string, args Any) *Mutation {
-	return &Mutation{Name: name, Args: args}
+func Mna(name string, args Any) Mutation {
+	return Mutation{Name: name, Args: args}
 }
 
-func Mnsa(name string, sid string, args Any) *Mutation {
-	return &Mutation{Name: name, Sid: sid, Args: args}
+func Mnsa(name string, sid string, args Any) Mutation {
+	return Mutation{Name: name, Sid: sid, Args: args}
 }
 
-func (m *Mutation) String() string {
+func (m Mutation) String() string {
 	buf := new(strings.Builder)
 	var typ string
 	switch m.Args.(type) {

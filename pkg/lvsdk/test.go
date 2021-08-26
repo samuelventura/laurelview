@@ -45,7 +45,7 @@ func (to *testOutputDso) Close() {
 }
 
 func (to *testOutputDso) Dispatch(name string) Dispatch {
-	return func(mut *Mutation) {
+	return func(mut Mutation) {
 		to.Log("trace", name, mut)
 	}
 }
