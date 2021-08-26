@@ -23,7 +23,7 @@ func flattenArgs() func(cb func(Any), args ...Any) {
 	return flatten
 }
 
-func flatPrintln(writer io.Writer) func(args ...Any) {
+func FlatPrintln(writer io.Writer) func(args ...Any) {
 	flatten := flattenArgs()
 	return func(args ...Any) {
 		count := 0
@@ -51,7 +51,7 @@ func LevelOutput(log Log, level string) Output {
 func DefaultOutput() Output {
 	done := make(Channel)
 	queue := make(chan []Any, 128)
-	print := flatPrintln(os.Stdout)
+	print := FlatPrintln(os.Stdout)
 	loop := func() {
 		for args := range queue {
 			if len(args) == 0 {

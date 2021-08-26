@@ -4,14 +4,15 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/kardianos/service"
 )
 
-var logger service.Logger
 var exit chan bool
 var dbe chan bool
+var logger Logger
 
 type program struct{}
 
@@ -23,7 +24,7 @@ func (p *program) Start(s service.Service) (err error) {
 			err = fmt.Errorf("recover %v", r)
 		}
 	}()
-	dbe = daemon("lvnbe", exit)
+	dbe = daemon(logger, "lvnbe", exit)
 	return nil
 }
 
@@ -58,15 +59,38 @@ func main() {
 		}
 		return
 	}
-	logger, err = s.Logger(nil)
+	slog, err := s.Logger(nil)
 	if err != nil {
 		log.Fatal(err)
 	}
+	logger = Wrap(slog)
 	//after logger created
-	environFromFile()
-	environDefaults()
+	EnvironFromFile(logger)
+	environDefaults(logger)
 	err = s.Run()
 	if err != nil {
-		logger.Error(err)
+		slog.Error(err)
 	}
+}
+
+func environDefaults(log Logger) {
+	EnvironDefault(log, "LV_NBE_ENDPOINT", "0.0.0.0:31601")
+}
+
+func Wrap(slog service.Logger) Logger {
+	var sb strings.Builder
+	print := FlatPrintln(&sb)
+	log := func(level string, args ...Any) {
+		sb.Reset()
+		print(args)
+		switch level {
+		case "warn":
+			slog.Warning(sb.String())
+		case "error":
+			slog.Error(sb.String())
+		default:
+			slog.Info(sb.String())
+		}
+	}
+	return SimpleLogger(log)
 }

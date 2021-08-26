@@ -89,7 +89,7 @@ func (entry *entryDso) handle(ctx *fasthttp.RequestCtx) {
 	defer TraceRecover(entry.log.Debug)
 	path := string(ctx.Path())
 	if !strings.HasPrefix(path, "/ws/") {
-		entry.static(entry.log, ctx)
+		entry.static(ctx)
 		return
 	}
 	err := entry.upgrader.Upgrade(ctx, func(conn *websocket.Conn) {

@@ -25,7 +25,7 @@ type Any = interface{}
 type Action = func()
 type Dispatch = func(Mutation)
 type Factory = func(Runtime) Dispatch
-type Handler = func(log Logger, ctx *fasthttp.RequestCtx)
+type Handler = func(ctx *fasthttp.RequestCtx)
 
 //Runtime Provides
 //1) config values
@@ -62,8 +62,8 @@ type Logger interface {
 	Error(...Any)
 }
 
-func NopAction()                                      {}
-func NopOutput(...Any)                                {}
-func NopDispatch(Mutation)                            {}
-func NopFactory(Runtime) Dispatch                     { return NopDispatch }
-func NopHandler(log Logger, ctx *fasthttp.RequestCtx) {}
+func NopAction()                          {}
+func NopOutput(...Any)                    {}
+func NopDispatch(Mutation)                {}
+func NopFactory(Runtime) Dispatch         { return NopDispatch }
+func NopHandler(ctx *fasthttp.RequestCtx) {}

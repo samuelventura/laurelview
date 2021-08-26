@@ -62,7 +62,7 @@ func main() {
 	log.Info("endpoint", ep)
 	rt.SetValue("entry.endpoint", ep)
 	rt.SetValue("entry.buflen", 0)
-	rt.SetValue("entry.static", EmbedHandler)
+	rt.SetValue("entry.static", NewEmbedHandler(log))
 	rt.SetDispatch("/ws/rt", checkin1)
 	rt.SetDispatch("/ws/db", checkin2)
 	entry := lvnrt.NewEntry(rt)
