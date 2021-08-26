@@ -43,7 +43,7 @@ function ItemBrowser(props) {
       filterInput.current.focus();
     }
     if (!props.state.online) {
-      showDialog("none")
+      showDialog("offline")
     }
   }, [props]);
 
@@ -102,11 +102,18 @@ function ItemBrowser(props) {
   }
 
   function showDialog(action, item) {
-    setShowMultiView(false)
+    //FIXME keep multiview open across
+    //checkeds are preserved across reconnections
+    //making this hack work (surprisingly)
+    //single views get overlapped during offline
+    //multi views get hidden during offline
+    if (action !== "offline") {
+      setShowMultiView(false)
+      setShowView(false)  
+    }
     setShowCreate(false)
     setShowUpdate(false)
     setShowDelete(false)
-    setShowView(false)
     switch (action) {
       case "create":
         setShowCreate(true)
@@ -125,6 +132,8 @@ function ItemBrowser(props) {
         break
       case "multiview":
         setShowMultiView(true)
+        break
+      case "offline":
         break
       case "none":
         break
@@ -164,13 +173,19 @@ function ItemBrowser(props) {
     setSelected(next)
   }
 
+  function onSelectedToggle(e, item) {
+    const next = { ...selected }
+    next[item.id] = !next[item.id]
+    setSelected(next)
+  }
+
   function selectedItems() {
     return viewItems.filter(item => selected[item.id])
   }
 
   const rows = viewItems.map(item =>
     <tr key={item.id}>
-      <td>
+      <td onClick={(e) => onSelectedToggle(e, item)}>
         <Form.Check type="checkbox" label={item.name}
           checked={item.checked} onChange={(e) => onSelectedChange(e, item)}></Form.Check>
       </td>
