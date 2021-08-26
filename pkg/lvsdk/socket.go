@@ -14,30 +14,26 @@ type Socket interface {
 }
 
 type socketDso struct {
-	conn net.Conn
+	conn    net.Conn
+	sep     byte
+	discard []byte
+	input   *strings.Builder
 }
 
-func NewSocketConn(conn net.Conn) Socket {
+func NewSocketConn(conn net.Conn, sep byte) Socket {
 	s := &socketDso{}
 	s.conn = conn
-	//connection drop detection macos=~9s
-	//set data asap, do not wait for larger packet
-	tcp := conn.(*net.TCPConn)
-	tcp.SetNoDelay(true)
-	tcp.SetLinger(0)
-	tcp.SetKeepAlive(true)
-	tcp.SetKeepAlivePeriod(Millis(1000))
-	tcp.SetWriteBuffer(0)
+	s.sep = sep
+	s.discard = make([]byte, 512)
+	s.input = new(strings.Builder)
 	return s
 }
 
-func NewSocket(address string, toms int) Socket {
-	s := &socketDso{}
+func NewSocketDial(address string, toms int, sep byte) Socket {
 	to := Millis(toms)
 	conn, err := net.DialTimeout("tcp", address, to)
 	PanicIfError(err)
-	s.conn = conn
-	return s
+	return NewSocketConn(conn, sep)
 }
 
 func (s *socketDso) Close() {
@@ -49,10 +45,9 @@ func (s *socketDso) Discard(toms int) error {
 	if err != nil {
 		return err
 	}
-	bytes := make([]byte, 512)
-	_, err = s.conn.Read(bytes)
+	_, err = s.conn.Read(s.discard)
 	for err == nil {
-		_, err = s.conn.Read(bytes)
+		_, err = s.conn.Read(s.discard)
 	}
 	nerr, ok := err.(net.Error)
 	if ok && nerr.Timeout() {
@@ -74,7 +69,7 @@ func (s *socketDso) WriteLine(req string, toms int) error {
 	if err != nil {
 		return err
 	}
-	bytes = []byte{byte(13)}
+	bytes = []byte{s.sep}
 	n, err = s.conn.Write(bytes)
 	if err == nil && n != len(bytes) {
 		err = fmt.Errorf("wrote %v of %v", n, len(bytes))
@@ -90,9 +85,8 @@ func (s *socketDso) ReadLine(toms int) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	cr := byte(13)
-	buf := new(strings.Builder)
-	bytes := []byte{cr}
+	s.input.Reset()
+	bytes := []byte{s.sep}
 	for {
 		n, err := s.conn.Read(bytes)
 		if err == nil && n != 1 {
@@ -102,10 +96,10 @@ func (s *socketDso) ReadLine(toms int) (string, error) {
 			return "", err
 		}
 		b := bytes[0]
-		if b == cr {
+		if b == s.sep {
 			break
 		}
-		buf.WriteByte(b)
+		s.input.WriteByte(b)
 	}
-	return buf.String(), nil
+	return s.input.String(), nil
 }

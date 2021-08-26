@@ -53,7 +53,7 @@ func (dpm *dpmDso) Close() Channel {
 
 func (dpm *dpmDso) Echo() {
 	address := fmt.Sprintf("127.0.0.1:%v", dpm.Port())
-	socket := NewSocket(address, 400)
+	socket := NewSocketDial(address, 400, 13)
 	defer socket.Close()
 	req := "*1B1"
 	err := socket.WriteLine(req, 400)

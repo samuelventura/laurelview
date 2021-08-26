@@ -15,6 +15,28 @@ type busQueryDso struct {
 	request string
 }
 
+/*
+- A 400ms delay is needed even for no-response commands
+because bus gets unresponsive after any of the resets
+- A sync read takes 80s to detect a connection drop, this
+was tested from mbair to nucmeg disconnecting wifi. It got down
+to 13s adding the following setup:
+	tcp := conn.(*net.TCPConn)
+	tcp.SetNoDelay(true)
+	tcp.SetLinger(0)
+	tcp.SetKeepAlive(true)
+	tcp.SetKeepAlivePeriod(millis(1000))
+	tcp.SetWriteBuffer(0)
+- A long 20s dial timeout is needed to ensure connection
+success on first attempt for Laurel ethernet modules
+- Disconnect on first read timeout is needed to avoid getting
+in a read loop where reads timeout before EOF is ever detected.
+- Even if Laurels nodes are enforced with slave 1, the user
+still may not add slave 1 to the list of items making it
+impossible to detect the timeout was on the node master
+as to be smart on where to apply the disconnect on first read
+timeout policy.
+*/
 func NewBus(rt Runtime) Dispatch {
 	dispose := NopAction
 	hubDispatch := rt.GetDispatch("hub")
@@ -126,7 +148,7 @@ func NewBus(rt Runtime) Dispatch {
 		read := func(conn net.Conn) bool {
 			cleaner.AddCloser(address, conn)
 			defer cleaner.Remove(address)
-			socket := NewSocketConn(conn)
+			socket := NewSocketConn(conn, 13)
 			defer socket.Close()
 			for {
 				select {
@@ -139,7 +161,6 @@ func NewBus(rt Runtime) Dispatch {
 						continue
 					}
 					cmd := busRequestCode(query.request, query.slave)
-					//log.Info("REQUEST >", cmd, query)
 					err := socket.Discard(discardms)
 					TraceIfError(log.Trace, err)
 					if err != nil {
@@ -158,12 +179,8 @@ func NewBus(rt Runtime) Dispatch {
 						TraceIfError(log.Trace, err)
 						if err != nil {
 							status_slave(query, "error3", err)
-							//do not close, may timeout after cold reset
 							nerr, ok := err.(net.Error)
 							if ok && nerr.Timeout() {
-								//log.Info("TIMEOUT <", cmd)
-								//takes 10s to detect drops
-								//continue
 								return false
 							} else {
 								return false
@@ -173,7 +190,6 @@ func NewBus(rt Runtime) Dispatch {
 						//bus get unresponsive after resets 400ms works
 						time.Sleep(Millis(resetms))
 					}
-					//log.Info("RESPONSE <", strings.TrimSpace(res))
 					status_slave(query, strings.TrimSpace(res), nil)
 				}
 			}

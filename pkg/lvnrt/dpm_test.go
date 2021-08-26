@@ -14,7 +14,7 @@ func TestRtDpm(t *testing.T) {
 	dpm := NewDpm(log, ":0", 0)
 	defer WaitClose(dpm.Close)
 	address := fmt.Sprintf("127.0.0.1:%v", dpm.Port())
-	socket := NewSocket(address, 400)
+	socket := NewSocketDial(address, 400, 13)
 	defer socket.Close()
 	testDpmWriteLine(socket, busReadValue)
 	assert.Equal(t, busReadValue, testDpmReadLine(socket))

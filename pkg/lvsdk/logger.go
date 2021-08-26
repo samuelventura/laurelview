@@ -1,5 +1,11 @@
 package lvsdk
 
+import (
+	"log"
+	"os"
+	"strings"
+)
+
 type nopLogger struct {
 }
 
@@ -94,4 +100,17 @@ func (log *prefixLogger) Warn(args ...Any) {
 
 func (log *prefixLogger) Error(args ...Any) {
 	log.log("error", log.prefix, args)
+}
+
+func GoLogLogger() Logger {
+	log.SetOutput(os.Stdout)
+	log.SetFlags(log.Lmicroseconds)
+	var sb strings.Builder
+	print := FlatPrintln(&sb)
+	logger := func(level string, args ...Any) {
+		sb.Reset()
+		print(level, args)
+		log.Print(sb.String())
+	}
+	return SimpleLogger(logger)
 }

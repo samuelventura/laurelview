@@ -1,4 +1,4 @@
-package main
+package lvnrt
 
 import (
 	"github.com/samuelventura/laurelview/pkg/lvsdk"
