@@ -13,6 +13,7 @@ import (
 var exit chan bool
 var dbe chan bool
 var dup chan bool
+var dpm chan bool
 var logger Logger
 
 type program struct{}
@@ -25,6 +26,7 @@ func (p *program) Start(s service.Service) (err error) {
 			err = fmt.Errorf("recover %v", r)
 		}
 	}()
+	dpm = daemon(logger, "lvdpm", exit)
 	dbe = daemon(logger, "lvnbe", exit)
 	dup = daemon(logger, "lvnup", exit)
 	return nil
@@ -38,7 +40,11 @@ func (p *program) Stop(s service.Service) error {
 	}
 	select {
 	case <-dup:
-	case <-time.After(3 * time.Second):
+	case <-time.After(1 * time.Second):
+	}
+	select {
+	case <-dpm:
+	case <-time.After(1 * time.Second):
 	}
 	return nil
 }
@@ -81,6 +87,7 @@ func main() {
 
 func environDefaults(log Logger) {
 	EnvironDefault(log, "LV_NBE_ENDPOINT", "0.0.0.0:31601")
+	EnvironDefault(log, "LV_DPM_ENDPOINT", "0.0.0.0:31602")
 }
 
 func Wrap(slog service.Logger) Logger {

@@ -7,6 +7,7 @@ if [[ "$OSTYPE" == "linux"* ]]; then
         sudo systemctl stop LaurelView
         sudo $DST/lvnss -service uninstall
     fi
+    sudo cp $SRC/lvdpm $DST
     sudo cp $SRC/lvnbe $DST
     sudo cp $SRC/lvnup $DST
     sudo cp $SRC/lvnss $DST
