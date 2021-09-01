@@ -192,11 +192,11 @@ function ItemBrowser(props) {
       <td>
         <ButtonGroup>
           <Button onClick={() => showDialog("view", item)}
-            variant="link" size="sm">View</Button>
+            variant="link" size="sm" title="View Laurel">View</Button>
           <Button onClick={() => showDialog("update", item)}
-            variant="link" size="sm">Edit</Button>
+            variant="link" size="sm" title="Edit Laurel">Edit</Button>
           <Button onClick={() => showDialog("delete", item)}
-            variant="link" size="sm">Delete</Button>
+            variant="link" size="sm" title="Delete Laurel">Delete</Button>
         </ButtonGroup>
       </td>
     </tr>
@@ -212,7 +212,7 @@ function ItemBrowser(props) {
     const items = selectedItems()
     const disabled = items.length === 0
     return <Button onClick={() => showDialog("multiview")}
-      variant="link" disabled={disabled} size="sm">Multi View</Button>
+      variant="link" disabled={disabled} size="sm" title="Open Multi View">Multi View</Button>
   }
 
   function multiview(show) {
@@ -236,7 +236,7 @@ function ItemBrowser(props) {
       <Navbar >
         <Navbar.Brand><img height="48px" src="banner.png" alt="Laurel View" /></Navbar.Brand>
         <Navbar.Collapse className="justify-content-end">
-          <Button variant="success" onClick={() => showDialog("create")}>New...</Button>
+          <Button variant="success" onClick={() => showDialog("create")} title="Create New">New...</Button>
         </Navbar.Collapse>
       </Navbar>
 
@@ -250,8 +250,8 @@ function ItemBrowser(props) {
               <Form.Control value={filter} onChange={onFilterChange}
                 onKeyPress={onFilterKeyPress} onKeyUp={onFilterKeyUp}
                 placeholder="Filter..." type="text" ref={filterInput} />
-              <Button onClick={onSearchClick} variant="outline-secondary">Search</Button>
-              <Button onClick={onClearClick} variant="outline-secondary">Clear</Button>
+              <Button onClick={onSearchClick} variant="outline-secondary" title="Apply Filter">Search</Button>
+              <Button onClick={onClearClick} variant="outline-secondary" title="Clear Filter">Clear</Button>
             </InputGroup>
           </Form>
         </Navbar.Collapse>
@@ -268,9 +268,9 @@ function ItemBrowser(props) {
         <thead>
           <tr className="table-header">
             <th>Name &nbsp;
-              <Button ref={sortUpInput} onClick={() => handleSortChange("asc")} variant="link" size="sm">
+              <Button ref={sortUpInput} onClick={() => handleSortChange("asc")} variant="link" size="sm" title="Sort Ascending">
                 <FontAwesomeIcon icon={faArrowUp} /></Button>
-              <Button ref={sortDownInput} onClick={() => handleSortChange("desc")} variant="link" size="sm">
+              <Button ref={sortDownInput} onClick={() => handleSortChange("desc")} variant="link" size="sm" title="Sort Descending">
                 <FontAwesomeIcon icon={faArrowDown} /></Button>
               <Button onClick={()=>selectAll(true)} variant="link" size="sm" title="Select All">All</Button>                
               <Button onClick={()=>selectAll(false)} variant="link" size="sm" title="Clear Selection">Clear</Button>                
