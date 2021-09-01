@@ -98,7 +98,7 @@ func (entry *entryDso) handle(ctx *fasthttp.RequestCtx) {
 		id := entry.id.Next()
 		dispatch := entry.rt.GetDispatch(path) //panics
 		ipp := conn.RemoteAddr().String()
-		sid := fmt.Sprintf("%s_%s_%s", id, entry.endpoint, ipp)
+		sid := fmt.Sprintf("%s_%s_%s", id, ipp, path)
 		log := entry.rt.PrefixLog(sid)
 		log.Trace("path", path)
 		defer entry.cleaner.Remove(sid)
