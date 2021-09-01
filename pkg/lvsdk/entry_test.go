@@ -64,18 +64,7 @@ func testEntryReadLoop(conn *websocket.Conn, to TestOutput) {
 
 func testEntryReadMutation(conn *websocket.Conn) Mutation {
 	conn.SetReadDeadline(time.Now().Add(time.Millisecond * 400))
-	mt, bytes, err := conn.ReadMessage()
-	if err != nil {
-		return Mutation{}
-	}
-	if mt != websocket.TextMessage {
-		PanicF("Invalid msg type %v", mt)
-	}
-	mut, err := DecodeMutation(bytes)
-	if err != nil {
-		return Mutation{}
-	}
-	return mut
+	return ReadMutation(conn)
 }
 
 func testEntryPostMutation(conn *websocket.Conn, mut Mutation) {

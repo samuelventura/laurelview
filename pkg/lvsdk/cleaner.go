@@ -9,6 +9,7 @@ type Cleaner interface {
 	AddAction(id string, action Action)
 	AddCloser(id string, closer io.Closer)
 	AddChannel(id string, channel Channel)
+	AddCleaner(id string, cleaner Cleaner)
 	Remove(id string)
 	Status(func(Any))
 	Close()
@@ -52,6 +53,12 @@ func (c *cleanerDso) AddCloser(id string, closer io.Closer) {
 func (c *cleanerDso) AddChannel(id string, channel Channel) {
 	c.AddAction(id, func() {
 		close(channel)
+	})
+}
+
+func (c *cleanerDso) AddCleaner(id string, cleaner Cleaner) {
+	c.AddAction(id, func() {
+		cleaner.Close()
 	})
 }
 

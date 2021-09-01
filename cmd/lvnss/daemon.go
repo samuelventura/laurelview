@@ -5,10 +5,11 @@ import (
 	"os/exec"
 )
 
+//FIXME implement reload strategy
 func daemon(log Logger, sibling string, exit chan bool) chan bool {
 	done := make(chan bool)
 	path := RelativeSibling(sibling)
-	log.Info("Daemon", sibling, path)
+	log.Info("daemon", sibling, path)
 	outp := ChangeExtension(path, ".out.log")
 	ff := os.O_APPEND | os.O_WRONLY | os.O_CREATE
 	outf, err := os.OpenFile(outp, ff, 0600)

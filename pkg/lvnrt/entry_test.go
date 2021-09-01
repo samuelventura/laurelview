@@ -129,7 +129,7 @@ func testEntryReadMutation(conn *websocket.Conn) Mutation {
 func testEntryPostSetup(conn *websocket.Conn, port int) {
 	args := []ItemArgs{{Host: "127.0.0.1", Port: uint(port), Slave: 1}}
 	mut := Mna("setup", args)
-	testEntryWriteMutation(conn, mut)
+	WriteMutation(conn, mut)
 }
 
 func testEntryPostQuery(conn *websocket.Conn, request string) {
@@ -137,12 +137,5 @@ func testEntryPostQuery(conn *websocket.Conn, request string) {
 	args.Index = 0
 	args.Request = request
 	mut := Mna("query", args)
-	testEntryWriteMutation(conn, mut)
-}
-
-func testEntryWriteMutation(conn *websocket.Conn, mut Mutation) {
-	bytes, err := EncodeMutation(mut)
-	PanicIfError(err)
-	err = conn.WriteMessage(websocket.TextMessage, bytes)
-	PanicIfError(err)
+	WriteMutation(conn, mut)
 }

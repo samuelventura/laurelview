@@ -12,6 +12,7 @@ import (
 
 var exit chan bool
 var dbe chan bool
+var dup chan bool
 var logger Logger
 
 type program struct{}
@@ -25,6 +26,7 @@ func (p *program) Start(s service.Service) (err error) {
 		}
 	}()
 	dbe = daemon(logger, "lvnbe", exit)
+	dup = daemon(logger, "lvnup", exit)
 	return nil
 }
 
@@ -32,6 +34,10 @@ func (p *program) Stop(s service.Service) error {
 	close(exit)
 	select {
 	case <-dbe:
+	case <-time.After(3 * time.Second):
+	}
+	select {
+	case <-dup:
 	case <-time.After(3 * time.Second):
 	}
 	return nil

@@ -54,6 +54,7 @@ type Runtime interface {
 //should a nop logger panic or not?
 //keep panics separated until resolved
 type Logger interface {
+	PrefixLog(prefix ...Any) Logger
 	Log(string, ...Any)
 	Trace(...Any)
 	Debug(...Any)

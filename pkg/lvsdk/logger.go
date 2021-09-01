@@ -14,6 +14,10 @@ func NopLogger() Logger {
 	return logger
 }
 
+func (log *nopLogger) PrefixLog(prefix ...Any) Logger {
+	return log
+}
+
 func (log *nopLogger) Log(level string, args ...Any) {
 }
 
@@ -40,6 +44,10 @@ func SimpleLogger(log Log) Logger {
 	logger := &simpleLogger{}
 	logger.log = log
 	return logger
+}
+
+func (log *simpleLogger) PrefixLog(prefix ...Any) Logger {
+	return PrefixLogger(log.log, prefix)
 }
 
 func (log *simpleLogger) Log(level string, args ...Any) {
@@ -76,6 +84,10 @@ func PrefixLogger(log Log, prefix ...Any) Logger {
 	logger.log = log
 	logger.prefix = prefix
 	return logger
+}
+
+func (log *prefixLogger) PrefixLog(prefix ...Any) Logger {
+	return PrefixLogger(log.log, log.prefix, prefix)
 }
 
 func (log *prefixLogger) Log(level string, args ...Any) {

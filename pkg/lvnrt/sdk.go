@@ -62,7 +62,10 @@ var RelativeSibling = lvsdk.RelativeSibling
 var RelativeExtension = lvsdk.RelativeExtension
 var ChangeExtension = lvsdk.ChangeExtension
 var ExecutablePath = lvsdk.ExecutablePath
+var WaitExitSignal = lvsdk.WaitExitSignal
 
+var ReadMutation = lvsdk.ReadMutation
+var WriteMutation = lvsdk.WriteMutation
 var EncodeMutation = lvsdk.EncodeMutation
 var DecodeMutation = lvsdk.DecodeMutation
 var ParseUint = lvsdk.ParseUint

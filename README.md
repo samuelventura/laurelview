@@ -5,8 +5,9 @@
 ```bash
 pkg/lvnrt #node runtime testeable package
 pkg/lvnbe #node backend testeable package
-cmd/lvnrt #node runtime executable
+cmd/lvnrt #node runtime testeable package
 cmd/lvnbe #node backend executable
+cmd/lvnup #node uplink executable
 cmd/lvnss #node system service
 cmd/lvdpm #node dpm echo server
 web/lvnfe #node react frontend

@@ -2,7 +2,9 @@ package lvsdk
 
 import (
 	"bufio"
+	"io/ioutil"
 	"os"
+	"os/signal"
 	"strings"
 )
 
@@ -13,16 +15,16 @@ func EnvironFromFile(log Logger) {
 		return
 	}
 	defer file.Close()
-	log.Info("Loading config", path)
+	log.Info("loading config", path)
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
 		parts := strings.SplitN(line, "=", 2)
 		if len(parts) != 2 {
-			log.Warn("Invalid config line", line)
+			log.Warn("invalid config line", line)
 			continue
 		}
-		log.Info("Setting config", line)
+		log.Info("setting config", line)
 		os.Setenv(parts[0], parts[1])
 	}
 }
@@ -30,9 +32,27 @@ func EnvironFromFile(log Logger) {
 func EnvironDefault(log Logger, name string, defval string) {
 	val := os.Getenv(name)
 	if len(strings.TrimSpace(val)) == 0 {
-		log.Info("Setting default", name, defval)
+		log.Info("setting default", name, defval)
 		os.Setenv(name, defval)
 	} else {
-		log.Info("Found environ", name, val)
+		log.Info("found environ", name, val)
+	}
+}
+
+func WaitExitSignal(action Action) {
+	ctrlc := make(chan os.Signal, 1)
+	signal.Notify(ctrlc, os.Interrupt)
+
+	action()
+
+	//wait
+	exit := make(Channel)
+	go func() {
+		defer close(exit)
+		ioutil.ReadAll(os.Stdin)
+	}()
+	select {
+	case <-ctrlc:
+	case <-exit:
 	}
 }
