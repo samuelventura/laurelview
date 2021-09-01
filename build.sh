@@ -15,4 +15,5 @@ if [[ "$OSTYPE" == "msys"* ]]; then
 fi
 go install $MOD/cmd/lvdpm
 go install $MOD/cmd/lvnbe
+go install $MOD/cmd/lvnup
 go install $MOD/cmd/lvnss
