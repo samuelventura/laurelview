@@ -1,6 +1,5 @@
 import React, { useReducer, useEffect } from 'react'
 
-import 'dseg/css/dseg.css';
 import env from "../environ"
 
 function ItemDisplay(props) {
