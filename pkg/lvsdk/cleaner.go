@@ -2,6 +2,7 @@ package lvsdk
 
 import (
 	"container/list"
+	"fmt"
 	"io"
 )
 
@@ -37,8 +38,8 @@ func (c *cleanerDso) AddAction(id string, action Action) {
 	c.queue <- func() {
 		c.override(id)
 		c.add(id, func() {
-			c.log.Trace("close", id)
 			delete(c.items, id)
+			c.log.Trace("remove", c.trace(), id)
 			action()
 		})
 	}
@@ -68,7 +69,7 @@ func (c *cleanerDso) Remove(id string) {
 		if ok {
 			c.remove(item)
 		} else {
-			c.log.Debug("nf404", id)
+			c.log.Debug("nf404", c.trace(), id)
 		}
 	}
 }
@@ -100,7 +101,7 @@ func (c *cleanerDso) loop() {
 func (c *cleanerDso) override(id string) {
 	item, ok := c.items[id]
 	if ok {
-		c.log.Debug("override", id)
+		c.log.Debug("override", c.trace(), id)
 		c.remove(item)
 	}
 }
@@ -113,10 +114,14 @@ func (c *cleanerDso) remove(item *list.Element) {
 }
 
 func (c *cleanerDso) add(id string, action Action) {
-	c.log.Trace("add", id)
+	c.log.Trace("add", c.trace(), id)
 	item := c.order.PushBack(action)
 	c.items[id] = item
 	if c.closed {
 		c.remove(item)
 	}
+}
+
+func (c *cleanerDso) trace() string {
+	return fmt.Sprintf("%v/%v", len(c.items), c.order.Len())
 }

@@ -85,6 +85,7 @@ func CloseLog(log Log) {
 func DefaultLog() Log {
 	logLevelFromEnv()
 	output := DefaultOutput()
+	pid := os.Getpid()
 	log := func(level string, args ...Any) {
 		switch level {
 		case ":dispose":
@@ -93,7 +94,7 @@ func DefaultLog() Log {
 			if isLogPrintable(level) {
 				now := time.Now()
 				when := now.Format("20060102T150405.000")
-				output(when, level, args)
+				output(when, pid, level, args)
 			}
 		}
 	}
