@@ -60,8 +60,9 @@ func NewBus(rt Runtime) Dispatch {
 		address := fmt.Sprintf("%v:%v", bus.Host, bus.Port)
 		log := PrefixLogger(rt.Log, "bus", address)
 		exit := make(Channel)
+		cleaner.AddChannel("exit", exit)
 		dispose = func() {
-			close(exit)
+			cleaner.Close()
 		}
 		queries := list.New()
 		slaves := make(map[uint]*list.Element)
@@ -146,8 +147,8 @@ func NewBus(rt Runtime) Dispatch {
 			hubDispatch(mut)
 		}
 		read := func(conn net.Conn) bool {
-			cleaner.AddCloser(address, conn)
 			defer cleaner.Remove(address)
+			cleaner.AddCloser(address, conn)
 			socket := NewSocketConn(conn, 13)
 			defer socket.Close()
 			for {

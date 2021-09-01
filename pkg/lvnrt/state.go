@@ -102,20 +102,13 @@ func NewState(rt Runtime) Dispatch {
 				args := SlaveArgs{}
 				args.Slave = item.Slave
 				args.Count = count.Count()
-				mut := Mutation{}
-				mut.Sid = sid
-				mut.Name = "slave"
-				mut.Args = args
-				bus.dispatch(mut)
+				bus.dispatch(Mnsa("slave", sid, args))
 				if count.Count() == 0 {
 					delete(bus.slaves, item.Slave)
 				}
 				if len(bus.slaves) == 0 {
 					delete(buses, address)
-					mut := Mutation{}
-					mut.Sid = sid
-					mut.Name = ":dispose"
-					bus.dispatch(mut)
+					bus.dispatch(Mns(":dispose", sid))
 				}
 			}
 			disposers = append(disposers, disposer)
