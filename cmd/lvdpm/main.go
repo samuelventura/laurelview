@@ -21,7 +21,7 @@ func main() {
 	log := PrefixLogger(dl, "main")
 	ep := endpoint()
 	log.Info("endpoint", ep)
-	dpm := lvnrt.NewDpm(log, ep, 400)
+	dpm := lvnrt.NewDpm(log, ep, 0)
 	defer WaitClose(dpm.Close)
 	log.Info("port", dpm.Port())
 	exit := make(chan bool)

@@ -26,7 +26,7 @@ function ItemMultiView(props) {
         next.send = socket.send
         return next
       }
-      case "send": {
+      case "open": {
         const next = { ...state }
         next.queries = props.items.map(() => { return {} })
         next.send = args
@@ -49,7 +49,7 @@ function ItemMultiView(props) {
     function handler({ name, args, session }) {
       dispatch({ name, args, session })
       switch (name) {
-        case "send": {
+        case "open": {
           const name = "setup"
           const items = props.items.map(item => JSON.parse(item.json))
           env.log({ name, args: items })

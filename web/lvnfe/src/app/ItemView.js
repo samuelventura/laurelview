@@ -24,7 +24,7 @@ function ItemView(props) {
         next.send = socket.send
         return next
       }
-      case "send": {
+      case "open": {
         const next = { ...state }
         next.send = args
         return next
@@ -46,7 +46,7 @@ function ItemView(props) {
     function handler({ name, args, session }) {
       dispatch({ name, args, session })
       switch (name) {
-        case "send": {
+        case "open": {
           const name = "setup"
           const json = props.item.json
           const item = JSON.parse(json)

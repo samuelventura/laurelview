@@ -179,12 +179,7 @@ func NewBus(rt Runtime) Dispatch {
 						TraceIfError(log.Trace, err)
 						if err != nil {
 							status_slave(query, "error3", err)
-							nerr, ok := err.(net.Error)
-							if ok && nerr.Timeout() {
-								return false
-							} else {
-								return false
-							}
+							return false
 						}
 					} else {
 						//bus get unresponsive after resets 400ms works

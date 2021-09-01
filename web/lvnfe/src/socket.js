@@ -60,7 +60,7 @@ function createSocket(dispatch, path, base) {
     ws.onopen = (event) => {
       env.log("ws.open", event)
       closed = false
-      dispatch({name: "send", args: send})
+      dispatch({name: "open", args: send})
       //server close conn immediately on invalid path
       //avoid reconecting at full speed
       toms = 1000

@@ -26,6 +26,7 @@ func daemon(log Logger, sibling string, exit chan bool) chan bool {
 	err = cmd.Start()
 	PanicIfError(err)
 	go func() {
+		defer log.Debug("exited", path)
 		defer TraceRecover(log.Error)
 		defer close(done)
 		defer outf.Close()

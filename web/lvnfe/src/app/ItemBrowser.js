@@ -42,9 +42,6 @@ function ItemBrowser(props) {
     if (filterInput.current != null) {
       filterInput.current.focus();
     }
-    if (!props.state.online) {
-      showDialog("offline")
-    }
   }, [props]);
 
   function onFilterKeyPress(e) {
@@ -102,15 +99,8 @@ function ItemBrowser(props) {
   }
 
   function showDialog(action, item) {
-    //FIXME keep multiview open across
-    //checkeds are preserved across reconnections
-    //making this hack work (surprisingly)
-    //single views get overlapped during offline
-    //multi views get hidden during offline
-    if (action !== "offline") {
-      setShowMultiView(false)
-      setShowView(false)  
-    }
+    setShowMultiView(false)
+    setShowView(false)  
     setShowCreate(false)
     setShowUpdate(false)
     setShowDelete(false)
@@ -132,8 +122,6 @@ function ItemBrowser(props) {
         break
       case "multiview":
         setShowMultiView(true)
-        break
-      case "offline":
         break
       case "none":
         break

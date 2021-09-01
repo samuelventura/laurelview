@@ -1,6 +1,7 @@
 import React, { useEffect, useReducer } from 'react'
 
-import Modal from 'react-bootstrap/Modal';
+import Navbar from 'react-bootstrap/Navbar';
+import Container from 'react-bootstrap/Container';
 
 import ItemBrowser from "./app/ItemBrowser"
 import "./App.css"
@@ -47,9 +48,10 @@ function App() {
         next.items = {}
         next.online = false
         next.session = null
+        next.send = socket.send
         return next
       }
-      case "send": {
+      case "open": {
         const next = {...state}
         next.send = args
         return next
@@ -85,24 +87,23 @@ function App() {
     return socket.create(dispatch, "/db")
   }, [])
 
+  function offline() {
+    if (state.online) return
+    return (<Navbar bg="dark" variant="dark">
+      <Container>
+        <Navbar.Text>
+          Connecting to backend...
+        </Navbar.Text>
+      </Container>
+    </Navbar>)
+  }
+
   return (
     <div className="App">
+      {offline()}
       <ItemBrowser 
         state={state} 
         dispatch={handleDispatch} />
-      <Modal
-        show={!state.online}
-        backdrop="static"
-        keyboard={false}
-        centered
-      >
-        <Modal.Header>
-          <Modal.Title>Connecting</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          Connecting to backend...
-        </Modal.Body>
-      </Modal>
     </div>
   )
 }
