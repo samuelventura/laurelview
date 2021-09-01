@@ -87,9 +87,6 @@ func NewHub(rt Runtime) Dispatch {
 			callback := func(sid string, args StatusArgs) {
 				count.Inc()
 				total.Inc()
-				mut := Mutation{}
-				mut.Sid = sid
-				mut.Name = "query"
 				query := QueryArgs{}
 				query.Index = index
 				query.Request = args.Request
@@ -97,8 +94,7 @@ func NewHub(rt Runtime) Dispatch {
 				query.Error = args.Error
 				query.Count = count.Count()
 				query.Total = total.Count()
-				mut.Args = query
-				session.callback(mut)
+				session.callback(Mnsa("query", sid, query))
 			}
 			args := StatusArgs{}
 			args.Address = saddr

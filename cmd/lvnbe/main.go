@@ -23,7 +23,7 @@ func main() {
 	log := rt.PrefixLog("main")
 	defer TraceRecover(log.Warn)
 
-	//runtime 1
+	//runtime 1 /ws/rt
 	rt1 := NewRuntime(dl)
 	log1 := rt1.PrefixLog("rt")
 	defer log1.Info("exited")
@@ -39,11 +39,11 @@ func main() {
 	rt1.SetValue("bus.resetms", 400)
 	rt1.SetDispatch("hub", AsyncDispatch(log1, lvnrt.NewHub(rt1)))
 	rt1.SetDispatch("state", AsyncDispatch(log1, lvnrt.NewState(rt1)))
-	checkin1 := lvnrt.NewCheckin(rt1)
-	defer checkin1(Mn(":dispose"))
+	check1 := lvnrt.NewCheck(rt1)
+	defer check1(Mn(":dispose"))
 	rt1.SetFactory("bus", func(rt Runtime) Dispatch { return lvnrt.NewBus(rt) })
 
-	//runtime 2
+	//runtime 2 /ws/db
 	var db2 = relative("db3")
 	var dao2 = NewDao(db2)
 	defer dao2.Close()
@@ -54,8 +54,8 @@ func main() {
 	rt2.SetValue("dao", dao2)
 	rt2.SetDispatch("hub", AsyncDispatch(log2, lvndb.NewHub(rt2)))
 	rt2.SetDispatch("state", AsyncDispatch(log2, lvndb.NewState(rt2)))
-	checkin2 := lvndb.NewCheckin(rt2)
-	defer checkin2(Mn(":dispose"))
+	check2 := lvndb.NewCheck(rt2)
+	defer check2(Mn(":dispose"))
 
 	//entry
 	ep := endpoint()
@@ -63,8 +63,8 @@ func main() {
 	rt.SetValue("entry.endpoint", ep)
 	rt.SetValue("entry.buflen", 0)
 	rt.SetValue("entry.static", NewEmbedHandler(log))
-	rt.SetDispatch("/ws/rt", checkin1)
-	rt.SetDispatch("/ws/db", checkin2)
+	rt.SetDispatch("/ws/rt", check1)
+	rt.SetDispatch("/ws/db", check2)
 	entry := lvnrt.NewEntry(rt)
 	defer WaitClose(entry.Close)
 	log.Info("port", entry.Port())
