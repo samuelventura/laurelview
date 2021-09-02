@@ -37,11 +37,11 @@ func main() {
 	rt1.SetValue("bus.retryms", 2000)
 	rt1.SetValue("bus.discardms", 100)
 	rt1.SetValue("bus.resetms", 400)
+	rt1.SetFactory("bus", func(rt Runtime) Dispatch { return lvnrt.NewBus(rt) })
 	rt1.SetDispatch("hub", AsyncDispatch(log1, lvnrt.NewHub(rt1)))
 	rt1.SetDispatch("state", AsyncDispatch(log1, lvnrt.NewState(rt1)))
 	check1 := lvnrt.NewCheck(rt1)
 	defer check1(Mn(":dispose"))
-	rt1.SetFactory("bus", func(rt Runtime) Dispatch { return lvnrt.NewBus(rt) })
 
 	//runtime 2 /ws/db
 	var db2 = relative("db3")
