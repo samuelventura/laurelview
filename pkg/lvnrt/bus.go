@@ -56,8 +56,7 @@ func NewBus(rt Runtime) Dispatch {
 		retryms := rt.GetValue("bus.retryms").(int)
 		resetms := rt.GetValue("bus.resetms").(int)
 		discardms := rt.GetValue("bus.discardms").(int)
-		bus := mut.Args.(BusArgs)
-		address := fmt.Sprintf("%v:%v", bus.Host, bus.Port)
+		address := mut.Args.(string)
 		log := PrefixLogger(rt.Log, "bus", address)
 		exit := make(Channel)
 		cleaner.AddChannel("exit", exit)
@@ -128,7 +127,7 @@ func NewBus(rt Runtime) Dispatch {
 			mut.Sid = query.sid
 			mut.Name = "status-slave"
 			mut.Args = StatusArgs{
-				Address:  fmt.Sprintf("%v:%v:%v", bus.Host, bus.Port, query.slave),
+				Address:  fmt.Sprintf("%v:%v", address, query.slave),
 				Request:  query.request,
 				Response: response,
 				Error:    ErrorString(err),
@@ -139,7 +138,7 @@ func NewBus(rt Runtime) Dispatch {
 			mut := Mutation{}
 			mut.Name = "status-bus"
 			mut.Args = StatusArgs{
-				Address:  fmt.Sprintf("%v:%v", bus.Host, bus.Port),
+				Address:  address,
 				Request:  "Dial",
 				Response: "error",
 				Error:    ErrorString(err),

@@ -19,7 +19,7 @@ func TestRtStateBasic(t *testing.T) {
 		disp(Mnsa(":add", "tid", to.Dispatch("entry")))
 		to.MatchWait(t, 200, "trace", "hub", "{:add,tid")
 		disp(Mnsa("setup", "tid", []ItemArgs{{"host", 0, 1}}))
-		to.MatchWait(t, 200, "trace", "bus", "{setup,tid,lvnrt.BusArgs,{host 0}}")
+		to.MatchWait(t, 200, "trace", "bus", "{setup,tid,string,host:0}")
 		to.MatchWait(t, 200, "trace", "bus", "{slave,tid,lvnrt.SlaveArgs,{1 1}}")
 		to.MatchWait(t, 200, "trace", "hub", "{setup,tid")
 		disp(Mnsa("query", "tid", QueryArgs{

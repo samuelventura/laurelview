@@ -92,8 +92,8 @@ func NewHub(rt Runtime) Dispatch {
 				query.Request = args.Request
 				query.Response = args.Response
 				query.Error = args.Error
-				query.Count = count.Count()
-				query.Total = total.Count()
+				query.Count = count.Get()
+				query.Total = total.Get()
 				session.callback(Mnsa("query", sid, query))
 			}
 			args := StatusArgs{}

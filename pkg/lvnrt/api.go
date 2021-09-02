@@ -24,11 +24,6 @@ type StatusArgs struct {
 	Error    string
 }
 
-type BusArgs struct {
-	Host string
-	Port uint
-}
-
 type SlaveArgs struct {
 	Slave uint
 	Count uint

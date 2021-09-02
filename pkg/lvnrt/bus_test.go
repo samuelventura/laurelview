@@ -17,10 +17,7 @@ func TestRtBusDispose(t *testing.T) {
 }
 func TestRtBusBasicDpm(t *testing.T) {
 	testSetupBus(func(to TestOutput, rt Runtime, disp Dispatch, dpmPort int) {
-		disp(M("setup", "tid", BusArgs{
-			Host: "127.0.0.1",
-			Port: uint(dpmPort),
-		}))
+		disp(M("setup", "tid", fmt.Sprintf("127.0.0.1:%v", dpmPort)))
 		for i := 1; i < 32; i++ {
 			disp(M("slave", "tid", SlaveArgs{
 				Slave: uint(i),

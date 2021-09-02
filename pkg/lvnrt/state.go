@@ -6,28 +6,33 @@ import (
 
 type stateBusDso struct {
 	dispatch Dispatch
-	slaves   map[uint]Count
+	//json.slave vs ref count
+	slaves map[uint]Count
 }
 
 type stateSessionDso struct {
-	slaves   map[uint]uint
+	//index vs json.slave
+	slaves map[uint]uint
+	//index vs busDso
 	buses    map[uint]*stateBusDso
 	disposer Action
+	setup    Flag
 }
 
 func NewState(rt Runtime) Dispatch {
 	log := PrefixLogger(rt.Log, "state")
 	hubDispatch := rt.GetDispatch("hub")
+	busFactory := rt.GetFactory("bus")
 	dispatchs := make(map[string]Dispatch)
 	sessions := make(map[string]*stateSessionDso)
 	buses := make(map[string]*stateBusDso)
 	dispatchs[":dispose"] = func(mut Mutation) {
-		defer DisposeArgs(mut.Args)
 		ClearDispatch(dispatchs)
 		for sid, session := range sessions {
 			session.disposer()
 			delete(sessions, sid)
 		}
+		DisposeArgs(mut.Args)
 		hubDispatch(mut)
 	}
 	dispatchs[":add"] = func(mut Mutation) {
@@ -38,47 +43,36 @@ func NewState(rt Runtime) Dispatch {
 		session.disposer = NopAction
 		session.buses = make(map[uint]*stateBusDso)
 		session.slaves = make(map[uint]uint)
+		session.setup = NewFlag()
 		sessions[sid] = session
 		hubDispatch(mut)
 	}
 	dispatchs[":remove"] = func(mut Mutation) {
 		sid := mut.Sid
 		session, ok := sessions[sid]
-		if ok { //duplicate cleanup
-			session.disposer()
-			delete(sessions, sid)
-			hubDispatch(mut)
-		} else {
-			log.Debug(mut)
-		}
+		AssertTrue(ok, "non-existent sid", sid)
+		session.disposer()
+		delete(sessions, sid)
+		hubDispatch(mut)
 	}
 	dispatchs["setup"] = func(mut Mutation) {
 		sid := mut.Sid
 		args := mut.Args.([]ItemArgs)
 		session, ok := sessions[sid]
 		AssertTrue(ok, "non-existent sid", sid)
-		session.disposer()
-		session.buses = make(map[uint]*stateBusDso)
-		session.slaves = make(map[uint]uint)
+		AssertTrue(!session.setup.Get(), "re-setup sid", sid)
+		session.setup.Set(true)
 		disposers := make([]Action, 0, len(args))
 		for i, it := range args {
 			index := uint(i)
 			item := it
-			address := fmt.Sprintf("%v:%v",
-				item.Host, item.Port)
+			address := fmt.Sprintf("%v:%v", item.Host, item.Port)
 			bus, ok := buses[address]
 			if !ok {
 				bus = &stateBusDso{}
-				bus.dispatch = rt.GetFactory("bus")(rt)
+				bus.dispatch = busFactory(rt)
 				bus.slaves = make(map[uint]Count)
-				args := BusArgs{}
-				args.Host = item.Host
-				args.Port = item.Port
-				mut := Mutation{}
-				mut.Sid = sid
-				mut.Name = "setup"
-				mut.Args = args
-				bus.dispatch(mut)
+				bus.dispatch(Mnsa("setup", sid, address))
 				buses[address] = bus
 			}
 			session.buses[index] = bus
@@ -91,19 +85,15 @@ func NewState(rt Runtime) Dispatch {
 			count.Inc()
 			args := SlaveArgs{}
 			args.Slave = item.Slave
-			args.Count = count.Count()
-			mut := Mutation{}
-			mut.Sid = sid
-			mut.Name = "slave"
-			mut.Args = args
-			bus.dispatch(mut)
+			args.Count = count.Get()
+			bus.dispatch(Mnsa("slave", sid, args))
 			disposer := func() {
 				count.Dec()
 				args := SlaveArgs{}
 				args.Slave = item.Slave
-				args.Count = count.Count()
+				args.Count = count.Get()
 				bus.dispatch(Mnsa("slave", sid, args))
-				if count.Count() == 0 {
+				if count.Get() == 0 {
 					delete(bus.slaves, item.Slave)
 				}
 				if len(bus.slaves) == 0 {
@@ -124,11 +114,11 @@ func NewState(rt Runtime) Dispatch {
 		sid := mut.Sid
 		args := mut.Args.(QueryArgs)
 		session, ok := sessions[sid]
-		AssertTrue(ok, "non-existent sid", sid)
+		AssertTrue(ok, "non-existent sid", sid, mut)
 		bus, ok := session.buses[args.Index]
-		AssertTrue(ok, "non-existent bus", args.Index)
+		AssertTrue(ok, "non-existent bus", args.Index, mut)
 		slave, ok := session.slaves[args.Index]
-		AssertTrue(ok, "non-existent slave", args.Index)
+		AssertTrue(ok, "non-existent slave", args.Index, mut)
 		nargs := args
 		nmut := mut
 		nargs.Index = slave

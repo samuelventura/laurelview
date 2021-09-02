@@ -4,7 +4,14 @@ import (
 	"fmt"
 )
 
-//FIXME cumulative panic recover
+func TraceRecoverMut(output Output, mut Mutation) {
+	r := recover()
+	if r != nil {
+		output("recover", mut, r)
+		//output("recover", mut, r, string(debug.Stack()))
+	}
+}
+
 func TraceRecover(output Output) {
 	r := recover()
 	if r != nil {

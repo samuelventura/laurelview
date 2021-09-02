@@ -8,6 +8,10 @@ func ClearDispatch(dispatchs map[string]Dispatch) {
 
 func MapDispatch(log Logger, dispmap map[string]Dispatch) Dispatch {
 	return func(mut Mutation) {
+		//recover by default to make AssertTrue the input check standard
+		//:remove may be duplicated
+		//state.query may arrive after :remove
+		defer TraceRecoverMut(log.Debug, mut)
 		dispatch, ok := dispmap[mut.Name]
 		if ok {
 			log.Trace(mut)
