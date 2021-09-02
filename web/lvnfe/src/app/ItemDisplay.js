@@ -64,18 +64,22 @@ function ItemDisplay(props) {
 
   const responseMap = {
     "ok": "OK",
-    "error": "Error",
+    "error": "ERROR",
   }
 
   function requestText(request) {
     //falsy false, 0, "", null, undefined, NaN
     //truty "0"
     //show "Dial" request
-    return requestMap[request] || request || "------"
+    let r = requestMap[request]
+    r = r ||  request || "------"
+    return r.toUpperCase()
   }
 
   function responseText(response) {
-    return responseMap[response] || response || "------"
+    let r = responseMap[response]
+    r = r || response || "------"
+    return  r.toUpperCase()
   }
 
   function timing() {
