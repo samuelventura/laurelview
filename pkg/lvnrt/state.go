@@ -115,6 +115,7 @@ func NewState(rt Runtime) Dispatch {
 		args := mut.Args.(QueryArgs)
 		session, ok := sessions[sid]
 		AssertTrue(ok, "non-existent sid", sid, mut)
+		AssertTrue(session.setup.Get(), "non-setup sid", sid)
 		bus, ok := session.buses[args.Index]
 		AssertTrue(ok, "non-existent bus", args.Index, mut)
 		slave, ok := session.slaves[args.Index]

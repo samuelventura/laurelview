@@ -261,7 +261,7 @@ function ItemBrowser(props) {
               <Button ref={sortDownInput} onClick={() => handleSortChange("desc")} variant="link" size="sm" title="Sort Descending">
                 <FontAwesomeIcon icon={faArrowDown} /></Button>
               <Button onClick={()=>selectAll(true)} variant="link" size="sm" title="Select All">All</Button>                
-              <Button onClick={()=>selectAll(false)} variant="link" size="sm" title="Clear Selection">Clear</Button>                
+              <Button onClick={()=>selectAll(false)} variant="link" size="sm" title="Select None">None</Button>                
             </th>
             <th>
               Actions {multibutton()}
