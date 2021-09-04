@@ -73,7 +73,7 @@ function ItemDisplay(props) {
     //show "Dial" request
     let r = requestMap[request]
     r = r ||  request || "------"
-    return r.toUpperCase()
+    return r
   }
 
   function responseText(response) {
