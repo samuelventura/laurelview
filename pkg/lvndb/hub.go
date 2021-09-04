@@ -11,7 +11,8 @@ func NewHub(rt Runtime) Dispatch {
 	iterator := list.New()
 	sessions := make(map[string]*list.Element)
 	call := func(e *list.Element, mut Mutation) {
-		e.Value.(Dispatch)(mut)
+		dispatch := e.Value.(Dispatch)
+		dispatch(mut)
 	}
 	sendall := func(mut Mutation) {
 		element := iterator.Front()

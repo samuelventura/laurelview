@@ -86,9 +86,11 @@ func main() {
 }
 
 func environDefaults(log Logger) {
+	//defaults for windows installer to work out of the box
 	EnvironDefault(log, "LV_NBE_ENDPOINT", "0.0.0.0:31601")
-	EnvironDefault(log, "LV_DPM_ENDPOINT", "0.0.0.0:31602")
+	EnvironDefault(log, "LV_DPM_ENDPOINT", "127.0.0.1:31602")
 	EnvironDefault(log, "LV_NUP_ENDPOINT", "127.0.0.1:31601")
+	EnvironDefault(log, "LV_NBE_DEBUG", "127.0.0.1:31001")
 }
 
 func Wrap(slog service.Logger) Logger {

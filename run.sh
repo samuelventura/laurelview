@@ -2,8 +2,9 @@
 
 #trace|debug|info
 export LV_LOGLEVEL="${1:-info}"
-export LV_NBE_ENDPOINT="0.0.0.0:5001"
-export LV_DPM_ENDPOINT="0.0.0.0:5002"
+export LV_NBE_DEBUG="127.0.0.1:5000"
+export LV_NBE_ENDPOINT="127.0.0.1:5001"
+export LV_DPM_ENDPOINT="127.0.0.1:5002"
 export LV_NUP_ENDPOINT="127.0.0.1:5001"
 MOD="github.com/samuelventura/laurelview"
 mkdir -p cmd/lvnbe/build

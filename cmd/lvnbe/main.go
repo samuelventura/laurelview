@@ -9,6 +9,9 @@ import (
 
 	"github.com/samuelventura/laurelview/pkg/lvndb"
 	"github.com/samuelventura/laurelview/pkg/lvnrt"
+
+	"net/http"
+	"net/http/pprof"
 )
 
 func main() {
@@ -22,6 +25,14 @@ func main() {
 	defer WaitClose(rt.Close)
 	log := rt.PrefixLog("main")
 	defer TraceRecover(log.Warn)
+
+	go func() {
+		//https://pkg.go.dev/net/http/pprof
+		//https://golang.org/doc/diagnostics
+		mux := http.NewServeMux()
+		mux.HandleFunc("/custom_debug_path/profile", pprof.Profile)
+		log.Debug(http.ListenAndServe("127.0.0.1:31001", mux))
+	}()
 
 	//runtime 1 /ws/rt
 	rt1 := NewRuntime(dl)
