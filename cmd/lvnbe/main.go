@@ -30,7 +30,7 @@ func main() {
 		//https://pkg.go.dev/net/http/pprof
 		//https://golang.org/doc/diagnostics
 		mux := http.NewServeMux()
-		mux.HandleFunc("/custom_debug_path/profile", pprof.Profile)
+		mux.HandleFunc("/debug/pprof/", pprof.Profile)
 		ep := os.Getenv("LV_NBE_DEBUG")
 		log.Info("pprof", ep)
 		log.Debug(http.ListenAndServe(ep, mux))
