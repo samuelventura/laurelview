@@ -41,14 +41,14 @@ func NewBus(rt Runtime) Dispatch {
 	dispose := NopAction
 	hubDispatch := rt.GetDispatch("hub")
 	log := PrefixLogger(rt.Log, "bus")
-	cleaner := NewCleaner(PrefixLogger(rt.Log, "bus", "cleaner"))
 	dispatchs := make(map[string]Dispatch)
 	dispatchs[":dispose"] = func(mut Mutation) {
-		defer DisposeArgs(mut.Args)
-		defer dispose()
 		ClearDispatch(dispatchs)
+		dispose()
+		DisposeArgs(mut.Args)
 	}
 	dispatchs["setup"] = func(mut Mutation) {
+		delete(dispatchs, "setup")
 		dialtoms := rt.GetValue("bus.dialtoms").(int)
 		writetoms := rt.GetValue("bus.writetoms").(int)
 		readtoms := rt.GetValue("bus.readtoms").(int)
@@ -59,6 +59,7 @@ func NewBus(rt Runtime) Dispatch {
 		address := mut.Args.(string)
 		log := PrefixLogger(rt.Log, "bus", address)
 		exit := make(Channel)
+		cleaner := NewCleaner(PrefixLogger(rt.Log, "bus", "cleaner", address))
 		cleaner.AddChannel("exit", exit)
 		dispose = func() {
 			cleaner.Close()
@@ -146,8 +147,8 @@ func NewBus(rt Runtime) Dispatch {
 			hubDispatch(mut)
 		}
 		read := func(conn net.Conn) bool {
-			defer cleaner.Remove(address)
-			cleaner.AddCloser(address, conn)
+			defer cleaner.Remove("conn")
+			cleaner.AddCloser("conn", conn)
 			socket := NewSocketConn(conn, 13)
 			defer socket.Close()
 			for {

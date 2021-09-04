@@ -8,7 +8,6 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
-	"strconv"
 	"strings"
 
 	"github.com/fasthttp/websocket"
@@ -22,9 +21,9 @@ func main() {
 	defer CloseLog(log)
 
 	logger := PrefixLogger(log)
-	ep := os.Getenv("LV_NBE_ENDPOINT")
-	logger.Info("LV_NBE_ENDPOINT", ep)
-	go run(logger)
+	ep := os.Getenv("LV_NUP_ENDPOINT")
+	logger.Info("LV_NUP_ENDPOINT", ep)
+	go run(logger, ep)
 
 	//wait
 	exit := make(Channel)
@@ -40,11 +39,10 @@ func stdin(exit Channel) {
 	ioutil.ReadAll(os.Stdin)
 }
 
-func connect(port int, path string) *websocket.Conn {
-	address := fmt.Sprintf("127.0.0.1:%v", port)
-	sconn, err := net.DialTimeout("tcp", address, Millis(2000))
+func connect(ep string, path string) *websocket.Conn {
+	sconn, err := net.DialTimeout("tcp", ep, Millis(2000))
 	PanicIfError(err)
-	url, err := url.Parse(fmt.Sprintf("ws://localhost:%v%v", port, path))
+	url, err := url.Parse(fmt.Sprintf("ws://%v%v", ep, path))
 	PanicIfError(err)
 	headers := http.Header{}
 	wsconn, _, err := websocket.NewClient(sconn, url, headers, 1024, 1024)
@@ -52,18 +50,10 @@ func connect(port int, path string) *websocket.Conn {
 	return wsconn
 }
 
-func port() int {
-	ep := endpoint()
-	parts := strings.SplitAfterN(ep, ":", 2)
-	port, err := strconv.Atoi(parts[1])
-	PanicIfError(err)
-	return port
-}
-
 func endpoint() string {
-	ep := os.Getenv("LV_NBE_ENDPOINT")
+	ep := os.Getenv("LV_NUP_ENDPOINT")
 	if len(strings.TrimSpace(ep)) > 0 {
 		return ep
 	}
-	return ":0"
+	return "127.0.0.1:31601"
 }

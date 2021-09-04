@@ -5,11 +5,11 @@ import (
 	"time"
 )
 
-func cycle(log Logger, port int) {
+func cycle(log Logger, ep string) {
 	defer TraceRecover(log.Debug)
-	log.Trace("connecting to /ws/db...")
-	conn := connect(port, "/ws/db")
-	log.Trace("connected to /ws/db")
+	log.Trace("connecting to /ws/db...", ep)
+	conn := connect(ep, "/ws/db")
+	log.Trace("connected to /ws/db", ep)
 	defer conn.Close()
 	cleandb := NewCleaner(log)
 	defer cleandb.Close()
@@ -65,9 +65,9 @@ func cycle(log Logger, port int) {
 		cleanrt.AddChannel("exit", exit)
 		cycle := func() {
 			defer TraceRecover(log.Debug)
-			log.Trace("connecting to /ws/rt...")
-			conn := connect(port, "/ws/rt")
-			log.Trace("connected to /ws/rt")
+			log.Trace("connecting to /ws/rt...", ep)
+			conn := connect(ep, "/ws/rt")
+			log.Trace("connected to /ws/rt", ep)
 			defer conn.Close()
 			cleanrt.AddCloser("conn.rt", conn)
 			setup := Mna("setup", items)
@@ -111,10 +111,9 @@ func parse(itm Map) OneArgs {
 	return one
 }
 
-func run(log Logger) {
-	port := port()
+func run(log Logger, ep string) {
 	for {
-		cycle(log, port)
+		cycle(log, ep)
 		time.Sleep(Millis(1000))
 	}
 }
