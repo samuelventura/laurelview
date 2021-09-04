@@ -31,7 +31,9 @@ func main() {
 		//https://golang.org/doc/diagnostics
 		mux := http.NewServeMux()
 		mux.HandleFunc("/custom_debug_path/profile", pprof.Profile)
-		log.Debug(http.ListenAndServe("127.0.0.1:31001", mux))
+		ep := os.Getenv("LV_NBE_DEBUG")
+		log.Info("pprof", ep)
+		log.Debug(http.ListenAndServe(ep, mux))
 	}()
 
 	//runtime 1 /ws/rt
