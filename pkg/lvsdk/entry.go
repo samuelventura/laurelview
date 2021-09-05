@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"strings"
+	"time"
 
 	"github.com/fasthttp/websocket"
 	"github.com/valyala/fasthttp"
@@ -23,6 +24,7 @@ type entryDso struct {
 	wtoms    int
 	endpoint string
 	cleaner  Cleaner
+	ticker   *time.Ticker
 	listener net.Listener
 	upgrader websocket.FastHTTPUpgrader
 	static   Handler
@@ -45,6 +47,8 @@ func NewEntry(rt Runtime) Entry {
 	listener, err := net.Listen("tcp", endpoint)
 	PanicIfError(err)
 	cleaner := NewCleaner(rt.PrefixLog("entry", "cleaner"))
+	ticker := time.NewTicker(10 * time.Second)
+	cleaner.AddAction("ticker", ticker.Stop)
 	entry := &entryDso{}
 	entry.id = NewId("entry")
 	entry.rt = rt
@@ -55,14 +59,25 @@ func NewEntry(rt Runtime) Entry {
 	entry.log = rt.PrefixLog("entry")
 	entry.cleaner = cleaner
 	entry.listener = listener
+	entry.ticker = ticker
 	entry.port = listener.Addr().(*net.TCPAddr).Port
 	entry.upgrader = websocket.FastHTTPUpgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
 		CheckOrigin:     entry.origin,
 	}
+	go entry.timer()
 	go entry.listen()
 	return entry
+}
+
+func (entry *entryDso) timer() {
+	for range entry.ticker.C {
+		entry.cleaner.Status(func(any Any) {
+			c := any.(*cleanerDso)
+			entry.log.Trace("entry.cleaner", c.items)
+		})
+	}
 }
 
 func (entry *entryDso) Port() int {
