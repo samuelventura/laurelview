@@ -11,7 +11,7 @@ import (
 	"github.com/samuelventura/laurelview/pkg/lvnrt"
 
 	"net/http"
-	"net/http/pprof"
+	_ "net/http/pprof"
 )
 
 func main() {
@@ -29,11 +29,9 @@ func main() {
 	go func() {
 		//https://pkg.go.dev/net/http/pprof
 		//https://golang.org/doc/diagnostics
-		mux := http.NewServeMux()
-		mux.HandleFunc("/debug/pprof/", pprof.Profile)
 		ep := os.Getenv("LV_NBE_DEBUG")
 		log.Info("pprof", ep)
-		log.Debug(http.ListenAndServe(ep, mux))
+		log.Debug(http.ListenAndServe(ep, nil))
 	}()
 
 	//runtime 1 /ws/rt
