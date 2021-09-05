@@ -12,10 +12,10 @@ func daemon(log Logger, sibling string, exit chan bool) chan bool {
 	log.Info("daemon", sibling, path)
 	outp := ChangeExtension(path, ".out.log")
 	ff := os.O_APPEND | os.O_WRONLY | os.O_CREATE
-	outf, err := os.OpenFile(outp, ff, 0600)
+	outf, err := os.OpenFile(outp, ff, 0644)
 	PanicIfError(err)
 	errp := ChangeExtension(path, ".err.log")
-	errf, err := os.OpenFile(errp, ff, 0600)
+	errf, err := os.OpenFile(errp, ff, 0644)
 	PanicIfError(err)
 	cmd := exec.Command(path)
 	cmd.Env = os.Environ()
