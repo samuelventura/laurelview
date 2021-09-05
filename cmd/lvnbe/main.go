@@ -50,7 +50,8 @@ func main() {
 	rt1.SetValue("bus.discardms", 100)
 	rt1.SetValue("bus.resetms", 400)
 	rt1.SetFactory("bus", func(rt Runtime) Dispatch { return lvnrt.NewBus(rt) })
-	rt1.SetDispatch("hub", AsyncDispatch(log1, lvnrt.NewHub(rt1)))
+	hub1 := AsyncDispatch(log1, lvnrt.NewHub(rt1))
+	rt1.SetDispatch("hub", hub1)
 	rt1.SetDispatch("state", AsyncDispatch(log1, lvnrt.NewState(rt1)))
 	check1 := lvnrt.NewCheck(rt1)
 	defer check1(Mn(":dispose"))
@@ -69,31 +70,33 @@ func main() {
 	rt2.SetDispatch("state", AsyncDispatch(log2, lvndb.NewState(rt2)))
 	check2 := lvndb.NewCheck(rt2)
 	defer check2(Mn(":dispose"))
-	ticker2 := time.NewTicker(1 * time.Second)
-	defer ticker2.Stop()
-	go func() {
-		for range ticker2.C {
-			hub2(Mns("ping", "main"))
-		}
-	}()
 
 	//entry
 	ep := endpoint()
 	log.Info("endpoint", ep)
 	rt.SetValue("entry.endpoint", ep)
 	rt.SetValue("entry.buflen", 256)
-	rt.SetValue("entry.wtoms", 2000)
+	rt.SetValue("entry.wtoms", 4000)
+	rt.SetValue("entry.rtoms", 4000)
 	rt.SetValue("entry.static", NewEmbedHandler(log))
 	rt.SetDispatch("/ws/rt", check1)
 	rt.SetDispatch("/ws/db", check2)
 	entry := lvnrt.NewEntry(rt)
 	defer WaitClose(entry.Close)
 	log.Info("port", entry.Port())
-	ticker := time.NewTicker(10 * time.Second)
-	defer ticker.Stop()
+	ticker10 := time.NewTicker(10 * time.Second)
+	defer ticker10.Stop()
 	go func() {
-		for range ticker.C {
+		for range ticker10.C {
 			entry.Status()
+		}
+	}()
+	ticker1 := time.NewTicker(1 * time.Second)
+	defer ticker1.Stop()
+	go func() {
+		for range ticker1.C {
+			hub1(Mns(":ping", "main"))
+			hub2(Mns(":ping", "main"))
 		}
 	}()
 

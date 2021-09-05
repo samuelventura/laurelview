@@ -163,5 +163,10 @@ func NewHub(rt Runtime) Dispatch {
 			log.Debug(mut)
 		}
 	}
+	dispatchs[":ping"] = func(mut Mutation) {
+		for _, session := range sessions {
+			session.callback(mut)
+		}
+	}
 	return MapDispatch(log, dispatchs)
 }

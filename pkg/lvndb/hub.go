@@ -58,9 +58,6 @@ func NewHub(rt Runtime) Dispatch {
 	dispatchs["delete"] = func(mut Mutation) {
 		sendall(mut)
 	}
-	dispatchs["ping"] = func(mut Mutation) {
-		sendall(mut)
-	}
 	dispatchs["all"] = func(mut Mutation) {
 		sid := mut.Sid
 		element, ok := sessions[sid]
@@ -69,6 +66,9 @@ func NewHub(rt Runtime) Dispatch {
 			return
 		}
 		call(element, mut)
+	}
+	dispatchs[":ping"] = func(mut Mutation) {
+		sendall(mut)
 	}
 	return MapDispatch(log, dispatchs)
 }

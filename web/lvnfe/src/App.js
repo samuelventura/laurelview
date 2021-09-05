@@ -56,9 +56,6 @@ function App() {
         next.send = args
         return next
       }
-      case "ping": {
-        return state
-      }
       default:
         env.log("Unknown mutation", name, args, session)
         return state
