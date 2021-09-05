@@ -79,7 +79,7 @@ func (entry *entryDso) Status() {
 		//do not pass by reference to log
 		entry.cleaner.Status(func(any Any) {
 			c := any.(*cleanerDso)
-			entry.log.Trace("status", fmt.Sprint(c.items))
+			entry.log.Trace("status", len(c.items), fmt.Sprint(c.items))
 		})
 	}
 }
