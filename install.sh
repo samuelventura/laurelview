@@ -22,9 +22,11 @@ case $TARGET in
     ;;
     pi)
     PIHOST=10.77.3.143
-    scp -r /tmp/lvpi pi@$PIHOST: && ssh pi@$PIHOST "
+    scp -r /tmp/lvpi pi@$PIHOST:/tmp && ssh pi@$PIHOST "
+    [[ -f /etc/systemd/system/LaurelView.service ]] && sudo systemctl stop LaurelView
+    cp /tmp/lvpi/* /home/pi/lvpi/
     [[ -f /etc/systemd/system/LaurelView.service ]] || sudo /home/pi/lvpi/lvnss -service install
-    sudo systemctl restart LaurelView
+    sudo systemctl start LaurelView
     "
     ;;
 esac
