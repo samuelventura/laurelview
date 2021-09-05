@@ -71,10 +71,13 @@ func (entry *entryDso) Port() int {
 }
 
 func (entry *entryDso) Status() {
-	entry.cleaner.Status(func(any Any) {
-		c := any.(*cleanerDso)
-		entry.log.Trace("status", c.items)
-	})
+	if logLevel == "trace" {
+		//do not pass by reference to log
+		entry.cleaner.Status(func(any Any) {
+			c := any.(*cleanerDso)
+			entry.log.Trace("status", fmt.Sprint(c.items))
+		})
+	}
 }
 
 func (entry *entryDso) Close() Channel {
