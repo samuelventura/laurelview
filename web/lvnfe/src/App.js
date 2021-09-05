@@ -10,41 +10,41 @@ import socket from "./socket"
 import env from "./environ"
 
 function App() {
-  
-  function reducer(state, {name, args, session}) {
+
+  function reducer(state, { name, args, session }) {
     // called twice on purpose by reactjs 
     // to detect side effects on strict mode
     // reducer must be pure
-    switch(name){
+    switch (name) {
       case "all": {
-        const next = {...state}
+        const next = { ...state }
         next.session = session
         next.online = true
         next.items = {}
-        args.forEach(item => { 
+        args.forEach(item => {
           next.items[item.id] = item
         })
         return next
       }
       case "create": {
-        const next = {...state}
+        const next = { ...state }
         next.items[args.id] = args
         return next
       }
       case "delete": {
-        const next = {...state}
+        const next = { ...state }
         delete next.items[args]
         return next
       }
       case "update": {
-        const next = {...state}
+        const next = { ...state }
         next.items[args.id].name = args.name
         next.items[args.id].json = args.json
         return next
       }
       case "close": {
         //flickers on navigating back (reconnect)
-        const next = {...state}
+        const next = { ...state }
         next.items = {}
         next.online = false
         next.session = null
@@ -52,9 +52,12 @@ function App() {
         return next
       }
       case "open": {
-        const next = {...state}
+        const next = { ...state }
         next.send = args
         return next
+      }
+      case "ping": {
+        return state
       }
       default:
         env.log("Unknown mutation", name, args, session)
@@ -63,20 +66,20 @@ function App() {
   }
 
   const initial = {
-    items: {}, 
+    items: {},
     online: false,
     session: null,
     send: socket.send
   }
-  
+
   const [state, dispatch] = useReducer(reducer, initial)
 
-  function handleDispatch({name, args}) {
-    switch(name) {
+  function handleDispatch({ name, args }) {
+    switch (name) {
       case "create":
       case "delete":
       case "update":
-        state.send({name, args})
+        state.send({ name, args })
         break
       default:
         env.log("Unknown mutation", name, args)
@@ -101,8 +104,8 @@ function App() {
   return (
     <div className="App">
       {offline()}
-      <ItemBrowser 
-        state={state} 
+      <ItemBrowser
+        state={state}
         dispatch={handleDispatch} />
     </div>
   )

@@ -6,6 +6,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/samuelventura/laurelview/pkg/lvndb"
 	"github.com/samuelventura/laurelview/pkg/lvnrt"
@@ -63,10 +64,18 @@ func main() {
 	defer log2.Info("exited")
 	defer WaitClose(rt2.Close)
 	rt2.SetValue("dao", dao2)
-	rt2.SetDispatch("hub", AsyncDispatch(log2, lvndb.NewHub(rt2)))
+	hub2 := AsyncDispatch(log2, lvndb.NewHub(rt2))
+	rt2.SetDispatch("hub", hub2)
 	rt2.SetDispatch("state", AsyncDispatch(log2, lvndb.NewState(rt2)))
 	check2 := lvndb.NewCheck(rt2)
 	defer check2(Mn(":dispose"))
+	ticker2 := time.NewTicker(1 * time.Second)
+	defer ticker2.Stop()
+	go func() {
+		for range ticker2.C {
+			hub2(Mns("ping", "main"))
+		}
+	}()
 
 	//entry
 	ep := endpoint()
