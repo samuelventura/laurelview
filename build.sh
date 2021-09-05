@@ -18,7 +18,7 @@ case $TARGET in
     go install $MOD/cmd/lvnss
     ;;
     pi)
-    OUT=/tmp/pibuild
+    OUT=/tmp/lvpi
     mkdir -p $OUT
     FLAGS="GOOS=linux GOARCH=arm GOARM=7"
     env $FLAGS go build -o $OUT/lvdpm $MOD/cmd/lvdpm
