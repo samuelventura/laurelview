@@ -36,7 +36,8 @@ func cycle(log Logger, ep string) {
 		case "delete":
 			id := uint(mut.Args.(float64))
 			delete(onem, id)
-		case "ping": //keepalive
+		case ":ping": //keepalive
+			WriteMutation(conn, Mn(":pong"))
 			continue
 		default: //zero on error
 			return
@@ -78,6 +79,8 @@ func cycle(log Logger, ep string) {
 				log.Trace("rt.mut", mut)
 				switch mut.Name {
 				case "query":
+				case ":ping":
+					WriteMutation(conn, Mn(":pong"))
 				default: //zero on error
 					return
 				}
