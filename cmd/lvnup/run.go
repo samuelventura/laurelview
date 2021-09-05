@@ -37,11 +37,11 @@ func cycle(log Logger, ep string) {
 			id := uint(mut.Args.(float64))
 			delete(onem, id)
 		case "ping": //keepalive
+			continue
 		default: //zero on error
 			return
 		}
 		items := make([]ItemArgs, 0, len(onem))
-		ones := make([]OneArgs, 0, len(onem))
 		for _, it := range onem {
 			var any Any
 			err := json.Unmarshal([]byte(it.Json), &any)
@@ -58,7 +58,6 @@ func cycle(log Logger, ep string) {
 			PanicIfError(err)
 			ia.Slave = slave
 			items = append(items, ia)
-			ones = append(ones, it)
 		}
 		cleanrt := NewCleaner(log)
 		cleandb.AddCleaner("clean", cleanrt)
