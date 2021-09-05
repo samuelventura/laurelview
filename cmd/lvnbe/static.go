@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"io/fs"
 	"mime"
 	"net/http"
 	"path/filepath"
@@ -11,47 +12,49 @@ import (
 )
 
 //go:embed build/*
-var fs embed.FS
-
-var cache map[string]*staticDso
+var build embed.FS
 
 type staticDso struct {
 	bytes []byte
 	mime  string
 }
 
-func NewEmbedHandler(log Logger) Handler {
-	return func(ctx *fasthttp.RequestCtx) {
-		if cache == nil {
-			cache = make(map[string]*staticDso)
-			mime.AddExtensionType(".map", "application/json")
+func NewEmbedCache(log Logger) map[string]*staticDso {
+	mime.AddExtensionType(".map", "application/json")
+	cache := make(map[string]*staticDso)
+	fs.WalkDir(build, "build", func(path string, entry fs.DirEntry, e error) error {
+		if entry.IsDir() || strings.HasPrefix(entry.Name(), ".") {
+			return nil
 		}
+		ext := filepath.Ext(path)
+		ct := mime.TypeByExtension(ext)
+		log.Trace("cache", path, ct)
+		bytes, err := build.ReadFile(path)
+		if err == nil {
+			static := &staticDso{}
+			static.bytes = bytes
+			static.mime = ct
+			cache[path] = static
+		}
+		return err
+	})
+	return cache
+}
+
+func NewEmbedHandler(log Logger, cache map[string]*staticDso) Handler {
+	return func(ctx *fasthttp.RequestCtx) {
 		path := string(ctx.Path())
 		if path == "/" {
 			path = "/index.html"
 		}
-		ext := filepath.Ext(path)
-		//FIXME add client side standard http file caching
-		ct := mime.TypeByExtension(ext)
-		log.Trace(path, ct)
-		if !strings.HasPrefix(path, "/ws/") {
-			path = "build" + path
-			static, ok := cache[path]
-			if !ok {
-				bytes, err := fs.ReadFile(path)
-				if err != nil {
-					log.Trace(path, err)
-					ctx.Response.SetStatusCode(http.StatusNotFound)
-					return
-				}
-				static = &staticDso{}
-				cache[path] = static
-				static.bytes = bytes
-				static.mime = ct
-			}
-			ctx.SetContentType(static.mime)
-			ctx.Write(static.bytes)
+		static, ok := cache["build"+path]
+		if !ok {
+			log.Debug(path, "NF404")
+			ctx.Response.SetStatusCode(http.StatusNotFound)
 			return
 		}
+		log.Trace(path, static.mime)
+		ctx.SetContentType(static.mime)
+		ctx.Write(static.bytes)
 	}
 }
