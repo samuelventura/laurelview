@@ -3,7 +3,7 @@
 
 #define MyAppId "LaurelView" 
 #define MyAppName "Laurel View"
-#define MyAppVersion "0.0.2"
+#define MyAppVersion "0.0.3"
 #define MyAppPublisher "Samuel Ventura"
 #define MyAppURL "https://github.com/samuelventura/laurelview"
 
@@ -33,7 +33,7 @@ OutputDir=build
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
-Source: "c:\Users\samuel\go\bin\lvn*.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "c:\Users\samuel\go\bin\lv*.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "msi\*.bat"; DestDir: "{app}"; Flags: ignoreversion
 Source: "icon.ico"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
