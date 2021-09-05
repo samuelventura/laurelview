@@ -16,6 +16,7 @@ func TestSdkEntryBasic(t *testing.T) {
 	var callback Dispatch
 	rt.SetValue("entry.endpoint", ":0")
 	rt.SetValue("entry.buflen", 0)
+	rt.SetValue("entry.wtoms", 0)
 	rt.SetValue("entry.static", NopHandler)
 	rt.SetDispatch("/ws/test", func(mut Mutation) {
 		to.Trace("disp", mut)

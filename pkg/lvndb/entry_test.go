@@ -52,6 +52,7 @@ func testSetupEntry(t *testing.T, callback func(to TestOutput, rt Runtime, log L
 	rt.SetValue("dao", dao)
 	rt.SetValue("entry.endpoint", ":0")
 	rt.SetValue("entry.buflen", 0)
+	rt.SetValue("entry.wtoms", 0)
 	rt.SetValue("entry.static", NopHandler)
 	rt.SetDispatch("hub", AsyncDispatch(log, NewHub(rt)))
 	rt.SetDispatch("state", AsyncDispatch(log, NewState(rt)))

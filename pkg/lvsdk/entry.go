@@ -20,6 +20,7 @@ type entryDso struct {
 	log      Logger
 	rt       Runtime
 	buflen   int
+	wtoms    int
 	endpoint string
 	cleaner  Cleaner
 	listener net.Listener
@@ -30,6 +31,7 @@ type entryDso struct {
 type clientDso struct {
 	sid      string
 	log      Logger
+	wtoms    int
 	conn     *websocket.Conn
 	dispatch Dispatch
 	callback chan Mutation
@@ -37,6 +39,7 @@ type clientDso struct {
 
 func NewEntry(rt Runtime) Entry {
 	buflen := rt.GetValue("entry.buflen").(int)
+	wtoms := rt.GetValue("entry.wtoms").(int)
 	static := rt.GetValue("entry.static").(Handler)
 	endpoint := rt.GetValue("entry.endpoint").(string)
 	listener, err := net.Listen("tcp", endpoint)
@@ -46,6 +49,7 @@ func NewEntry(rt Runtime) Entry {
 	entry.id = NewId("entry")
 	entry.rt = rt
 	entry.buflen = buflen
+	entry.wtoms = wtoms
 	entry.static = static
 	entry.endpoint = endpoint
 	entry.log = rt.PrefixLog("entry")
@@ -107,6 +111,7 @@ func (entry *entryDso) handle(ctx *fasthttp.RequestCtx) {
 		client.log = log
 		client.sid = sid
 		client.conn = conn
+		client.wtoms = entry.wtoms
 		client.dispatch = dispatch
 		client.callback = make(chan Mutation, entry.buflen)
 		client.loop()
@@ -126,6 +131,11 @@ func (client *clientDso) loop() {
 	for mut := range client.callback {
 		bytes, err := EncodeMutation(mut)
 		PanicIfError(err)
+		if client.wtoms > 0 {
+			wdl := Future(client.wtoms)
+			err = client.conn.SetWriteDeadline(wdl)
+			PanicIfError(err)
+		}
 		err = client.conn.WriteMessage(mt, bytes)
 		PanicIfError(err)
 	}

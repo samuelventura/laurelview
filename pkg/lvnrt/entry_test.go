@@ -74,6 +74,7 @@ func testSetupEntry(t *testing.T, callback func(to TestOutput, rt Runtime, log L
 	rt.SetValue("bus.resetms", 0)
 	rt.SetValue("entry.endpoint", ":0")
 	rt.SetValue("entry.buflen", 0)
+	rt.SetValue("entry.wtoms", 0)
 	rt.SetValue("entry.static", NopHandler)
 	rt.SetFactory("bus", func(rt Runtime) Dispatch { return NewBus(rt) })
 	rt.SetDispatch("hub", AsyncDispatch(log, NewHub(rt)))
