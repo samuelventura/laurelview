@@ -11,6 +11,7 @@ import (
 
 type Entry interface {
 	Port() int
+	Status()
 	Close() Channel
 }
 
@@ -67,6 +68,13 @@ func NewEntry(rt Runtime) Entry {
 
 func (entry *entryDso) Port() int {
 	return entry.port
+}
+
+func (entry *entryDso) Status() {
+	entry.cleaner.Status(func(any Any) {
+		c := any.(*cleanerDso)
+		entry.log.Trace("status", c.items)
+	})
 }
 
 func (entry *entryDso) Close() Channel {

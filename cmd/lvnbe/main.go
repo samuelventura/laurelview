@@ -89,6 +89,13 @@ func main() {
 	entry := lvnrt.NewEntry(rt)
 	defer WaitClose(entry.Close)
 	log.Info("port", entry.Port())
+	ticker := time.NewTicker(10 * time.Second)
+	defer ticker.Stop()
+	go func() {
+		for range ticker.C {
+			entry.Status()
+		}
+	}()
 
 	//wait
 	exit := make(Channel)
