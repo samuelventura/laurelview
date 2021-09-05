@@ -6,6 +6,7 @@ export LV_NBE_DEBUG="127.0.0.1:5000"
 export LV_NBE_ENDPOINT="127.0.0.1:5001"
 export LV_DPM_ENDPOINT="127.0.0.1:5002"
 export LV_NUP_ENDPOINT="127.0.0.1:5001"
+export LV_NSS_LOGS="/tmp"
 MOD="github.com/samuelventura/laurelview"
 mkdir -p cmd/lvnbe/build
 touch cmd/lvnbe/build/.empty

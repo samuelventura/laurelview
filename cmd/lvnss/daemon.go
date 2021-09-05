@@ -3,27 +3,28 @@ package main
 import (
 	"os"
 	"os/exec"
+	"path"
+	"time"
 )
 
-//FIXME implement reload strategy
+func logfp(fp string) string {
+	dir := os.Getenv("LV_NSS_LOGS")
+	if len(dir) > 0 {
+		return path.Join(dir, path.Base(fp))
+	}
+	return fp
+}
+
 func daemon(log Logger, sibling string, exit chan bool) chan bool {
+	log = log.PrefixLog("daemon", sibling)
 	done := make(chan bool)
 	path := RelativeSibling(sibling)
-	log.Info("daemon", sibling, path)
 	outp := ChangeExtension(path, ".out.log")
 	ff := os.O_APPEND | os.O_WRONLY | os.O_CREATE
-	outf, err := os.OpenFile(outp, ff, 0644)
+	outf, err := os.OpenFile(logfp(outp), ff, 0644)
 	PanicIfError(err)
 	errp := ChangeExtension(path, ".err.log")
-	errf, err := os.OpenFile(errp, ff, 0644)
-	PanicIfError(err)
-	cmd := exec.Command(path)
-	cmd.Env = os.Environ()
-	cmd.Stdout = outf
-	cmd.Stderr = errf
-	sin, err := cmd.StdinPipe()
-	PanicIfError(err)
-	err = cmd.Start()
+	errf, err := os.OpenFile(logfp(errp), ff, 0644)
 	PanicIfError(err)
 	go func() {
 		defer log.Debug("exited", path)
@@ -31,14 +32,43 @@ func daemon(log Logger, sibling string, exit chan bool) chan bool {
 		defer close(done)
 		defer outf.Close()
 		defer errf.Close()
-		defer TraceRecover(log.Error)
-		go func() {
+		run := func() {
 			defer TraceRecover(log.Error)
+			cmd := exec.Command(path)
+			cmd.Env = os.Environ()
+			cmd.Stdout = outf
+			cmd.Stderr = errf
+			sin, err := cmd.StdinPipe()
+			PanicIfError(err)
 			defer sin.Close()
-			<-exit
-		}()
-		err = cmd.Wait()
-		PanicIfError(err)
+			err = cmd.Start()
+			PanicIfError(err)
+			go func() {
+				defer TraceRecover(log.Error)
+				defer sin.Close()
+				select {
+				case <-exit:
+				case <-done:
+				}
+			}()
+			err = cmd.Wait()
+			PanicIfError(err)
+		}
+		count := 0
+		for {
+			if count > 0 {
+				time.Sleep(Millis(2000))
+			}
+			log.Info(count, path)
+			run()
+			count++
+			select {
+			case <-exit:
+				return
+			default:
+				continue
+			}
+		}
 	}()
 	return done
 }

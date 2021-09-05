@@ -91,6 +91,7 @@ func environDefaults(log Logger) {
 	EnvironDefault(log, "LV_DPM_ENDPOINT", "127.0.0.1:31602")
 	EnvironDefault(log, "LV_NUP_ENDPOINT", "127.0.0.1:31601")
 	EnvironDefault(log, "LV_NBE_DEBUG", "127.0.0.1:31001")
+	EnvironDefault(log, "LV_NSS_LOGS", "")
 }
 
 func Wrap(slog service.Logger) Logger {
