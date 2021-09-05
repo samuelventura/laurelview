@@ -36,6 +36,7 @@ func cycle(log Logger, ep string) {
 		case "delete":
 			id := uint(mut.Args.(float64))
 			delete(onem, id)
+		case "ping": //keepalive
 		default: //zero on error
 			return
 		}
