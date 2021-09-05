@@ -9,10 +9,12 @@ import (
 )
 
 func main() {
-	dos(GoLogLogger())
+	output := DefaultOutput()
+	log := OutputLog(output)
+	dos(SimpleLogger(log), output)
 }
 
-func dos(log Logger) {
+func dos(log Logger, output Output) {
 	defer TraceRecover(log.Warn)
 	plus := make(Channel)
 	minus := make(Channel)
@@ -43,6 +45,7 @@ func dos(log Logger) {
 			defer SendChannel(minus, true)
 			path := RelativeSibling("lvnup")
 			cmd := exec.Command(path)
+			cmd.Stdout = OutputWriter(output)
 			cmd.Env = os.Environ()
 			sin, err := cmd.StdinPipe()
 			PanicIfError(err)

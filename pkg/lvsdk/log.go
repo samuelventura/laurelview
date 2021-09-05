@@ -85,6 +85,10 @@ func CloseLog(log Log) {
 func DefaultLog() Log {
 	logLevelFromEnv()
 	output := DefaultOutput()
+	return OutputLog(output)
+}
+
+func OutputLog(output Output) Log {
 	pid := os.Getpid()
 	log := func(level string, args ...Any) {
 		switch level {
@@ -130,4 +134,28 @@ func isLogPrintable(level string) bool {
 			return true
 		}
 	}
+}
+
+type outputWriterDso struct {
+	output Output
+	sb     strings.Builder
+}
+
+func (ow *outputWriterDso) Write(bytes []byte) (n int, err error) {
+	nl := byte(0x0A)
+	for _, b := range bytes {
+		if b == nl {
+			ow.output(ow.sb.String())
+			ow.sb.Reset()
+		} else {
+			ow.sb.WriteByte(b)
+		}
+	}
+	return len(bytes), nil
+}
+
+func OutputWriter(output Output) io.Writer {
+	ow := &outputWriterDso{}
+	ow.output = output
+	return ow
 }

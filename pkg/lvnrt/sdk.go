@@ -49,6 +49,8 @@ var PrefixLogger = lvsdk.PrefixLogger
 var SimpleLogger = lvsdk.SimpleLogger
 var FlatPrintln = lvsdk.FlatPrintln
 var GoLogLogger = lvsdk.GoLogLogger
+var OutputWriter = lvsdk.OutputWriter
+var OutputLog = lvsdk.OutputLog
 
 var WaitClose = lvsdk.WaitClose
 var WaitChannel = lvsdk.WaitChannel
