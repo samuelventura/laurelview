@@ -71,8 +71,7 @@ func main() {
 	rt.SetValue("entry.buflen", 256)
 	rt.SetValue("entry.wtoms", 4000)
 	rt.SetValue("entry.rtoms", 4000)
-	cache := NewEmbedCache(log)
-	rt.SetValue("entry.static", NewEmbedHandler(log, cache))
+	rt.SetValue("entry.static", NewEmbedHandler(log))
 	rt.SetDispatch("/ws/rt", check1)
 	rt.SetDispatch("/ws/db", check2)
 	entry := lvnrt.NewEntry(rt)
@@ -88,11 +87,11 @@ func main() {
 	}()
 
 	http.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {
-		done := make(Channel)
-		entry.Status(done, func(args ...Any) {
-			fmt.Fprintln(w, args...)
-		})
-		<-done
+		output := make(Channel)
+		entry.Status(output)
+		for line := range output {
+			fmt.Fprintln(w, line)
+		}
 	})
 	go func() {
 		//https://pkg.go.dev/net/http/pprof
