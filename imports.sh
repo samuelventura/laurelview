@@ -1,4 +1,5 @@
-#!/bin/sh -x
+#!/bin/bash -x
+
 SRC=pkg/sdk.go 
 cp -f $SRC pkg/lvnrt/
 cp -f $SRC pkg/lvndb/
