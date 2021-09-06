@@ -51,25 +51,25 @@ function ItemBrowser(props) {
   }
 
   const viewItems = useMemo(() => {
-      const f = filter.toLowerCase()
-      const list = Object.values(props.state.items)
-      list.forEach(item => {
-        item.checked = selected[item.id] || false
-      })
-      const filtered = list.filter(item =>
-        item.name.toLowerCase().includes(f))
-      switch (sort) {
-        case "asc":
-          return filtered.sort((i1, i2) =>
-            i1.name.localeCompare(i2.name))
-        case "desc":
-          return filtered.sort((i1, i2) =>
-            i2.name.localeCompare(i1.name))
-        default:
-          return filtered
-      }
-  //props.state.items is reused and wont trigger change
-  }, [filter, sort, selected, props.state]);  
+    const f = filter.toLowerCase()
+    const list = Object.values(props.state.items)
+    list.forEach(item => {
+      item.checked = selected[item.id] || false
+    })
+    const filtered = list.filter(item =>
+      item.name.toLowerCase().includes(f))
+    switch (sort) {
+      case "asc":
+        return filtered.sort((i1, i2) =>
+          i1.name.localeCompare(i2.name))
+      case "desc":
+        return filtered.sort((i1, i2) =>
+          i2.name.localeCompare(i1.name))
+      default:
+        return filtered
+    }
+    //props.state.items is reused and wont trigger change
+  }, [filter, sort, selected, props.state]);
 
   //esc exits full screen on macos 
   //use X icon to reset filter instead
@@ -100,7 +100,7 @@ function ItemBrowser(props) {
 
   function showDialog(action, item) {
     setShowMultiView(false)
-    setShowView(false)  
+    setShowView(false)
     setShowCreate(false)
     setShowUpdate(false)
     setShowDelete(false)
@@ -167,6 +167,14 @@ function ItemBrowser(props) {
     setSelected(next)
   }
 
+  function selectAll(checked) {
+    const next = {}
+    viewItems.forEach(item => {
+      next[item.id] = checked
+    })
+    setSelected(next)
+  }
+
   function selectedItems() {
     return viewItems.filter(item => selected[item.id])
   }
@@ -208,14 +216,6 @@ function ItemBrowser(props) {
     if (show && items.length > 0) {
       return <ItemMultiView show={showMultiView} items={items} handler={handleActions} />
     }
-  }
-
-  function selectAll(checked) {
-    const next = {}
-    viewItems.forEach(item => {
-      next[item.id] = checked
-    })
-    setSelected(next)
   }
 
   return (
@@ -260,8 +260,8 @@ function ItemBrowser(props) {
                 <FontAwesomeIcon icon={faArrowUp} /></Button>
               <Button ref={sortDownInput} onClick={() => handleSortChange("desc")} variant="link" size="sm" title="Sort Descending">
                 <FontAwesomeIcon icon={faArrowDown} /></Button>
-              <Button onClick={()=>selectAll(true)} variant="link" size="sm" title="Select All">All</Button>                
-              <Button onClick={()=>selectAll(false)} variant="link" size="sm" title="Select None">None</Button>                
+              <Button onClick={() => selectAll(true)} variant="link" size="sm" title="Select All">All</Button>
+              <Button onClick={() => selectAll(false)} variant="link" size="sm" title="Select None">None</Button>
             </th>
             <th>
               Actions {multibutton()}

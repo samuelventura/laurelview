@@ -45,7 +45,8 @@ function App() {
       case "close": {
         //flickers on navigating back (reconnect)
         const next = { ...state }
-        next.items = {}
+        //keep view items so multiview wont hide
+        //next.items = {}
         next.online = false
         next.session = null
         next.send = socket.send

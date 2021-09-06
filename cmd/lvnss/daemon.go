@@ -3,14 +3,15 @@ package main
 import (
 	"os"
 	"os/exec"
-	"path"
+	"path/filepath"
 	"time"
 )
 
 func logfp(fp string) string {
 	dir := os.Getenv("LV_NSS_LOGS")
 	if len(dir) > 0 {
-		return path.Join(dir, path.Base(fp))
+		//filepath handles Windows/Unix separators
+		return filepath.Join(dir, filepath.Base(fp))
 	}
 	return fp
 }
