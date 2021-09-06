@@ -3,6 +3,7 @@ package lvsdk
 import (
 	"fmt"
 	"net"
+	"sort"
 	"strings"
 
 	"github.com/fasthttp/websocket"
@@ -11,7 +12,7 @@ import (
 
 type Entry interface {
 	Port() int
-	Status()
+	Status(Channel, Output)
 	Close() Channel
 }
 
@@ -74,14 +75,21 @@ func (entry *entryDso) Port() int {
 	return entry.port
 }
 
-func (entry *entryDso) Status() {
-	if logLevel == "trace" {
-		//do not pass by reference to log
-		entry.cleaner.Status(func(any Any) {
-			c := any.(*cleanerDso)
-			entry.log.Trace("status", len(c.items), fmt.Sprint(c.items))
-		})
-	}
+func (entry *entryDso) Status(done Channel, output Output) {
+	//do not pass by reference to log
+	entry.cleaner.Status(func(any Any) {
+		defer close(done)
+		c := any.(*cleanerDso)
+		output(len(c.items))
+		keys := make([]string, 0, len(c.items))
+		for k, _ := range c.items {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		for _, k := range keys {
+			output(k)
+		}
+	})
 }
 
 func (entry *entryDso) Close() Channel {

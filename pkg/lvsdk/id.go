@@ -27,8 +27,9 @@ func (id *idDso) Next() string {
 	count := id.next()
 	//1678 - January 1, 1970 UTC - 2262
 	//last 3 digits are always zero
-	now := time.Now().UnixNano() / 1000
-	return fmt.Sprintf("%s-%d-%d", id.prefix, count, now)
+	now := time.Now()
+	when := now.Format("20060102T150405.000")
+	return fmt.Sprintf("%s-%d-%s", id.prefix, count, when)
 }
 
 func (id *idDso) next() uint {

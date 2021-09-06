@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/signal"
@@ -26,14 +27,6 @@ func main() {
 	defer WaitClose(rt.Close)
 	log := rt.PrefixLog("main")
 	defer TraceRecover(log.Warn)
-
-	go func() {
-		//https://pkg.go.dev/net/http/pprof
-		//https://golang.org/doc/diagnostics
-		ep := os.Getenv("LV_NBE_DEBUG")
-		log.Info("pprof", ep)
-		log.Debug(http.ListenAndServe(ep, nil))
-	}()
 
 	//runtime 1 /ws/rt
 	rt1 := NewRuntime(dl)
@@ -85,13 +78,6 @@ func main() {
 	entry := lvnrt.NewEntry(rt)
 	defer WaitClose(entry.Close)
 	log.Info("port", entry.Port())
-	ticker10 := time.NewTicker(10 * time.Second)
-	defer ticker10.Stop()
-	go func() {
-		for range ticker10.C {
-			entry.Status()
-		}
-	}()
 	ticker1 := time.NewTicker(1 * time.Second)
 	defer ticker1.Stop()
 	go func() {
@@ -99,6 +85,21 @@ func main() {
 			hub1(Mns(":ping", "main"))
 			hub2(Mns(":ping", "main"))
 		}
+	}()
+
+	http.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {
+		done := make(Channel)
+		entry.Status(done, func(args ...Any) {
+			fmt.Fprintln(w, args...)
+		})
+		<-done
+	})
+	go func() {
+		//https://pkg.go.dev/net/http/pprof
+		//https://golang.org/doc/diagnostics
+		ep := os.Getenv("LV_NBE_DEBUG")
+		log.Info("pprof", ep)
+		log.Debug(http.ListenAndServe(ep, nil))
 	}()
 
 	//wait
