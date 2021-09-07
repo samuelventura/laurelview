@@ -14,7 +14,7 @@ func tryout1(log Logger) {
 	log.Info("Connecting...")
 	//192.168.1.77 nucmeg
 	//192.168.1.82 fedora
-	conn, err := net.Dial("tcp", "192.168.1.77:5000")
+	conn, err := net.Dial("tcp", "10.80.0.3:502")
 	PanicIfError(err)
 	tcp := conn.(*net.TCPConn)
 	tcp.SetNoDelay(true)

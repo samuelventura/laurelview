@@ -1,9 +1,5 @@
 #!/bin/bash
 
-#install with
-#crontab -r
-#echo "@reboot /home/pi/bin/lvreboot" | crontab -
-
 UH=/home/pi
 
 echo `date` >> $UH/.reboot
