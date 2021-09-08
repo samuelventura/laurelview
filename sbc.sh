@@ -1,6 +1,6 @@
-#!/bin/bash -x
+#!/bin/bash -xe
 
-IP=10.77.3.143
+IP="${1:-10.77.3.143}"
 rsync -r cmd/lvnbe/build pi@$IP:local/laurelview/cmd/lvnbe/
 rsync -r sbc/.ssh pi@$IP:
 rsync -r sbc/bin pi@$IP:
