@@ -50,7 +50,8 @@ func main() {
 	defer check1(Mn(":dispose"))
 
 	//runtime 2 /ws/db
-	var db2 = relative("db3")
+	var db2 = dbpath()
+	log.Info("db", db2)
 	var dao2 = NewDao(db2)
 	defer dao2.Close()
 	rt2 := NewRuntime(dl)
@@ -135,4 +136,12 @@ func endpoint() string {
 		return ep
 	}
 	return ":0"
+}
+
+func dbpath() string {
+	db := os.Getenv("LV_NBE_DATABASE")
+	if len(strings.TrimSpace(db)) > 0 {
+		return db
+	}
+	return relative("db3")
 }
