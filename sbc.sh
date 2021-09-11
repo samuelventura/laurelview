@@ -3,6 +3,7 @@
 SBC="${1:-bbbw}"
 
 #passwd changed to Tp4jTk7mpNwN
+#export PATH=~/bin:~/go/bin:~/local/go/bin:$PATH
 case $SBC in
     bbbw)
     USR=debian
