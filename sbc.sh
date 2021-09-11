@@ -1,10 +1,17 @@
 #!/bin/bash -xe
 
-SBC="${1:-bbbw}"
+SBC="${1:-bbb}"
 
 #passwd changed to Tp4jTk7mpNwN
 #export PATH=~/bin:~/go/bin:~/local/go/bin:$PATH
 case $SBC in
+    bbb)
+    USR=debian
+    NIF=eth0
+    IP="${2:-10.77.3.155}"
+    #requires /etc/sudoers.d/nopwd with
+    #debian ALL=NOPASSWD: ALL
+    ;;
     bbbw)
     USR=debian
     NIF=wlan0
