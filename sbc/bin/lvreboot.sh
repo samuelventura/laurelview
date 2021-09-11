@@ -1,12 +1,7 @@
 #!/bin/bash
 
-UH=/home/pi
-
-echo `date` >> $UH/.reboot
-echo $HOME >> $UH/.reboot
-echo $USER >> $UH/.reboot #not set on reboot
-
-export USER=pi
+source lvenv.sh
+echo `date` >> $HOME/.reboot
 export PATH=$HOME/bin:$PATH
 
 sleep 3
