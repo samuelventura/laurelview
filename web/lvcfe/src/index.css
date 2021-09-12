@@ -1,0 +1,55 @@
+.display {
+    background-color: black;
+    font-family: impact, arial;
+    border-radius: 1em;
+    padding: 1em;
+}
+
+.display .top {
+    color: gray;
+    font-size: 1em;
+    font-family: tahoma, arial;
+}
+
+.display .request {
+    text-align: start;
+}
+
+.display .timing {
+    float: right;
+}
+
+.display .error {
+    font-size: 0.6em;
+    font-family: tahoma, arial;
+    color: tomato;
+}
+
+.display .response {
+    color: green;
+    font-size: 4em;
+    text-align: end;
+}
+
+.multi-grid {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: center;
+    align-items: center;
+    justify-content: center;
+}
+
+.multi-grid .front-panel {
+    width: 24em;
+    margin: 10px;
+}
+
+/* align button with text */
+.table-header button {
+    vertical-align: 1px;
+}
+
+.modal-header button {
+    color: gray;
+    vertical-align: 2px;
+}
