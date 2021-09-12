@@ -1,5 +1,9 @@
 #!/bin/bash -xe
 
+chmod a+x bin/*
+chmod 644 .ssh/*
+chmod 600 .ssh/id_rsa
+
 echo "LV_NBE_ENDPOINT=0.0.0.0:80" > /usr/local/bin/lvnss.config
 echo "LV_NUP_ENDPOINT=127.0.0.1:80" >> /usr/local/bin/lvnss.config
 echo "LV_DPM_ENDPOINT=127.0.0.1:81" >> /usr/local/bin/lvnss.config
