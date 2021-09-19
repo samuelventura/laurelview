@@ -24,6 +24,13 @@ case $SBC in
     NIF=eth0
     IP="${2:-10.77.3.143}"
     ;;
+    piw)
+    USR=pi
+    NIF=wlan0
+    IP="${2:-192.168.0.23}"
+    #requires /etc/sudoers.d/nopwd with
+    #debian ALL=NOPASSWD: ALL
+    ;;
 esac
 
 rsync -r cmd/lvnbe/build $USR@$IP:local/laurelview/cmd/lvnbe/
