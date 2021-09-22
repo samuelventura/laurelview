@@ -11,22 +11,22 @@ import (
 func TestSdkEntryBasic(t *testing.T) {
 	to := NewTestOutput()
 	defer to.Close()
-	rt := NewRuntime(to.Log)
-	defer WaitClose(rt.Close)
+	ctx := NewContext(to.Log)
+	defer WaitClose(ctx.Close)
 	var callback Dispatch
-	rt.SetValue("entry.endpoint", ":0")
-	rt.SetValue("entry.buflen", 0)
-	rt.SetValue("entry.wtoms", 0)
-	rt.SetValue("entry.rtoms", 0)
-	rt.SetValue("entry.static", NopHandler)
-	rt.SetDispatch("/ws/test", func(mut Mutation) {
+	ctx.SetValue("entry.endpoint", ":0")
+	ctx.SetValue("entry.buflen", 0)
+	ctx.SetValue("entry.wtoms", 0)
+	ctx.SetValue("entry.rtoms", 0)
+	ctx.SetValue("entry.static", NopHandler)
+	ctx.SetDispatch("/ws/test", func(mut Mutation) {
 		to.Trace("disp", mut)
 		switch mut.Name {
 		case ":add":
 			callback = mut.Args.(Dispatch)
 		}
 	})
-	entry := NewEntry(rt)
+	entry := NewEntry(ctx)
 	defer WaitClose(entry.Close)
 	conn := testEntryConnect(entry.Port(), "/ws/test")
 	defer conn.Close()

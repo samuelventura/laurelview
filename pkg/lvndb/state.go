@@ -5,10 +5,10 @@ import (
 	"strings"
 )
 
-func NewState(rt Runtime) Dispatch {
-	dao := rt.GetValue("dao").(Dao)
-	hubDispatch := rt.GetDispatch("hub")
-	log := PrefixLogger(rt.Log, "state")
+func NewState(ctx Context) Dispatch {
+	dao := ctx.GetValue("dao").(Dao)
+	hubDispatch := ctx.GetDispatch("hub")
+	log := ctx.PrefixLog("state")
 	dispatchs := make(map[string]Dispatch)
 	iterator := list.New()
 	items := make(map[uint]*list.Element)

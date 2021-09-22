@@ -20,7 +20,7 @@ type entryDso struct {
 	port     int
 	id       Id
 	log      Logger
-	rt       Runtime
+	ctx      Context
 	buflen   int
 	rtoms    int
 	wtoms    int
@@ -41,24 +41,24 @@ type clientDso struct {
 	callback chan Mutation
 }
 
-func NewEntry(rt Runtime) Entry {
-	buflen := rt.GetValue("entry.buflen").(int)
-	wtoms := rt.GetValue("entry.wtoms").(int)
-	rtoms := rt.GetValue("entry.rtoms").(int)
-	static := rt.GetValue("entry.static").(Handler)
-	endpoint := rt.GetValue("entry.endpoint").(string)
+func NewEntry(ctx Context) Entry {
+	buflen := ctx.GetValue("entry.buflen").(int)
+	wtoms := ctx.GetValue("entry.wtoms").(int)
+	rtoms := ctx.GetValue("entry.rtoms").(int)
+	static := ctx.GetValue("entry.static").(Handler)
+	endpoint := ctx.GetValue("entry.endpoint").(string)
 	listener, err := net.Listen("tcp", endpoint)
 	PanicIfError(err)
-	cleaner := NewCleaner(rt.PrefixLog("entry", "cleaner"))
+	cleaner := NewCleaner(ctx.PrefixLog("entry", "cleaner"))
 	entry := &entryDso{}
 	entry.id = NewId("entry")
-	entry.rt = rt
+	entry.ctx = ctx
 	entry.buflen = buflen
 	entry.wtoms = wtoms
 	entry.rtoms = rtoms
 	entry.static = static
 	entry.endpoint = endpoint
-	entry.log = rt.PrefixLog("entry")
+	entry.log = ctx.PrefixLog("entry")
 	entry.cleaner = cleaner
 	entry.listener = listener
 	entry.port = listener.Addr().(*net.TCPAddr).Port
@@ -123,10 +123,10 @@ func (entry *entryDso) handle(ctx *fasthttp.RequestCtx) {
 		defer TraceRecover(entry.log.Debug)
 		defer conn.Close()
 		id := entry.id.Next()
-		dispatch := entry.rt.GetDispatch(path) //panics
+		dispatch := entry.ctx.GetDispatch(path) //panics
 		ipp := conn.RemoteAddr().String()
 		sid := fmt.Sprintf("%s_%s_%s", id, ipp, path)
-		log := entry.rt.PrefixLog(sid)
+		log := entry.ctx.PrefixLog(sid)
 		log.Trace("path", path)
 		defer entry.cleaner.Remove(sid)
 		entry.cleaner.AddCloser(sid, conn)

@@ -14,14 +14,3 @@ func ToMap(any Any) Map {
 	}
 	return m
 }
-
-func DisposeArgs(arg Any) {
-	action, ok := arg.(Action)
-	if ok {
-		action()
-	}
-	channel, ok := arg.(Channel)
-	if ok {
-		close(channel)
-	}
-}

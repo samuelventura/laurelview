@@ -8,7 +8,7 @@ import (
 )
 
 func TestRtBusDispose(t *testing.T) {
-	testSetupBus(func(to TestOutput, rt Runtime, disp Dispatch, dpmPort int) {
+	testSetupBus(func(to TestOutput, ctx Context, disp Dispatch, dpmPort int) {
 		disp(Mns(":dispose", "tid"))
 		to.MatchWait(t, 200, "trace", "bus", "{:dispose,tid")
 		disp(Mns(":dispose", "tid"))
@@ -16,7 +16,7 @@ func TestRtBusDispose(t *testing.T) {
 	})
 }
 func TestRtBusBasicDpm(t *testing.T) {
-	testSetupBus(func(to TestOutput, rt Runtime, disp Dispatch, dpmPort int) {
+	testSetupBus(func(to TestOutput, ctx Context, disp Dispatch, dpmPort int) {
 		disp(M("setup", "tid", fmt.Sprintf("127.0.0.1:%v", dpmPort)))
 		for i := 1; i < 32; i++ {
 			disp(M("slave", "tid", SlaveArgs{
@@ -87,7 +87,7 @@ func TestRtBusBasicDpm(t *testing.T) {
 	})
 }
 
-func testSetupBus(callback func(to TestOutput, rt Runtime, disp Dispatch, dpmPort int)) {
+func testSetupBus(callback func(to TestOutput, ctx Context, disp Dispatch, dpmPort int)) {
 	to := NewTestOutput()
 	defer to.Close()
 	log := to.Logger()
@@ -95,18 +95,18 @@ func testSetupBus(callback func(to TestOutput, rt Runtime, disp Dispatch, dpmPor
 	defer WaitClose(dpm.Close)
 	log.Info("dpm", "port", dpm.Port())
 	dpm.Echo()
-	rt := NewRuntime(to.Log)
-	defer WaitClose(rt.Close)
-	rt.SetValue("bus.dialtoms", 400)
-	rt.SetValue("bus.writetoms", 400)
-	rt.SetValue("bus.readtoms", 400)
-	rt.SetValue("bus.discardms", 0)
-	rt.SetValue("bus.sleepms", 10)
-	rt.SetValue("bus.retryms", 2000)
-	rt.SetValue("bus.resetms", 0)
-	rt.SetDispatch("hub", to.Dispatch("hub"))
-	disp := AsyncDispatch(log, NewBus(rt))
-	callback(to, rt, disp, dpm.Port())
+	ctx := NewContext(to.Log)
+	defer WaitClose(ctx.Close)
+	ctx.SetValue("bus.dialtoms", 400)
+	ctx.SetValue("bus.writetoms", 400)
+	ctx.SetValue("bus.readtoms", 400)
+	ctx.SetValue("bus.discardms", 0)
+	ctx.SetValue("bus.sleepms", 10)
+	ctx.SetValue("bus.retryms", 2000)
+	ctx.SetValue("bus.resetms", 0)
+	ctx.SetDispatch("hub", to.Dispatch("hub"))
+	disp := AsyncDispatch(log, NewBus(ctx))
+	callback(to, ctx, disp, dpm.Port())
 }
 
 func TestRtSlaveId(t *testing.T) {

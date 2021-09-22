@@ -1,9 +1,9 @@
 package lvnrt
 
 //sync to panic in entry client
-func NewCheck(rt Runtime) Dispatch {
-	stateDispatch := rt.GetDispatch("state")
-	log := rt.PrefixLog("check")
+func NewCheck(ctx Context) Dispatch {
+	stateDispatch := ctx.GetDispatch("state")
+	log := ctx.PrefixLog("check")
 	return func(mut Mutation) {
 		switch mut.Name {
 		case "query":

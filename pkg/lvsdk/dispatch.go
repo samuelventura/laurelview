@@ -46,3 +46,14 @@ func AsyncDispatch(log Logger, dispatch Dispatch) Dispatch {
 		queue <- mut
 	}
 }
+
+func DisposeArgs(arg Any) {
+	action, ok := arg.(Action)
+	if ok {
+		action()
+	}
+	channel, ok := arg.(Channel)
+	if ok {
+		close(channel)
+	}
+}

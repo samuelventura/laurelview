@@ -5,8 +5,8 @@ import (
 )
 
 func TestDbHubDispose(t *testing.T) {
-	testSetupHub(func(to TestOutput, rt Runtime, log Logger) {
-		disp := NewHub(rt)
+	testSetupHub(func(to TestOutput, ctx Context, log Logger) {
+		disp := NewHub(ctx)
 		disp(Mnsa(":add", "tid1", to.Dispatch("callback1")))
 		disp(Mnsa(":add", "tid2", to.Dispatch("callback2")))
 		to.MatchWait(t, 200, "trace", "hub", "{:add,tid1,")
@@ -21,8 +21,8 @@ func TestDbHubDispose(t *testing.T) {
 }
 
 func TestDbHubAddRemove(t *testing.T) {
-	testSetupHub(func(to TestOutput, rt Runtime, log Logger) {
-		disp := NewHub(rt)
+	testSetupHub(func(to TestOutput, ctx Context, log Logger) {
+		disp := NewHub(ctx)
 		disp(Mnsa(":add", "tid", to.Dispatch("callback")))
 		to.MatchWait(t, 200, "trace", "hub", "{:add,tid,")
 		disp(Mnsa(":add", "tid", to.Dispatch("callback")))
@@ -36,8 +36,8 @@ func TestDbHubAddRemove(t *testing.T) {
 }
 
 func TestDbHubAll(t *testing.T) {
-	testSetupHub(func(to TestOutput, rt Runtime, log Logger) {
-		disp := NewHub(rt)
+	testSetupHub(func(to TestOutput, ctx Context, log Logger) {
+		disp := NewHub(ctx)
 		disp(Mnsa(":add", "tid1", to.Dispatch("callback1")))
 		disp(Mnsa(":add", "tid2", func(mut Mutation) { PanicLN("tid2", mut) }))
 		disp(Mnsa("all", "tid1", []OneArgs{{Id: 1, Name: "name1", Json: "json1"}}))
@@ -49,8 +49,8 @@ func TestDbHubAll(t *testing.T) {
 }
 
 func TestDbHubCreate(t *testing.T) {
-	testSetupHub(func(to TestOutput, rt Runtime, log Logger) {
-		disp := NewHub(rt)
+	testSetupHub(func(to TestOutput, ctx Context, log Logger) {
+		disp := NewHub(ctx)
 		disp(Mnsa(":add", "tid1", to.Dispatch("callback1")))
 		disp(Mnsa(":add", "tid2", to.Dispatch("callback2")))
 		disp(Mnsa("create", "tid1", OneArgs{Id: 1, Name: "name1", Json: "json1"}))
@@ -61,8 +61,8 @@ func TestDbHubCreate(t *testing.T) {
 }
 
 func TestDbHubUpdate(t *testing.T) {
-	testSetupHub(func(to TestOutput, rt Runtime, log Logger) {
-		disp := NewHub(rt)
+	testSetupHub(func(to TestOutput, ctx Context, log Logger) {
+		disp := NewHub(ctx)
 		disp(Mnsa(":add", "tid1", to.Dispatch("callback1")))
 		disp(Mnsa(":add", "tid2", to.Dispatch("callback2")))
 		disp(Mnsa("update", "tid1", OneArgs{Id: 1, Name: "name1", Json: "json1"}))
@@ -73,8 +73,8 @@ func TestDbHubUpdate(t *testing.T) {
 }
 
 func TestDbHubDelete(t *testing.T) {
-	testSetupHub(func(to TestOutput, rt Runtime, log Logger) {
-		disp := NewHub(rt)
+	testSetupHub(func(to TestOutput, ctx Context, log Logger) {
+		disp := NewHub(ctx)
 		disp(Mnsa(":add", "tid1", to.Dispatch("callback1")))
 		disp(Mnsa(":add", "tid2", to.Dispatch("callback2")))
 		disp(Mnsa("delete", "tid1", uint(1)))
@@ -84,11 +84,11 @@ func TestDbHubDelete(t *testing.T) {
 	})
 }
 
-func testSetupHub(callback func(to TestOutput, rt Runtime, log Logger)) {
+func testSetupHub(callback func(to TestOutput, ctx Context, log Logger)) {
 	to := NewTestOutput()
 	defer to.Close()
 	log := to.Logger()
-	rt := NewRuntime(to.Log)
-	defer WaitClose(rt.Close)
-	callback(to, rt, log)
+	ctx := NewContext(to.Log)
+	defer WaitClose(ctx.Close)
+	callback(to, ctx, log)
 }

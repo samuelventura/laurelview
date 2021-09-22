@@ -1,10 +1,10 @@
 package lvsdk
 
-func DefaultRuntime() Runtime {
-	return NewRuntime(DefaultLog())
+func DefaultContext() Context {
+	return NewContext(DefaultLog())
 }
 
-type runtimeDso struct {
+type contextDso struct {
 	log       Log
 	logger    Logger
 	cleaner   Cleaner
@@ -14,44 +14,44 @@ type runtimeDso struct {
 }
 
 //pass a prefixed log instead of assigning an id
-func NewRuntime(log Log) Runtime {
-	rt := &runtimeDso{}
-	rt.log = log
-	rt.logger = PrefixLogger(log)
+func NewContext(log Log) Context {
+	ctx := &contextDso{}
+	ctx.log = log
+	ctx.logger = PrefixLogger(log)
 	clogger := PrefixLogger(log, "cleaner")
-	rt.cleaner = NewCleaner(clogger)
-	rt.values = make(map[string]Any)
-	rt.factories = make(map[string]Factory)
-	rt.dispatchs = make(map[string]Dispatch)
-	return rt
+	ctx.cleaner = NewCleaner(clogger)
+	ctx.values = make(map[string]Any)
+	ctx.factories = make(map[string]Factory)
+	ctx.dispatchs = make(map[string]Dispatch)
+	return ctx
 }
 
-func (rt *runtimeDso) Cleaner() Cleaner {
-	return rt.cleaner
+func (ctx *contextDso) Cleaner() Cleaner {
+	return ctx.cleaner
 }
 
-func (rt *runtimeDso) PrefixLog(prefix ...Any) Logger {
-	return PrefixLogger(rt.log, prefix...)
+func (ctx *contextDso) PrefixLog(prefix ...Any) Logger {
+	return PrefixLogger(ctx.log, prefix...)
 }
 
-func (rt *runtimeDso) LevelOutput(level string) Output {
-	return LevelOutput(rt.log, level)
+func (ctx *contextDso) LevelOutput(level string) Output {
+	return LevelOutput(ctx.log, level)
 }
 
-func (rt *runtimeDso) SetValue(name string, value Any) {
-	rt.values[name] = value
+func (ctx *contextDso) SetValue(name string, value Any) {
+	ctx.values[name] = value
 }
 
-func (rt *runtimeDso) SetFactory(name string, factory Factory) {
-	rt.factories[name] = factory
+func (ctx *contextDso) SetFactory(name string, factory Factory) {
+	ctx.factories[name] = factory
 }
 
-func (rt *runtimeDso) SetDispatch(name string, dispatch Dispatch) {
-	rt.dispatchs[name] = dispatch
+func (ctx *contextDso) SetDispatch(name string, dispatch Dispatch) {
+	ctx.dispatchs[name] = dispatch
 }
 
-func (rt *runtimeDso) GetValue(name string) Any {
-	value, ok := rt.values[name]
+func (ctx *contextDso) GetValue(name string) Any {
+	value, ok := ctx.values[name]
 	if ok {
 		return value
 	} else {
@@ -60,8 +60,8 @@ func (rt *runtimeDso) GetValue(name string) Any {
 	}
 }
 
-func (rt *runtimeDso) GetFactory(name string) Factory {
-	fact, ok := rt.factories[name]
+func (ctx *contextDso) GetFactory(name string) Factory {
+	fact, ok := ctx.factories[name]
 	if ok {
 		return fact
 	} else {
@@ -70,8 +70,8 @@ func (rt *runtimeDso) GetFactory(name string) Factory {
 	}
 }
 
-func (rt *runtimeDso) GetDispatch(name string) Dispatch {
-	disp, ok := rt.dispatchs[name]
+func (ctx *contextDso) GetDispatch(name string) Dispatch {
+	disp, ok := ctx.dispatchs[name]
 	if ok {
 		return disp
 	} else {
@@ -80,13 +80,13 @@ func (rt *runtimeDso) GetDispatch(name string) Dispatch {
 	}
 }
 
-func (rt *runtimeDso) Log(level string, args ...Any) {
-	rt.log(level, args...)
+func (ctx *contextDso) Log(level string, args ...Any) {
+	ctx.log(level, args...)
 }
 
-func (rt *runtimeDso) Close() Channel {
-	rt.cleaner.Close()
+func (ctx *contextDso) Close() Channel {
+	ctx.cleaner.Close()
 	done := make(Channel)
-	rt.cleaner.AddChannel("done", done)
+	ctx.cleaner.AddChannel("done", done)
 	return done
 }

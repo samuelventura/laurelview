@@ -19,8 +19,8 @@ type hubSessionDso struct {
 	disposer Action
 }
 
-func NewHub(rt Runtime) Dispatch {
-	log := PrefixLogger(rt.Log, "hub")
+func NewHub(ctx Context) Dispatch {
+	log := ctx.PrefixLog("hub")
 	dispatchs := make(map[string]Dispatch)
 	slaves := make(map[string]*hubSlaveDso)
 	buses := make(map[string]*list.List)

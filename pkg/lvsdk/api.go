@@ -5,7 +5,7 @@ import "github.com/valyala/fasthttp"
 //Guidelines
 //- catch invalid params on entry
 //- global launch setting to info level
-//- invalid rt conditions to debug level
+//- invalid ctx conditions to debug level
 //- recover to debug level
 //- missing dispatch to debug level
 //- trace is to see everything
@@ -24,10 +24,10 @@ type Channel = chan Any
 type Any = interface{}
 type Action = func()
 type Dispatch = func(Mutation)
-type Factory = func(Runtime) Dispatch
+type Factory = func(Context) Dispatch
 type Handler = func(ctx *fasthttp.RequestCtx)
 
-//Runtime Provides
+//Context Provides
 //1) config values
 //2) factories
 //3) dispatchs
@@ -36,16 +36,16 @@ type Handler = func(ctx *fasthttp.RequestCtx)
 //6) ids (removed)
 //7) self overlay (removed)
 
-type Runtime interface {
-	Cleaner() Cleaner
+type Context interface {
+	//Cleaner() Cleaner
 	SetValue(name string, value Any)
 	SetFactory(name string, factory Factory)
 	SetDispatch(name string, dispatch Dispatch)
 	GetValue(name string) Any
 	GetFactory(name string) Factory
 	GetDispatch(name string) Dispatch
-	Log(level string, args ...Any)
-	LevelOutput(level string) Output
+	//Log(level string, args ...Any)
+	//LevelOutput(level string) Output
 	PrefixLog(prefix ...Any) Logger
 	Close() Channel
 }
@@ -66,5 +66,5 @@ type Logger interface {
 func NopAction()                          {}
 func NopOutput(...Any)                    {}
 func NopDispatch(Mutation)                {}
-func NopFactory(Runtime) Dispatch         { return NopDispatch }
+func NopFactory(Context) Dispatch         { return NopDispatch }
 func NopHandler(ctx *fasthttp.RequestCtx) {}

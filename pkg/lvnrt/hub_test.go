@@ -5,7 +5,7 @@ import (
 )
 
 func TestRtHubDispose(t *testing.T) {
-	testSetupHub(func(to TestOutput, rt Runtime, disp Dispatch) {
+	testSetupHub(func(to TestOutput, ctx Context, disp Dispatch) {
 		disp(Mns(":dispose", "tid"))
 		to.MatchWait(t, 200, "trace", "hub", "{:dispose,tid")
 		disp(Mns(":dispose", "tid"))
@@ -14,7 +14,7 @@ func TestRtHubDispose(t *testing.T) {
 }
 
 func TestRtHubBasic(t *testing.T) {
-	testSetupHub(func(to TestOutput, rt Runtime, disp Dispatch) {
+	testSetupHub(func(to TestOutput, ctx Context, disp Dispatch) {
 		disp(Mnsa(":add", "tid", to.Dispatch("entry")))
 		disp(Mnsa("setup", "tid", []ItemArgs{{"host", 0, 1}}))
 		to.MatchWait(t, 200, "trace", "hub", "{setup,tid,..lvnrt.ItemArgs,.{host 0 1}.")
@@ -34,12 +34,12 @@ func TestRtHubBasic(t *testing.T) {
 	})
 }
 
-func testSetupHub(callback func(to TestOutput, rt Runtime, disp Dispatch)) {
+func testSetupHub(callback func(to TestOutput, ctx Context, disp Dispatch)) {
 	to := NewTestOutput()
 	defer to.Close()
 	log := to.Logger()
-	rt := NewRuntime(to.Log)
-	defer WaitClose(rt.Close)
-	disp := AsyncDispatch(log, NewHub(rt))
-	callback(to, rt, disp)
+	ctx := NewContext(to.Log)
+	defer WaitClose(ctx.Close)
+	disp := AsyncDispatch(log, NewHub(ctx))
+	callback(to, ctx, disp)
 }

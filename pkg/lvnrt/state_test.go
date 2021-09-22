@@ -5,7 +5,7 @@ import (
 )
 
 func TestRtStateDispose(t *testing.T) {
-	testSetupState(func(to TestOutput, rt Runtime, disp Dispatch) {
+	testSetupState(func(to TestOutput, ctx Context, disp Dispatch) {
 		disp(Mns(":dispose", "tid"))
 		to.MatchWait(t, 200, "trace", "state", "{:dispose,tid,<nil>,<nil>}")
 		to.MatchWait(t, 200, "trace", "hub", "{:dispose,tid,<nil>,<nil>}")
@@ -15,7 +15,7 @@ func TestRtStateDispose(t *testing.T) {
 }
 
 func TestRtStateBasic(t *testing.T) {
-	testSetupState(func(to TestOutput, rt Runtime, disp Dispatch) {
+	testSetupState(func(to TestOutput, ctx Context, disp Dispatch) {
 		disp(Mnsa(":add", "tid", to.Dispatch("entry")))
 		to.MatchWait(t, 200, "trace", "hub", "{:add,tid")
 		disp(Mnsa("setup", "tid", []ItemArgs{{"host", 0, 1}}))
@@ -40,14 +40,14 @@ func TestRtStateBasic(t *testing.T) {
 	})
 }
 
-func testSetupState(callback func(to TestOutput, rt Runtime, disp Dispatch)) {
+func testSetupState(callback func(to TestOutput, ctx Context, disp Dispatch)) {
 	to := NewTestOutput()
 	defer to.Close()
 	log := to.Logger()
-	rt := NewRuntime(to.Log)
-	defer WaitClose(rt.Close)
-	rt.SetFactory("bus", func(Runtime) Dispatch { return to.Dispatch("bus") })
-	rt.SetDispatch("hub", to.Dispatch("hub"))
-	disp := AsyncDispatch(log, NewState(rt))
-	callback(to, rt, disp)
+	ctx := NewContext(to.Log)
+	defer WaitClose(ctx.Close)
+	ctx.SetFactory("bus", func(Context) Dispatch { return to.Dispatch("bus") })
+	ctx.SetDispatch("hub", to.Dispatch("hub"))
+	disp := AsyncDispatch(log, NewState(ctx))
+	callback(to, ctx, disp)
 }

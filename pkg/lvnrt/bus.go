@@ -37,10 +37,10 @@ impossible to detect the timeout was on the node master
 as to be smart on where to apply the disconnect on first read
 timeout policy.
 */
-func NewBus(rt Runtime) Dispatch {
+func NewBus(ctx Context) Dispatch {
 	dispose := NopAction
-	hubDispatch := rt.GetDispatch("hub")
-	log := PrefixLogger(rt.Log, "bus")
+	hubDispatch := ctx.GetDispatch("hub")
+	log := ctx.PrefixLog("bus")
 	dispatchs := make(map[string]Dispatch)
 	dispatchs[":dispose"] = func(mut Mutation) {
 		ClearDispatch(dispatchs)
@@ -49,17 +49,17 @@ func NewBus(rt Runtime) Dispatch {
 	}
 	dispatchs["setup"] = func(mut Mutation) {
 		delete(dispatchs, "setup")
-		dialtoms := rt.GetValue("bus.dialtoms").(int)
-		writetoms := rt.GetValue("bus.writetoms").(int)
-		readtoms := rt.GetValue("bus.readtoms").(int)
-		sleepms := rt.GetValue("bus.sleepms").(int)
-		retryms := rt.GetValue("bus.retryms").(int)
-		resetms := rt.GetValue("bus.resetms").(int)
-		discardms := rt.GetValue("bus.discardms").(int)
+		dialtoms := ctx.GetValue("bus.dialtoms").(int)
+		writetoms := ctx.GetValue("bus.writetoms").(int)
+		readtoms := ctx.GetValue("bus.readtoms").(int)
+		sleepms := ctx.GetValue("bus.sleepms").(int)
+		retryms := ctx.GetValue("bus.retryms").(int)
+		resetms := ctx.GetValue("bus.resetms").(int)
+		discardms := ctx.GetValue("bus.discardms").(int)
 		address := mut.Args.(string)
-		log := PrefixLogger(rt.Log, "bus", address)
+		log := ctx.PrefixLog("bus", address)
 		exit := make(Channel)
-		cleaner := NewCleaner(PrefixLogger(rt.Log, "bus", "cleaner", address))
+		cleaner := NewCleaner(ctx.PrefixLog("bus", "cleaner", address))
 		cleaner.AddChannel("exit", exit)
 		dispose = func() {
 			cleaner.Close()

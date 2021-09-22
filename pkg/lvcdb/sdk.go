@@ -1,4 +1,4 @@
-package pkg
+package lvcdb
 
 import (
 	"github.com/samuelventura/laurelview/pkg/lvsdk"

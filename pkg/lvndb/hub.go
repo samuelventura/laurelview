@@ -5,8 +5,8 @@ import (
 )
 
 //ensure iteration order mainly for testing purposes
-func NewHub(rt Runtime) Dispatch {
-	log := PrefixLogger(rt.Log, "hub")
+func NewHub(ctx Context) Dispatch {
+	log := ctx.PrefixLog("hub")
 	dispatchs := make(map[string]Dispatch)
 	iterator := list.New()
 	sessions := make(map[string]*list.Element)

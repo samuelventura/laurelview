@@ -19,10 +19,10 @@ type stateSessionDso struct {
 	setup    Flag
 }
 
-func NewState(rt Runtime) Dispatch {
-	log := PrefixLogger(rt.Log, "state")
-	hubDispatch := rt.GetDispatch("hub")
-	busFactory := rt.GetFactory("bus")
+func NewState(ctx Context) Dispatch {
+	log := ctx.PrefixLog("state")
+	hubDispatch := ctx.GetDispatch("hub")
+	busFactory := ctx.GetFactory("bus")
 	dispatchs := make(map[string]Dispatch)
 	sessions := make(map[string]*stateSessionDso)
 	buses := make(map[string]*stateBusDso)
@@ -70,7 +70,7 @@ func NewState(rt Runtime) Dispatch {
 			bus, ok := buses[address]
 			if !ok {
 				bus = &stateBusDso{}
-				bus.dispatch = busFactory(rt)
+				bus.dispatch = busFactory(ctx)
 				bus.slaves = make(map[uint]Count)
 				bus.dispatch(Mnsa("setup", sid, address))
 				buses[address] = bus

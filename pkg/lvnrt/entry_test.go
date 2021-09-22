@@ -9,7 +9,7 @@ import (
 )
 
 func TestRtEntryBasic(t *testing.T) {
-	testSetupEntry(t, func(to TestOutput, rt Runtime, log Logger, conn *websocket.Conn, dp int) {
+	testSetupEntry(t, func(to TestOutput, ctx Context, log Logger, conn *websocket.Conn, dp int) {
 		testEntryPostSetup(conn, dp)
 		//first empty
 		to.MatchWait(t, 200, "trace", "rsep", "query", "entry-1", "map||index:0||count:1||total:1")
@@ -35,7 +35,7 @@ func TestRtEntryBasic(t *testing.T) {
 }
 
 func TestRtEntryRemoveReceived(t *testing.T) {
-	testSetupEntry(t, func(to TestOutput, rt Runtime, log Logger, conn *websocket.Conn, dp int) {
+	testSetupEntry(t, func(to TestOutput, ctx Context, log Logger, conn *websocket.Conn, dp int) {
 		testEntryPostSetup(conn, dp)
 		to.MatchWait(t, 200, "trace", "rsep", "query", "entry-1", "map||index:0||count:1||total:1")
 		conn.Close()
@@ -46,16 +46,16 @@ func TestRtEntryRemoveReceived(t *testing.T) {
 }
 
 func TestRtEntryDisposeReceived(t *testing.T) {
-	testSetupEntry(t, func(to TestOutput, rt Runtime, log Logger, conn *websocket.Conn, dp int) {
+	testSetupEntry(t, func(to TestOutput, ctx Context, log Logger, conn *websocket.Conn, dp int) {
 		testEntryPostSetup(conn, dp)
-		stateDispatch := rt.GetDispatch("state")
+		stateDispatch := ctx.GetDispatch("state")
 		to.MatchWait(t, 200, "trace", "rsep", "query", "entry-1", "map||index:0||count:1||total:1")
 		stateDispatch(Mns(":dispose", "tid"))
 		to.MatchWait(t, 200, "trace", "entry-1", "out", "{:dispose,tid")
 	})
 }
 
-func testSetupEntry(t *testing.T, callback func(to TestOutput, rt Runtime, log Logger, conn *websocket.Conn, dpmPort int)) {
+func testSetupEntry(t *testing.T, callback func(to TestOutput, ctx Context, log Logger, conn *websocket.Conn, dpmPort int)) {
 	to := NewTestOutput()
 	defer to.Close() //wait flush
 	log := to.Logger()
@@ -63,35 +63,35 @@ func testSetupEntry(t *testing.T, callback func(to TestOutput, rt Runtime, log L
 	defer WaitClose(dpm.Close)
 	log.Info("dpm", "port", dpm.Port())
 	dpm.Echo()
-	rt := NewRuntime(to.Log)
-	defer WaitClose(rt.Close)
-	rt.SetValue("bus.dialtoms", 400)
-	rt.SetValue("bus.writetoms", 400)
-	rt.SetValue("bus.readtoms", 400)
-	rt.SetValue("bus.discardms", 50)
-	rt.SetValue("bus.sleepms", 10)
-	rt.SetValue("bus.retryms", 2000)
-	rt.SetValue("bus.resetms", 0)
-	rt.SetValue("entry.endpoint", ":0")
-	rt.SetValue("entry.buflen", 0)
-	rt.SetValue("entry.wtoms", 0)
-	rt.SetValue("entry.rtoms", 0)
-	rt.SetValue("entry.static", NopHandler)
-	rt.SetFactory("bus", func(rt Runtime) Dispatch { return NewBus(rt) })
-	rt.SetDispatch("hub", AsyncDispatch(log, NewHub(rt)))
-	rt.SetDispatch("state", AsyncDispatch(log, NewState(rt)))
-	rt.SetDispatch("check", NewCheck(rt))
-	checkDispatch := rt.GetDispatch("check")
+	ctx := NewContext(to.Log)
+	defer WaitClose(ctx.Close)
+	ctx.SetValue("bus.dialtoms", 400)
+	ctx.SetValue("bus.writetoms", 400)
+	ctx.SetValue("bus.readtoms", 400)
+	ctx.SetValue("bus.discardms", 50)
+	ctx.SetValue("bus.sleepms", 10)
+	ctx.SetValue("bus.retryms", 2000)
+	ctx.SetValue("bus.resetms", 0)
+	ctx.SetValue("entry.endpoint", ":0")
+	ctx.SetValue("entry.buflen", 0)
+	ctx.SetValue("entry.wtoms", 0)
+	ctx.SetValue("entry.rtoms", 0)
+	ctx.SetValue("entry.static", NopHandler)
+	ctx.SetFactory("bus", func(ctx Context) Dispatch { return NewBus(ctx) })
+	ctx.SetDispatch("hub", AsyncDispatch(log, NewHub(ctx)))
+	ctx.SetDispatch("state", AsyncDispatch(log, NewState(ctx)))
+	ctx.SetDispatch("check", NewCheck(ctx))
+	checkDispatch := ctx.GetDispatch("check")
 	defer checkDispatch(Mn(":dispose"))
-	rt.SetDispatch("/ws/test", checkDispatch)
-	entry := NewEntry(rt)
+	ctx.SetDispatch("/ws/test", checkDispatch)
+	entry := NewEntry(ctx)
 	defer WaitClose(entry.Close)
 	log.Info("port", entry.Port())
 	conn := testEntryConnect(entry.Port(), "/ws/test")
 	defer conn.Close()
 	log.Trace("client", conn.LocalAddr())
 	go testEntryReadLoop(log.Trace, conn)
-	callback(to, rt, log, conn, dpm.Port())
+	callback(to, ctx, log, conn, dpm.Port())
 }
 
 func testEntryConnect(port int, path string) *websocket.Conn {

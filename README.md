@@ -50,6 +50,7 @@ web/lvnfe #node react frontend
 - Branding
 - Serial Port
 - Realtime Plot 
+- Use zerolog
 - HTTPS certificate
 - Progressive PWA
 - MacOS installer
