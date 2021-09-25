@@ -61,6 +61,15 @@ web/lvnfe #node react frontend
 - iPhone bookmark shows react icon
 - Executable version https://github.com/josephspurrier/goversioninfo
 
+# go-sqlite3 in Windows10/msys64
+
+```
+removed Git-2.33.0.2-64-bit.exe
+msys2-x86_64-20210725.exe creates C:\msys64
+pacman -Syu
+#./build.sh works on clean install!
+```
+
 # Networking Issues
 
 - Golang takes ~10 to detect connection drop if panel powered of
