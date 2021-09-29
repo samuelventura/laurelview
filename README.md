@@ -62,6 +62,38 @@ web/lvnfe #node react frontend
 - iPhone bookmark shows react icon
 - Executable version https://github.com/josephspurrier/goversioninfo
 
+# Windows 10 x64 Development
+
+```
+
+#./build.sh (go-sqlite3) works on clean msys64 install
+msys2-x86_64-20210725.exe creates C:\msys64
+pacman -Syu
+"terminal.integrated.profiles.windows": {
+    "MSYS2": {
+        "path": "C:\\msys64\\usr\\bin\\bash.exe",
+        "args": [
+            "--login",
+            "-i"
+        ],
+        "env": {
+            "MSYSTEM": "MINGW64",
+            "CHERE_INVOKING": "1",
+            "MSYS2_PATH_TYPE": "inherit"
+        }
+    }
+},
+"terminal.integrated.defaultProfile.windows": "MSYS2"
+
+#for VSC git support
+install Git-2.33.0.2-64-bit.exe
+install TortoiseGit-2.12.0.0-64bit.msi
+
+#to copy existing ssh keys into msys2
+cd
+ln -s /c/users/samuel/.ssh/  .
+```
+
 # Networking Issues
 
 - Golang takes ~10 to detect connection drop if panel powered of
