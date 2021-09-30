@@ -39,33 +39,33 @@ func NewDao(driver string, source string) Dao {
 	return &daoDso{db}
 }
 
-func (dao *daoDso) Close() {
-	sqlDB, err := dao.db.DB()
+func (dso *daoDso) Close() {
+	sqlDB, err := dso.db.DB()
 	PanicIfError(err)
 	sqlDB.Close()
 }
 
-func (dao *daoDso) ListNodes(owner string) (nodes []NodeDro) {
+func (dso *daoDso) ListNodes(owner string) (nodes []NodeDro) {
 	//predictable order for testing purposes
-	result := dao.db.Where("owner = ?", owner).Order("id").Find(&nodes)
+	result := dso.db.Where("owner = ?", owner).Order("id").Find(&nodes)
 	PanicIfError(result.Error)
 	return
 }
 
-func (dao *daoDso) DeleteNode(owner string, mac string) {
-	result := dao.db.Where("owner = ?", owner).Delete(&NodeDro{})
+func (dso *daoDso) DeleteNode(owner string, mac string) {
+	result := dso.db.Where("owner = ?", owner).Delete(&NodeDro{})
 	PanicIfError(result.Error)
 }
 
-func (dao *daoDso) SaveNode(owner string, mac string, name string) {
+func (dso *daoDso) SaveNode(owner string, mac string, name string) {
 	row := &NodeDro{Owner: owner, Name: name, Mac: mac}
-	result := dao.db.Create(row)
+	result := dso.db.Create(row)
 	PanicIfError(result.Error)
 }
 
-func (dao *daoDso) GetNode(owner string, mac string) NodeDro {
+func (dso *daoDso) GetNode(owner string, mac string) NodeDro {
 	row := NodeDro{}
-	result := dao.db.Where("owner = ? AND mac = ?", owner, mac).First(&row)
+	result := dso.db.Where("owner = ? AND mac = ?", owner, mac).First(&row)
 	PanicIfError(result.Error)
 	return row
 }
