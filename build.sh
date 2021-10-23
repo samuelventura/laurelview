@@ -3,7 +3,8 @@
 MOD="github.com/samuelventura/laurelview"
 
 if [[ "$OSTYPE" == "msys"* ]]; then
-    #go get github.com/akavel/rsrc
+    [[ $(type -P rsrc) ]] || go install github.com/akavel/rsrc
+    mkdir -p build
     rsrc -ico icon.ico -o build/rsrc.syso
     cp build/rsrc.syso cmd/lvnss/
     cp build/rsrc.syso cmd/lvnbe/

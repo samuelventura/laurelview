@@ -4,8 +4,8 @@
 #define MyAppId "LaurelView" 
 #define MyAppName "Laurel View"
 #define MyAppVersion "0.0.4"
-#define MyAppPublisher "Samuel Ventura"
-#define MyAppURL "https://github.com/samuelventura/laurelview"
+#define MyAppPublisher "Yeico Labs"
+#define MyAppURL "https://labs.yeico.com/laurelview-server"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
