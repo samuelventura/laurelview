@@ -3,7 +3,7 @@
 
 #define MyAppId "LaurelView" 
 #define MyAppName "Laurel View"
-#define MyAppVersion "0.0.4"
+#define MyAppVersion "0.0.5"
 #define MyAppPublisher "Yeico Labs"
 #define MyAppURL "https://labs.yeico.com/laurelview-server"
 

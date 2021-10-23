@@ -66,17 +66,17 @@ func cycle(log Logger, ep string) {
 		cleanrt.AddChannel("exit", exit)
 		cycle := func() {
 			defer TraceRecover(log.Debug)
-			log.Trace("connecting to /ws/ctx...", ep)
-			conn := connect(ep, "/ws/ctx")
-			log.Trace("connected to /ws/ctx", ep)
+			log.Trace("connecting to /ws/rt...", ep)
+			conn := connect(ep, "/ws/rt")
+			log.Trace("connected to /ws/rt", ep)
 			defer conn.Close()
-			cleanrt.AddCloser("conn.ctx", conn)
+			cleanrt.AddCloser("conn.rt", conn)
 			setup := Mna("setup", items)
-			log.Trace("ctx.setup", setup)
+			log.Trace("rt.setup", setup)
 			WriteMutation(conn, setup)
 			for {
 				mut := ReadMutation(conn)
-				log.Trace("ctx.mut", mut)
+				log.Trace("rt.mut", mut)
 				switch mut.Name {
 				case "query":
 				case ":ping":

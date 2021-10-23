@@ -28,9 +28,9 @@ func main() {
 	log := ctx.PrefixLog("main")
 	defer TraceRecover(log.Warn)
 
-	//runtime 1 /ws/ctx
+	//runtime 1 /ws/rt
 	ctx1 := NewContext(dl)
-	log1 := ctx1.PrefixLog("ctx")
+	log1 := ctx1.PrefixLog("rt")
 	defer log1.Info("exited")
 	defer WaitClose(ctx1.Close)
 	//gets slow after double connection attempted
@@ -73,7 +73,7 @@ func main() {
 	ctx.SetValue("entry.wtoms", 4000)
 	ctx.SetValue("entry.rtoms", 4000)
 	ctx.SetValue("entry.static", NewEmbedHandler(log))
-	ctx.SetDispatch("/ws/ctx", check1)
+	ctx.SetDispatch("/ws/rt", check1)
 	ctx.SetDispatch("/ws/db", check2)
 	entry := lvnrt.NewEntry(ctx)
 	defer WaitClose(entry.Close)
