@@ -1,6 +1,6 @@
 #!/bin/bash -x
 
-MOD="github.com/samuelventura/laurelview"
+MOD="github.com/YeicoLabs/laurelview"
 
 if [[ "$OSTYPE" == "msys"* ]]; then
     [[ $(type -P rsrc) ]] || go install github.com/akavel/rsrc

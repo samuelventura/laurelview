@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/samuelventura/laurelview/pkg/lvndb"
-	"github.com/samuelventura/laurelview/pkg/lvnrt"
+	"github.com/YeicoLabs/laurelview/pkg/lvndb"
+	"github.com/YeicoLabs/laurelview/pkg/lvnrt"
 
 	"net/http"
 	_ "net/http/pprof"

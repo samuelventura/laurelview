@@ -4,7 +4,7 @@
 TEST_PKG="${1:-all}"
 TEST_SCOPE="${2:-Test}"
 export LV_LOGLEVEL="${3:-info}"
-MOD="github.com/samuelventura/laurelview"
+MOD="github.com/YeicoLabs/laurelview"
 go clean -testcache 
 
 case $TEST_PKG in

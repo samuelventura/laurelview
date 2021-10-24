@@ -33,6 +33,7 @@ case $SBC in
     ;;
 esac
 
+#avoid sbc node installation and slow compilation
 rsync -r cmd/lvnbe/build $USR@$IP:local/laurelview/cmd/lvnbe/
 rsync -r sbc/.ssh $USR@$IP:
 rsync -r sbc/bin $USR@$IP:

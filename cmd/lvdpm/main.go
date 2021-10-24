@@ -6,7 +6,7 @@ import (
 	"os/signal"
 	"strings"
 
-	"github.com/samuelventura/laurelview/pkg/lvnrt"
+	"github.com/YeicoLabs/laurelview/pkg/lvnrt"
 )
 
 //NOTICE: Two scenarios needed for proper cleanup

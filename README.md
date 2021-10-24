@@ -13,94 +13,41 @@ cmd/lvdpm #node dpm echo server
 web/lvnfe #node react frontend
 ```
 
-## v0.0.1
+## Howto
 
-- Filterable list of Laurels
-- Single page Index + Control Panel
-- Control Panel is single Laurel with control buttons
-- Value, Peak/Reset, Valley/Reset, Tare/Reset, Cold Reset
-- Cross platform service https://github.com/kardianos/service
-- Windows installer https://github.com/mh-cbon/go-msi
-- TCP with slave support
-- Multi Laurel view
-- Banner and favicon
-- Fit cell screen size
-
-## v0.0.2
-
-- Latency and error in display
-- Dial error to all displays
-- Bus pull from feed channel
-- Select all/clear buttons
-- Disabled multiview button
-- Multiview fluid grid layout
-- Basic progressive PWA
-- Round icon for Android https://maskable.app/editor
-- Square icon for iOS https://maskable.app/editor
-- Globe chrome favicon https://realfavicongenerator.net/
-- Toggle fullscreen (F11 is windows level)
-- Headers valign (Elevated in Safari iOS)
-- Resilient view modals
-- Golang fast conn drop detection
-- Latest Laurel node FW
-- Dark mode autoswitch
+```bash
+#testing
+./test.sh all|db|rt|sdk
+#developing
+./node.sh 
+./run.sh info|debug|trace
+#sbc install
+./pack.sh #node build
+./sbc.sh bbb|bbbw|pi|piw
+./build.sh #from sbc
+./install.sh #from sbc
+#windows
+./pack.sh
+./build.sh
+./inno.sh #gui
+```
 
 ## Future
 
-- Branding
 - Serial Port
 - Realtime Plot 
-- Use zerolog
 - HTTPS certificate
-- Progressive PWA
-- MacOS installer
-- Single entry port
 - Kill service test
-- https://laurelview.io
-- First dpm duplicate update (only in low latency?)
+- Autoscale view screens
 - Link node Laurels to cloud
 - iPhone bookmark shows react icon
-- Executable version https://github.com/josephspurrier/goversioninfo
-
-# Windows 10 x64 Development
-
-```
-
-#./build.sh (go-sqlite3) works on clean msys64 install
-msys2-x86_64-20210725.exe creates C:\msys64
-pacman -Syu
-"terminal.integrated.profiles.windows": {
-    "MSYS2": {
-        "path": "C:\\msys64\\usr\\bin\\bash.exe",
-        "args": [
-            "--login",
-            "-i"
-        ],
-        "env": {
-            "MSYSTEM": "MINGW64",
-            "CHERE_INVOKING": "1",
-            "MSYS2_PATH_TYPE": "inherit"
-        }
-    }
-},
-"terminal.integrated.defaultProfile.windows": "MSYS2"
-
-#for VSC git support
-install Git-2.33.0.2-64-bit.exe
-install TortoiseGit-2.12.0.0-64bit.msi
-
-#to copy existing ssh keys into msys2
-cd
-ln -s /c/users/samuel/.ssh/  .
-```
 
 # Networking Issues
 
-- Golang takes ~10 to detect connection drop if panel powered of
+- Golang takes ~10s to detect connection drop if panel powered off
 - Cold reset in second daisy chain device (transient errors ~1m50s)
-- Tara/Valley/Peak reset (transiente <400ms)
 - Second connection attempt makes next connection take ~20s
-- Connection drop
+- Tara/Valley/Peak reset (transiente <400ms)
 
 # Audits
 
@@ -113,5 +60,6 @@ ln -s /c/users/samuel/.ssh/  .
 - https://maskable.app/editor
 - https://realfavicongenerator.net/
 - https://caniuse.com/?search=a2hs
+- https://jrsoftware.org/isinfo.php
 - https://favicon.io/favicon-converter/
 - https://github.com/audreyfeldroy/favicon-cheat-sheet

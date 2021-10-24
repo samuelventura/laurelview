@@ -1,7 +1,7 @@
 package lvnrt
 
 import (
-	"github.com/samuelventura/laurelview/pkg/lvsdk"
+	"github.com/YeicoLabs/laurelview/pkg/lvsdk"
 )
 
 var M = lvsdk.M

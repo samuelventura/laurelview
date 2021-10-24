@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/samuelventura/laurelview/pkg/lvndb"
-	"github.com/samuelventura/laurelview/pkg/lvnrt"
+	"github.com/YeicoLabs/laurelview/pkg/lvndb"
+	"github.com/YeicoLabs/laurelview/pkg/lvnrt"
 )
 
 var NewDao = lvndb.NewDao

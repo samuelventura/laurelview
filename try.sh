@@ -1,4 +1,4 @@
 #!/bin/bash -x
 
-MOD="github.com/samuelventura/laurelview"
+MOD="github.com/YeicoLabs/laurelview"
 go install $MOD/cmd/lvtry && lvtry

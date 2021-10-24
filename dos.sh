@@ -7,7 +7,7 @@ export LV_DOS_LL=5
 export LV_DOS_UL=10
 export LV_DOS_FM=5000
 export LV_DOS_VM=5000
-MOD="github.com/samuelventura/laurelview"
+MOD="github.com/YeicoLabs/laurelview"
 go install $MOD/cmd/lvdos && lvdos
 trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
 #ssh -R 5001:127.0.0.1:5001 -L 55001:127.0.0.1:5001 165.22.39.156
