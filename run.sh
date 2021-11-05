@@ -1,7 +1,7 @@
 #!/bin/bash -x
 
 #info|debug|trace
-
+export PATH=~/go/bin:$PATH
 export LV_LOGLEVEL="${1:-info}"
 export LV_NBE_DEBUG="127.0.0.1:5000"
 export LV_NBE_ENDPOINT="127.0.0.1:5001"

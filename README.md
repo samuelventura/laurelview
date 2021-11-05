@@ -1,5 +1,25 @@
 # Laurel View
 
+## Dev Environ
+
+```bash
+#linux
+sudo snap install go #go1.17.2 linux/amd64
+sudo snap install node #v16.13.0
+#https://elixir-lang.org/install.html#gnulinux 
+#based on erlang-solutions release
+#don't install elixir from here
+#nerves needs elixir with same otp version
+apt install esl-erlang #1:24.1.3-1 amd64
+#https://github.com/taylor/kiex
+kiex install 1.12.3
+kiex default 1.12.3
+#mix archive.install hex nerves_bootstrap
+
+#macos
+
+```
+
 ## Code Tree
 
 ```bash
@@ -18,18 +38,45 @@ web/lvnfe #node react frontend
 ```bash
 #testing
 ./test.sh all|db|rt|sdk
-#developing
-./node.sh 
+#developing 
+./node.sh #launches http://localhost:3000/
 ./run.sh info|debug|trace
-#sbc install
+#BBB firmware
+./pack.sh #node build
+./cross.sh 
+./nerves.sh sd|emmc
+
+#FIXME CROSS COMPILE WITH NERVES DEVENV
+#FIXME INSTALL OVER NERVES
+#sbc install 
 ./pack.sh #node build
 ./sbc.sh bbb|bbbw|pi|piw
 ./build.sh #from sbc
 ./install.sh #from sbc
-#windows
+#windows installer
 ./pack.sh
 ./build.sh
 ./inno.sh #gui
+```
+
+## Helpers
+
+```bash
+#elixir environment info
+Application.started_applications
+Application.get_all_env :nfw
+Application.get_all_env :nss
+#reboot clear first boot errors
+ssh nerves.local << EOF
+cmd "reboot"
+EOF
+#get priv data path
+iex(1)> :code.priv_dir(:nss)           
+'/srv/erlang/lib/nss-0.1.0/priv'
+#list priva data folder
+iex(2)> cmd "ls /srv/erlang/lib/nss-0.1.0/priv"
+test.txt
+0
 ```
 
 ## Future
