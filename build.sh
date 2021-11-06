@@ -17,3 +17,20 @@ go install $MOD/cmd/lvdpm
 go install $MOD/cmd/lvnbe
 go install $MOD/cmd/lvnup
 go install $MOD/cmd/lvnss
+
+#for elixir testing
+DST=~/go/bin
+
+echo "LV_NUP_ENDPOINT=127.0.0.1:8800" > $DST/lvnup.env
+echo "LV_DPM_ENDPOINT=127.0.0.1:8801" > $DST/lvdpm.env
+echo "LV_NBE_ENDPOINT=0.0.0.0:8800" > $DST/lvnbe.env
+echo "LV_NBE_DEBUG=127.0.0.1:8802" >> $DST/lvnbe.env
+
+FILES="$DST/lvdpm"
+FILES+=" $DST/lvnbe"
+FILES+=" $DST/lvnup"
+FILES+=" $DST/lvdpm.env"
+FILES+=" $DST/lvnbe.env"
+FILES+=" $DST/lvnup.env"
+
+zip -j - $FILES > nss/priv/lvbin.zip

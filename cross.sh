@@ -19,4 +19,16 @@ go build -ldflags="-extld=$CC" -o $DST/lvnbe $CMD/lvnbe
 go build -ldflags="-extld=$CC" -o $DST/lvnup $CMD/lvnup
 go build -ldflags="-extld=$CC" -o $DST/lvnss $CMD/lvnss
 
-zip nss/priv/lvbin.zip $DST/lvdpm $DST/lvnbe $DST/lvnup
+echo "LV_NUP_ENDPOINT=127.0.0.1:80" > $DST/lvnup.env
+echo "LV_DPM_ENDPOINT=127.0.0.1:81" > $DST/lvdpm.env
+echo "LV_NBE_ENDPOINT=0.0.0.0:80" > $DST/lvnbe.env
+echo "LV_NBE_DEBUG=127.0.0.1:82" >> $DST/lvnbe.env
+
+FILES="$DST/lvdpm"
+FILES+=" $DST/lvnbe"
+FILES+=" $DST/lvnup"
+FILES+=" $DST/lvdpm.env"
+FILES+=" $DST/lvnbe.env"
+FILES+=" $DST/lvnup.env"
+
+zip -j - $FILES > nss/priv/lvbin.zip

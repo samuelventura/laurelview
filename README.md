@@ -39,36 +39,41 @@ web/lvnfe #node react frontend
 #testing
 ./test.sh all|db|rt|sdk
 #developing 
-./node.sh #launches http://localhost:3000/
+./node.sh       #launches http://localhost:3000/
 ./run.sh info|debug|trace
+./build.sh      #to zip files for elixir
 #BBB firmware
-./pack.sh #node build
-./cross.sh 
+./pack.sh       #node build
+./cross.sh      #build and zip
 ./nerves.sh sd|emmc
-
-#FIXME CROSS COMPILE WITH NERVES DEVENV
-#FIXME INSTALL OVER NERVES
-#sbc install 
-./pack.sh #node build
+#sbc install (DEPRECATED)
+./pack.sh       #node build
 ./sbc.sh bbb|bbbw|pi|piw
-./build.sh #from sbc
-./install.sh #from sbc
+./build.sh      #from sbc
+./install.sh    #from sbc
 #windows installer
 ./pack.sh
 ./build.sh
-./inno.sh #gui
+./inno.sh       #gui
 ```
 
 ## Helpers
 
 ```bash
+#elixir development
+iex -S mix
+recompile
 #elixir environment info
 Application.started_applications
 Application.get_all_env :nfw
 Application.get_all_env :nss
+Application.start :nss
+Application.stop :nss
+Application.app_dir :nss, "priv"
 #reboot clear first boot errors
 ssh nerves.local << EOF
 cmd "reboot"
+exit
 EOF
 #get priv data path
 iex(1)> :code.priv_dir(:nss)           
