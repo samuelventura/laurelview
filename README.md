@@ -41,7 +41,8 @@ web/lvnfe #node react frontend
 #developing 
 ./node.sh       #launches http://localhost:3000/
 ./run.sh info|debug|trace
-./build.sh      #to zip files for elixir
+./build.sh      #for elixir
+./nss.sh        #launch iex
 #BBB firmware
 ./pack.sh       #node build
 ./cross.sh      #build and zip

@@ -13,9 +13,7 @@ case $TYPE in
     ;;
 esac
 
-export NSS_FOLDER="/root/lvbin"
-
-#Ensure NSS_FOLDER is seen
+#ensure NSS_FOLDER is reset
 rm -fr nss/_build
 rm -fr nfw/_build
 

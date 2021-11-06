@@ -16,7 +16,7 @@ defmodule Nss.MixProject do
     [
       extra_applications: [:logger],
       mod: {Nss.App, {}},
-      env: [folder: System.get_env("NSS_FOLDER") || "/tmp/lvbin"]
+      env: [folder: System.get_env("NSS_FOLDER") || "/lvbin"]
     ]
   end
 
