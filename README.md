@@ -47,11 +47,6 @@ web/lvnfe #node react frontend
 ./pack.sh       #node build
 ./cross.sh      #build and zip
 ./nerves.sh sd|emmc
-#sbc install (DEPRECATED)
-./pack.sh       #node build
-./sbc.sh bbb|bbbw|pi|piw
-./build.sh      #from sbc
-./install.sh    #from sbc
 #windows installer
 ./pack.sh
 ./build.sh
@@ -61,6 +56,7 @@ web/lvnfe #node react frontend
 ## Helpers
 
 ```bash
+ssh nerves.local -i nfw/id_rsa
 #elixir development
 iex -S mix
 recompile
