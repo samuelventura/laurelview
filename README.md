@@ -64,13 +64,21 @@ web/lvnfe #node react frontend
 #elixir development
 iex -S mix
 recompile
+Application.start :nss
+Application.stop :nss
 #elixir environment info
 Application.started_applications
 Application.get_all_env :nfw
 Application.get_all_env :nss
-Application.start :nss
-Application.stop :nss
 Application.app_dir :nss, "priv"
+#network configuration 10.77.3.167
+ifconfig
+VintageNet.info
+ping "10.77.0.49"
+ping "google.com"
+VintageNet.configure("eth0", %{type: VintageNetEthernet, ipv4: %{method: :dhcp}})
+VintageNet.configure("eth0", %{type: VintageNetEthernet, ipv4: %{ method: :static, address: "10.77.4.165", prefix_length: 8, name_servers: []}})
+VintageNet.configure("eth0", %{type: VintageNetEthernet, ipv4: %{ method: :static, address: "10.77.4.165", prefix_length: 8, gateway: "10.77.0.1", name_servers: ["10.77.0.1"]}})
 #reboot clear first boot errors
 ssh nerves.local << EOF
 cmd "reboot"

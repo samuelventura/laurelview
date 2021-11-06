@@ -9,7 +9,7 @@ defmodule Nss.Super do
 
   @impl true
   def init(:ok) do
-    folder = Nss.Setup.setup
+    folder = Nss.Setup.folder
 
     children = [
       %{

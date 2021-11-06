@@ -3,7 +3,6 @@ defmodule Nss.Daemon do
 
   @spawn_opts [:stderr_to_stdout, :binary, :stream, {:line, 255}]
 
-  #Nss.Setup.setup
   #{:ok, pid} = Nss.Daemon.start_link "/tmp/lvbin/lvdpm"
   #:ok = GenServer.stop pid
   def start_link(path) do

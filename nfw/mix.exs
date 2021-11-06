@@ -23,7 +23,8 @@ defmodule Nfw.MixProject do
   def application do
     [
       mod: {Nfw.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools],
+      env: [usb: System.get_env("NFW_USB") || "/dev/sda1"]
     ]
   end
 

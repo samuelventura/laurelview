@@ -1,7 +1,6 @@
 defmodule Nss.Setup do
 
-  #Nss.Setup.setup
-  def setup() do
+  def folder() do
     Application.fetch_env!(:nss, :folder)
   end
 
