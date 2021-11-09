@@ -21,3 +21,5 @@ build
 *.db3
 *.zip
 lvbin
+
+.elixir_ls

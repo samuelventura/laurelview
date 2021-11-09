@@ -1,8 +1,10 @@
 #!/bin/bash -x
 
-TYPE="${1:-sd}"
+MEDIA="${1:-sd}"
+#complete|upgrade
+TYPE="${2:-complete}"
 
-case $TYPE in
+case $MEDIA in
     sd)
     export MIX_ENV=dev
     export MIX_TARGET=bbb
@@ -24,19 +26,21 @@ cd nfw
 mix deps.get
 mix firmware
 
-case $TYPE in
+case $MEDIA in
     sd)
-    sudo fwup -aU -i _build/bbb_dev/nerves/images/nfw.fw -t complete
+    IMAGENS=_build/bbb_dev/nerves
+    sudo fwup -aU -i $IMAGENS/images/nfw.fw -t $TYPE
     sync
     ;;
     emmc)
-(cd _build/bbb_emmc_prod/nerves/images/ && sftp nerves.local) << EOF
+    IMAGENS=_build/bbb_emmc_prod/nerves/images
+(cd $IMAGENS && sftp nerves.local -i id_rsa) << EOF
 put nfw.fw /tmp/
 quit
 EOF
 
-ssh nerves.local << EOF
-cmd "fwup -aU -i /tmp/nfw.fw -d /dev/mmcblk1 -t complete"
+ssh nerves.local -i id_rsa << EOF
+cmd "fwup -aU -i /tmp/nfw.fw -d /dev/mmcblk1 -t $TYPE"
 cmd "poweroff"
 exit
 EOF

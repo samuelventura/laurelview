@@ -8,16 +8,44 @@ sudo snap install go #go1.17.2 linux/amd64
 sudo snap install node #v16.13.0
 #https://elixir-lang.org/install.html#gnulinux 
 #based on erlang-solutions release
+#get and install the deb
 #don't install elixir from here
 #nerves needs elixir with same otp version
-apt install esl-erlang #1:24.1.3-1 amd64
+sudo apt update
+sudo apt install esl-erlang #1:24.1.3-1 amd64
 #https://github.com/taylor/kiex
 kiex install 1.12.3
-kiex default 1.12.3
+kiex use 1.12.3
 #mix archive.install hex nerves_bootstrap
+#https://github.com/fwup-home/fwup
+#get and install the deb
+sudo apt install tio curl wget tmux screen vim
+sudo apt install build-essential automake autoconf git squashfs-tools ssh-askpass pkg-config curl libssl-dev libncurses5-dev bc m4 unzip cmake python
+sudo gpasswd -a $USER dialout
+stty -F /dev/ttyUSB0 115200
+tio /dev/ttyUSB0
+#Use FTDI TTL-234X-3V3
+#J1 UART pinout
+#1 GND
+#4 RX
+#5 TX 
 
 #macos
+#https://hexdocs.pm/nerves/installation.html
+brew install erlang elixir node go
+brew install fwup squashfs coreutils xz pkg-config
+#samuel@svm-mbair ~ % go version  
+#go version go1.17.2 darwin/arm64
+#samuel@svm-mbair ~ % node --version
+#v16.4.1
+#samuel@svm-mbair ~ % elixir --version
+#Erlang/OTP 24 [erts-12.1.4] [source] [64-bit] [smp:8:8] [ds:8:8:10] [async-threads:1] [dtrace]
+#Elixir 1.12.3 (compiled with Erlang/OTP 24)
 
+#both
+sudo visudo     #passwordless sudo
+#%admin          ALL = (ALL) NOPASSWD: ALL
+#sudo gpasswd -a $USER admin
 ```
 
 ## Code Tree
@@ -36,17 +64,18 @@ web/lvnfe #node react frontend
 ## Howto
 
 ```bash
-#testing
+#testing go code
 ./test.sh all|db|rt|sdk
-#developing 
+#develop go + react
 ./node.sh       #launches http://localhost:3000/
 ./run.sh info|debug|trace
 ./build.sh      #for elixir
 ./nss.sh        #launch iex
-#BBB firmware
+#nerves BBB firmware
+./deps.sh       #once only
 ./pack.sh       #node build
 ./cross.sh      #build and zip
-./nerves.sh sd|emmc
+./nerves.sh sd|emmc complete|upgrade
 #windows installer
 ./pack.sh
 ./build.sh
@@ -56,6 +85,7 @@ web/lvnfe #node react frontend
 ## Helpers
 
 ```bash
+#https://github.com/samuelventura/nerves_backdoor
 ssh nerves.local -i nfw/id_rsa
 #elixir development
 iex -S mix
@@ -64,6 +94,7 @@ Application.start :nss
 Application.stop :nss
 #elixir environment info
 Application.started_applications
+Application.loaded_applications
 Application.get_all_env :nfw
 Application.get_all_env :nss
 Application.app_dir :nss, "priv"
@@ -72,6 +103,10 @@ ifconfig
 VintageNet.info
 ping "10.77.0.49"
 ping "google.com"
+VintageNet.get_configuration("eth0")
+VintageNet.get(["interface", "eth0", "type"])
+VintageNet.get(["interface", "eth0", "state"])
+VintageNet.get(["interface", "eth0", "connection"])
 VintageNet.configure("eth0", %{type: VintageNetEthernet, ipv4: %{method: :dhcp}})
 VintageNet.configure("eth0", %{type: VintageNetEthernet, ipv4: %{ method: :static, address: "10.77.4.165", prefix_length: 8, name_servers: []}})
 VintageNet.configure("eth0", %{type: VintageNetEthernet, ipv4: %{ method: :static, address: "10.77.4.165", prefix_length: 8, gateway: "10.77.0.1", name_servers: ["10.77.0.1"]}})

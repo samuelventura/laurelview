@@ -1,6 +1,15 @@
 #!/bin/bash -x
 
-export TOOLCHAIN="$HOME/.nerves/artifacts/nerves_toolchain_armv7_nerves_linux_gnueabihf-linux_x86_64-1.4.3"
+case $OSTYPE in
+    linux*)
+    TARGARCH=linux_x86_64-1.4.3
+    ;;
+    darwin*)
+    TARGARCH=darwin_arm-1.4.3
+    ;;
+esac
+
+export TOOLCHAIN="$HOME/.nerves/artifacts/nerves_toolchain_armv7_nerves_linux_gnueabihf-$TARGARCH"
 export CC="$TOOLCHAIN/bin/armv7-nerves-linux-gnueabihf-cc"
 export GOOS=linux 
 export GOARCH=arm
