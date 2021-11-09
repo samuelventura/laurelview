@@ -19,6 +19,8 @@ rm -fr nfw/_build
 
 cd nfw
 
+#first time requires 
+#mix archive.install hex nerves_bootstrap
 mix deps.get
 mix firmware
 
