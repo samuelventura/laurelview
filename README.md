@@ -32,8 +32,10 @@ tio /dev/ttyUSB0
 
 #macos
 #https://hexdocs.pm/nerves/installation.html
-brew install erlang elixir node go
+brew install erlang elixir node go sqlite
 brew install fwup squashfs coreutils xz pkg-config
+brew deps --tree --installed
+brew list
 #samuel@svm-mbair ~ % go version  
 #go version go1.17.2 darwin/arm64
 #samuel@svm-mbair ~ % node --version
