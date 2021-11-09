@@ -7,10 +7,6 @@ defmodule Nfw.Application do
 
   @impl true
   def start(_type, _args) do
-
-    #configure network
-    Nfw.setup
-
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Nfw.Supervisor]

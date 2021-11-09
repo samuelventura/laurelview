@@ -36,6 +36,7 @@ defmodule Nfw.MixProject do
       {:shoehorn, "~> 0.7.0"},
       {:ring_logger, "~> 0.8.1"},
       {:toolshed, "~> 0.2.13"},
+      {:nerves_backdoor, path: "../../../nerves_backdoor", targets: @all_targets, env: Mix.env()},
       {:nss, path: "../nss", targets: @all_targets, env: Mix.env()},
 
       # Dependencies for all targets except :host
