@@ -1,7 +1,12 @@
 
 const devURL = "ws://localhost:5001/ws"
 const location = window.location
-let prodURL = "ws://" + location.host + "/ws"
+const locurl = new URL(location.href)
+let wsproto = "ws:"
+if (locurl.protocol==="https:") {
+  wsproto = "wss:"
+}
+let prodURL = `${wsproto}//${locurl.host}${locurl.pathname}ws`
 
 if (location.hostname === "laurelview.io") {
     prodURL = "wss://laurelview.io/ws"
