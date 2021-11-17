@@ -1,7 +1,10 @@
 #!/bin/bash -x
 
+#ps -A | grep lv
+trap 'kill $(jobs -p)' SIGINT SIGTERM EXIT
+
 #info|debug|trace
-export PATH=~/go/bin:$PATH
+BIN=~/go/bin
 export LV_LOGLEVEL="${1:-info}"
 export LV_NBE_DEBUG="127.0.0.1:5000"
 export LV_NBE_ENDPOINT="127.0.0.1:5001"
@@ -14,5 +17,15 @@ touch cmd/lvnbe/build/.empty
 go install $MOD/cmd/lvdpm
 go install $MOD/cmd/lvnbe
 go install $MOD/cmd/lvnup
-go install $MOD/cmd/lvnss && lvnss > /tmp/lvnss.log
-trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
+
+run_lv() {
+    rm -f /tmp/$1.fifo
+    mkfifo /tmp/$1.fifo
+    cat /tmp/$1.fifo | $BIN/$1 &
+}
+
+run_lv "lvdpm"
+run_lv "lvnbe"
+run_lv "lvnup"
+
+read -p "Press any key..."

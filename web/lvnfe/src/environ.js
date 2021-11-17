@@ -1,22 +1,14 @@
 
-const devURL = "ws://localhost:5001/ws"
-const location = window.location
-const locurl = new URL(location.href)
+const locurl = new URL(window.location.href)
 let wsproto = "ws:"
 if (locurl.protocol==="https:") {
   wsproto = "wss:"
 }
-let prodURL = `${wsproto}//${locurl.host}${locurl.pathname}ws`
-
-if (location.hostname === "laurelview.io") {
-    prodURL = "wss://laurelview.io/ws"
-}
+let wsURL = `${wsproto}//${locurl.host}${locurl.pathname}ws`
 
 const isDev = process.env.NODE_ENV === 'development'
 
 let logEnabled = isDev
-
-const wsURL = isDev ? devURL : prodURL
 
 function log(...args) {
   if (logEnabled) {

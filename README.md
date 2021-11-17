@@ -73,6 +73,10 @@ web/lvnfe #node react frontend
 ./run.sh info|debug|trace
 ./build.sh      #for elixir
 ./nss.sh        #launch iex
+#develop local proxy
+./pack.sh       #only once
+./run.sh        #go to http://localhost:5001/
+./proxy.sh      #go to https://127.0.0.1:31080/proxy/demo/
 #nerves BBB firmware
 ./deps.sh       #once only
 ./pack.sh       #node build
@@ -135,6 +139,7 @@ test.txt
 - Autoscale view screens
 - Link node Laurels to cloud
 - iPhone bookmark shows react icon
+- Node react proxy wont server ws to chrome
 
 # Networking Issues
 
