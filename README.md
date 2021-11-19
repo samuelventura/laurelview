@@ -79,7 +79,7 @@ web/lvnfe #node react frontend
 ./deps.sh       #once only
 ./pack.sh       #node build
 ./cross.sh      #build and zip
-./nerves.sh sd|emmc complete|upgrade
+./nerves.sh sd|emmc|sdssh upgrade|complete
 #windows installer
 ./pack.sh
 ./build.sh

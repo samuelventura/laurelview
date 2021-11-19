@@ -10,6 +10,9 @@ trap 'kill $(jobs -p)' SIGINT SIGTERM EXIT
 TEP=127.0.0.1:5001 
 BIN=~/go/bin
 SRC=~/github
+# cd $SRC/go-ship-ms && git pull
+# cd $SRC/go-dock-ms && git pull
+# cd $SRC/go-proxy-ms && git pull
 cd $SRC/go-ship-ms && go install
 cd $SRC/go-dock-ms && go install
 cd $SRC/go-proxy-ms && go install
@@ -51,5 +54,6 @@ export SHIP_DOCK_KEYPATH=$SRC/go-ship-ms/id_rsa.key
 export SHIP_DOCK_POOL=127.0.0.1:31022
 run_goms "ship"
 
-#https://127.0.0.1:31080/proxy/demo
+#the browser requires the trailing /
+#https://127.0.0.1:31080/proxy/demo/
 read -p "Press any key..."
