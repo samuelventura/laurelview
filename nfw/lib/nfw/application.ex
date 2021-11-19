@@ -31,10 +31,23 @@ defmodule Nfw.Application do
   end
 
   def children(_target) do
+    bin = Application.fetch_env!(:nfw, :bin)
     [
       # Children for all targets except host
       # Starts a worker by calling: Nfw.Worker.start_link(arg)
       # {Nfw.Worker, arg},
+      %{
+        id: :lvdpm,
+        start: {NervesBackdoor.Daemon, :start_link, [Path.join(bin, "lvdpm")]}
+      },
+      %{
+        id: :lvnbe,
+        start: {NervesBackdoor.Daemon, :start_link, [Path.join(bin, "lvnbe")]}
+      },
+      %{
+        id: :lvnup,
+        start: {NervesBackdoor.Daemon, :start_link, [Path.join(bin, "lvnup")]}
+      },
     ]
   end
 

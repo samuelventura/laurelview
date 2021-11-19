@@ -71,8 +71,6 @@ web/lvnfe #node react frontend
 #develop go + react
 ./node.sh       #launches http://localhost:3000/
 ./run.sh info|debug|trace
-./build.sh      #for elixir
-./nss.sh        #launch iex
 #develop local proxy
 ./pack.sh       #only once
 ./run.sh        #go to http://localhost:5001/
@@ -96,14 +94,15 @@ ssh nerves.local -i nfw/id_rsa
 #elixir development
 iex -S mix
 recompile
-Application.start :nss
-Application.stop :nss
+Application.start :nfw
+Application.stop :nfw
+Application.start(:nerves_backdoor)
+Application.ensure_all_started(:nerves_backdoor)
 #elixir environment info
 Application.started_applications
 Application.loaded_applications
 Application.get_all_env :nfw
-Application.get_all_env :nss
-Application.app_dir :nss, "priv"
+Application.app_dir :nfw, "priv"
 #network configuration 10.77.3.167
 ifconfig
 VintageNet.info
@@ -122,10 +121,10 @@ cmd "reboot"
 exit
 EOF
 #get priv data path
-iex(1)> :code.priv_dir(:nss)           
-'/srv/erlang/lib/nss-0.1.0/priv'
+iex(1)> :code.priv_dir(:nfw)           
+'/srv/erlang/lib/nfw-0.1.0/priv'
 #list priva data folder
-iex(2)> cmd "ls /srv/erlang/lib/nss-0.1.0/priv"
+iex(2)> cmd "ls /srv/erlang/lib/nfw-0.1.0/priv"
 test.txt
 0
 ```

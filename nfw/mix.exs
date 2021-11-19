@@ -23,8 +23,10 @@ defmodule Nfw.MixProject do
   def application do
     [
       mod: {Nfw.Application, []},
-      extra_applications: [:logger, :runtime_tools],
-      env: [usb: System.get_env("NFW_USB") || "/dev/sda1"]
+      extra_applications: [:logger, :runtime_tools, :nerves_backdoor],
+      #usb is partition to mount
+      env: [usb: System.get_env("NFW_USB") || "/dev/sda1",
+      bin: System.get_env("NFW_BIN") || "/lvbin"]
     ]
   end
 
@@ -36,8 +38,8 @@ defmodule Nfw.MixProject do
       {:shoehorn, "~> 0.7.0"},
       {:ring_logger, "~> 0.8.1"},
       {:toolshed, "~> 0.2.13"},
-      {:nerves_backdoor, "~> 0.1.0"},
-      {:nss, path: "../nss", targets: @all_targets, env: Mix.env()},
+      #{:nerves_backdoor, "~> 0.1.1"},
+      {:nerves_backdoor, path: "../../../nerves_backdoor"},
 
       # Dependencies for all targets except :host
       {:nerves_runtime, "~> 0.11.3", targets: @all_targets},

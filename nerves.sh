@@ -15,8 +15,7 @@ case $MEDIA in
     ;;
 esac
 
-#ensure NSS_FOLDER is reset
-rm -fr nss/_build
+#ensure NFW_BIN is reset
 rm -fr nfw/_build
 
 cd nfw

@@ -32,4 +32,4 @@ echo "LV_NUP_ENDPOINT=127.0.0.1:80" > $DST/lvnup.env
 echo "LV_DPM_ENDPOINT=127.0.0.1:81" > $DST/lvdpm.env
 echo "LV_NBE_ENDPOINT=0.0.0.0:80" > $DST/lvnbe.env
 echo "LV_NBE_DEBUG=127.0.0.1:82" >> $DST/lvnbe.env
-echo "LV_NBE_DATABASE=/root/lvnbe.db3" >> $DST/lvnbe.env
+echo "LV_NBE_DATABASE=/data/lvnbe.db3" >> $DST/lvnbe.env
