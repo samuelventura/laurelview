@@ -1,5 +1,18 @@
 # Laurel View
 
+## What is LaurelView?
+
+- A market exploration
+- A technological HW/SW exploration
+- An arquitectural exploration
+
+## Challenges
+
+- Seemsless experience between intranet and roaming users
+- Long term reliability of embedded data store
+- Out of the box setup experience
+- Remote OTA upgrades
+
 ## Dev Environ
 
 ```bash
@@ -133,9 +146,11 @@ test.txt
 
 - Serial Port
 - Realtime Plot 
+- Authentication
 - HTTPS certificate
 - Kill service test
 - Autoscale view screens
+- Historic data reporting
 - Link node Laurels to cloud
 - iPhone bookmark shows react icon
 - Node react proxy wont server ws to chrome
