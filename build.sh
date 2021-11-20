@@ -17,6 +17,7 @@ go install $MOD/cmd/lvdpm
 go install $MOD/cmd/lvnbe
 go install $MOD/cmd/lvnup
 go install $MOD/cmd/lvnss
+go install $MOD/cmd/lvcbe
 
 #for elixir testing
 DST=~/go/bin
