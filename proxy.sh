@@ -30,7 +30,7 @@ export PROXY_HTTPS_EP=127.0.0.1:31080
 export PROXY_HTTP_EP=127.0.0.1:31081
 export PROXY_DOCK_EP=127.0.0.1:31023
 export PROXY_API_EP=127.0.0.1:31088
-export PROXY_MAIN_URL=https://www.google.com
+export PROXY_MAIN_URL=http://127.0.0.1:5003/
 export PROXY_HOSTNAME=demo
 run_goms "proxy"
 
@@ -54,6 +54,7 @@ export SHIP_DOCK_KEYPATH=$SRC/go-ship-ms/id_rsa.key
 export SHIP_DOCK_POOL=127.0.0.1:31022
 run_goms "ship"
 
+#https://127.0.0.1:31080/
 #the browser requires the trailing /
 #https://127.0.0.1:31080/proxy/demo/
 read -p "Press any key..."

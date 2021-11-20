@@ -17,6 +17,10 @@ var build embed.FS
 
 func static(c *gin.Context) {
 	path := "build" + c.Request.URL.Path
+	if path == "build/" {
+		path = "build/index.html"
+	}
+	//log.Println(path)
 	data, err := build.ReadFile(path)
 	if err != nil {
 		c.Next()
