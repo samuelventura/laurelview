@@ -7,13 +7,19 @@ function App() {
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <p>
-          LaurelView
+          LaurelView Live Demos
         </p>
         <a
           className="App-link"
-          href="proxy/demo/"
+          href="/proxy/demo1/"
         >
-          Demo
+          Live Demo1
+        </a>
+        <a
+          className="App-link"
+          href="/proxy/demo2/"
+        >
+          Live Demo2
         </a>
       </header>
     </div>

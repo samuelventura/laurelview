@@ -31,4 +31,4 @@ run_lv "lvnbe"
 run_lv "lvnup"
 run_lv "lvcbe"
 
-read -p "Press any key..."
+read -p "Press ENTER to quit..."

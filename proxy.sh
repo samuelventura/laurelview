@@ -7,7 +7,7 @@ trap 'kill $(jobs -p)' SIGINT SIGTERM EXIT
 #TEP=10.77.3.155:80
 #./pack.sh
 #./run.sh
-TEP=127.0.0.1:5001 
+TEP=127.0.0.1:5001 #must include port 
 BIN=~/go/bin
 SRC=~/github
 # cd $SRC/go-ship-ms && git pull
@@ -41,8 +41,10 @@ run_goms "dock"
 
 sleep 1
 #register to proxy
-curl -X POST http://127.0.0.1:31088/api/ship/add/demo?prefix=http://$TEP
-curl -X POST http://127.0.0.1:31088/api/ship/enable/demo
+curl -X POST "http://127.0.0.1:31088/api/ship/add/demo1?ship=demo&prefix=http://$TEP"
+curl -X POST http://127.0.0.1:31088/api/ship/enable/demo1
+curl -X POST "http://127.0.0.1:31088/api/ship/add/demo2?ship=demo&prefix=http://$TEP"
+curl -X POST http://127.0.0.1:31088/api/ship/enable/demo2
 #register to dock
 curl -X POST http://127.0.0.1:31023/api/key/add/default -F "file=@$SRC/go-dock-ms/id_rsa.pub"
 curl -X POST http://127.0.0.1:31023/api/key/enable/default
@@ -57,4 +59,6 @@ run_goms "ship"
 #https://127.0.0.1:31080/
 #the browser requires the trailing /
 #https://127.0.0.1:31080/proxy/demo/
-read -p "Press any key..."
+read -p "Press ENTER to quit..."
+
+#go-proxy-ms needs aggresive idle to to 1s
