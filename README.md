@@ -89,10 +89,10 @@ web/lvnfe #node react frontend
 ./run.sh        #go to http://localhost:5001/
 ./proxy.sh      #go to https://127.0.0.1:31080/proxy/demo/
 #nerves BBB firmware
-./deps.sh       #once only
-./pack.sh       #node build
-./cross.sh      #build and zip
-./nerves.sh sd|emmc|sdssh upgrade|complete
+./deps.sh           #once only
+./pack.sh           #node build
+./cross.sh bbb|rpi4 #build and zip
+./nerves.sh ssh|sd|emmc upgrade|complete bbb|rpi4
 #windows installer
 ./pack.sh
 ./build.sh
@@ -104,13 +104,19 @@ web/lvnfe #node react frontend
 ```bash
 #https://github.com/samuelventura/nerves_backdoor
 ssh nerves.local -i nfw/id_rsa
+export MIX_ENV=dev
+export MIX_TARGET=bbb|rpi4
+(cd nfw; ssh-add `pwd`/id_rsa)
+(cd nfw; mix firmware)
+(cd nfw; mix upload nerves.local)
+(cd nfw; mix do firmware, upload nerves.local)
 #elixir development
 iex -S mix
 recompile
 Application.start :nfw
 Application.stop :nfw
-Application.start(:nerves_backdoor)
-Application.ensure_all_started(:nerves_backdoor)
+Application.start :nerves_backdoor
+Application.ensure_all_started :nerves_backdoor
 #elixir environment info
 Application.started_applications
 Application.loaded_applications

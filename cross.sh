@@ -1,27 +1,45 @@
 #!/bin/bash -x
 
+# bbb|rpi4
+BOARD="${1:-bbb}"
+
 case $OSTYPE in
     linux*)
-    TARGARCH=linux_x86_64-1.4.3
+    DEVARCH=linux_x86_64-1.4.3
     ;;
     darwin*)
-    TARGARCH=darwin_arm-1.4.3
+    DEVARCH=darwin_arm-1.4.3
     ;;
 esac
 
-export TOOLCHAIN="$HOME/.nerves/artifacts/nerves_toolchain_armv7_nerves_linux_gnueabihf-$TARGARCH"
-export CC="$TOOLCHAIN/bin/armv7-nerves-linux-gnueabihf-cc"
-export GOOS=linux 
-export GOARCH=arm
-export GOARM=7 
-export CGO_ENABLED=1 
+case $BOARD in
+    bbb)
+    TARGARCH=armv7_nerves_linux_gnueabihf
+    CCEXE=armv7-nerves-linux-gnueabihf
+    export TOOLCHAIN="$HOME/.nerves/artifacts/nerves_toolchain_$TARGARCH-$DEVARCH"
+    export CC="$TOOLCHAIN/bin/$CCEXE-cc"
+    export GOOS=linux 
+    export GOARCH=arm
+    export GOARM=7 
+    export CGO_ENABLED=1 
+    ;;
+    rpi4)
+    TARGARCH=aarch64_nerves_linux_gnu
+    CCEXE=aarch64-nerves-linux-gnu
+    export TOOLCHAIN="$HOME/.nerves/artifacts/nerves_toolchain_$TARGARCH-$DEVARCH"
+    export CC="$TOOLCHAIN/bin/$CCEXE-cc"
+    export GOOS=linux 
+    export GOARCH=arm64
+    export CGO_ENABLED=1 
+    ;;
+esac
 
 MOD="github.com/YeicoLabs/laurelview"
 CMD=$MOD/cmd
 DST=nfw/rootfs_overlay/lvbin
 mkdir -p $DST
 
-[ ! -d $TOOLCHAIN ] && (cd nfw; MIX_TARGET=bbb mix deps.get)
+[ ! -d $TOOLCHAIN ] && (cd nfw; MIX_TARGET=$BOARD mix deps.get)
 
 go build -ldflags="-extld=$CC" -o $DST/lvdpm $CMD/lvdpm
 go build -ldflags="-extld=$CC" -o $DST/lvnbe $CMD/lvnbe

@@ -1,44 +1,51 @@
 #!/bin/bash -x
 
-#sd|emmc|sdssh|emmcssh
-MEDIA="${1:-sd}"
-#upgrade|complete
+# ssh|sd|emmc
+MEDIA="${1:-ssh}"
+# upgrade|complete
 TYPE="${2:-upgrade}"
+# bbb|rpi4
+BOARD="${3:-bbb}"
 
 case $MEDIA in
-    sd*)
+    sd|ssh)
     export MIX_ENV=dev
-    export MIX_TARGET=bbb
+    export MIX_TARGET=$BOARD
     ;;
-    emmc*)
+    emmc)
     export MIX_ENV=prod
     export MIX_TARGET=bbb_emmc
     ;;
 esac
 
-#ensure NFW_BIN is reset
+# ensure NFW_BIN is reset
 rm -fr nfw/_build
 
 cd nfw
 
-#first time requires 
-#mix archive.install hex nerves_bootstrap
+# first time requires 
+# mix archive.install hex nerves_bootstrap
 mix deps.get
 mix firmware
 
 KEY=`pwd`/id_rsa
 case $MEDIA in
-    *ssh)
-    #sd upgraded ok, emmc upgrade marks image as NOT VALIDATED
-    #nfw 0.1.0 (4761f97d-5d54-5f73-9f37-3a8fee26fecb) arm bbb
-    #nfw 0.1.0 (8654fa33-8f2f-5046-cbf9-fa7064a9bc75) arm bbb
+    ssh) #wont work for bbb_emmc
     ssh-add $KEY
     mix upload nerves.local
     ;;
     sd)
-    IMAGES=_build/bbb_dev/nerves
-    sudo fwup -aU -i $IMAGES/images/nfw.fw -t $TYPE
-    sync
+    case $TYPE in
+        complete)
+        mix firmware.burn
+        sync
+        ;;
+        upgrade)
+        IMAGES=_build/${BOARD}_dev/nerves
+        sudo fwup -aU -i $IMAGES/images/nfw.fw -t $TYPE        
+        sync
+        ;;
+    esac
     ;;
     emmc)
     IMAGES=_build/bbb_emmc_prod/nerves/images

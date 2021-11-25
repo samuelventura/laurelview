@@ -3,7 +3,7 @@ defmodule Nfw.MixProject do
 
   @app :nfw
   @version "0.1.0"
-  @all_targets [:bbb, :bbb_emmc]
+  @all_targets [:bbb, :bbb_emmc, :rpi4]
 
   def project do
     [
@@ -50,6 +50,7 @@ defmodule Nfw.MixProject do
       # bumps to Nerves systems. Since these include Linux kernel and Erlang
       # version updates, please review their release notes in case
       # changes to your application are needed.
+      {:nerves_system_rpi4, "~> 1.17", runtime: false, targets: :rpi4},
       {:nerves_system_bbb, "~> 2.12", runtime: false, targets: :bbb},
       {:nerves_system_bbb_emmc, "~> 0.0.1", runtime: false, targets: :bbb_emmc}
     ]
