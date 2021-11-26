@@ -6,11 +6,11 @@ MOD="github.com/YeicoLabs/laurelview"
 
 case $TARGET in
     node)
-    [ ! -d web/lvnfe/node_modules ] && (cd web/lvnfe; npm i)
-    (cd web/lvnfe; npm start)
+    [ ! -d web/lvnfe/node_modules ] && (cd web/lvnfe; yarn install)
+    (cd web/lvnfe; yarn start)
     ;;
     cloud)
-    [ ! -d web/lvcfe/node_modules ] && (cd web/lvcfe; npm i)
-    (cd web/lvcfe; npm start)
+    [ ! -d web/lvcfe/node_modules ] && (cd web/lvcfe; yarn install)
+    (cd web/lvcfe; yarn start)
     ;;
 esac
