@@ -90,6 +90,7 @@ func handleSshConnection(node tree.Node, tcpConn net.Conn) {
 	}
 	node.AddCloser("sshConn", sshConn.Close)
 	node.SetValue("ssh", sshConn)
+	log.Println(sshConn.User(), node.Name())
 	single.enter(node)
 	defer single.exit(node)
 	listen, err := net.Listen("tcp", proxy)
