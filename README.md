@@ -102,6 +102,9 @@ web/lvnfe #node react frontend
 ## Helpers
 
 ```bash
+dig dock.laurelview.io TXT
+(cd cmd/lvnlk; go install && ~/go/bin/lvnlk)
+(cd cmd/lvclk; go install && ~/go/bin/lvclk)
 #https://github.com/samuelventura/nerves_backdoor
 ssh nerves.local -i nfw/id_rsa
 export MIX_ENV=dev

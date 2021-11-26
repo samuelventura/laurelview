@@ -61,19 +61,19 @@ func main() {
 	prg := &program{}
 	s, err := service.New(prg, svcConfig)
 	if err != nil {
-		log.Fatal(err)
+		log.Panicln(err)
 	}
 	if len(*svcFlag) != 0 {
 		err := service.Control(s, *svcFlag)
 		if err != nil {
 			log.Printf("Valid actions: %q\n", service.ControlAction)
-			log.Fatal(err)
+			log.Panicln(err)
 		}
 		return
 	}
 	slog, err := s.Logger(nil)
 	if err != nil {
-		log.Fatal(err)
+		log.Panicln(err)
 	}
 	logger = Wrap(slog)
 	//after logger created

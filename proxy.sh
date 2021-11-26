@@ -5,17 +5,15 @@ trap 'kill $(jobs -p)' SIGINT SIGTERM EXIT
 
 #beaglebone debian
 #TEP=10.77.3.155:80
-#./pack.sh
-#./run.sh
 TEP=127.0.0.1:5001 #must include port 
 BIN=~/go/bin
 SRC=~/github
-# cd $SRC/go-ship-ms && git pull
-# cd $SRC/go-dock-ms && git pull
-# cd $SRC/go-proxy-ms && git pull
-cd $SRC/go-ship-ms && go install
-cd $SRC/go-dock-ms && go install
-cd $SRC/go-proxy-ms && go install
+# (cd $SRC/go-ship-ms && git pull)
+# (cd $SRC/go-dock-ms && git pull)
+# (cd $SRC/go-proxy-ms && git pull)
+(cd $SRC/go-ship-ms && go install)
+(cd $SRC/go-dock-ms && go install)
+(cd $SRC/go-proxy-ms && go install)
 
 run_goms() {
     rm -f $BIN/go-$1-ms.db3
@@ -56,9 +54,11 @@ export SHIP_DOCK_KEYPATH=$SRC/go-ship-ms/id_rsa.key
 export SHIP_DOCK_POOL=127.0.0.1:31022
 run_goms "ship"
 
+#./pack.sh
+#./run.sh
 #https://127.0.0.1:31080/
 #the browser requires the trailing /
 #https://127.0.0.1:31080/proxy/demo/
 read -p "Press ENTER to quit..."
 
-#go-proxy-ms needs aggresive idle to to 1s
+#go-proxy-ms needs aggresive idle timeout to 1s

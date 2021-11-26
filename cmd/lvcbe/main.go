@@ -1,22 +1,19 @@
 package main
 
 import (
-	"io/ioutil"
 	"log"
 	"os"
-	"os/signal"
 
 	"github.com/samuelventura/go-state"
+	"github.com/samuelventura/go-tools"
 	"github.com/samuelventura/go-tree"
 )
 
 func main() {
-	os.Setenv("GOTRACEBACK", "all")
-	log.SetFlags(log.LstdFlags | log.Lmicroseconds)
-	log.SetOutput(os.Stdout)
+	tools.SetupLog()
 
-	ctrlc := make(chan os.Signal, 1)
-	signal.Notify(ctrlc, os.Interrupt)
+	ctrlc := tools.SetupCtrlc()
+	stdin := tools.SetupStdinAll()
 
 	log.Println("start", os.Getpid())
 	defer log.Println("exit")
@@ -25,24 +22,18 @@ func main() {
 	defer rnode.WaitDisposed()
 	//recover closes as well
 	defer rnode.Recover()
+	rnode.SetValue("endpoint", tools.GetEnviron("LV_CBE_ENDPOINT", "127.0.0.1:31603"))
+	rnode.SetValue("state", tools.GetEnviron("LV_CBE_STATE", tools.WithExtension("state")))
 
-	spath := state.SingletonPath()
-	snode := state.Serve(rnode, spath)
+	snode := state.Serve(rnode, rnode.GetValue("state").(string))
 	defer snode.WaitDisposed()
 	defer snode.Close()
-	log.Println("socket", spath)
 
 	anode := rnode.AddChild("api")
 	defer anode.WaitDisposed()
 	defer anode.Close()
-	anode.SetValue("endpoint", getenv("LV_CBE_ENDPOINT", "127.0.0.1:31603"))
 	api(anode)
 
-	stdin := make(chan interface{})
-	go func() {
-		defer close(stdin)
-		ioutil.ReadAll(os.Stdin)
-	}()
 	select {
 	case <-rnode.Closed():
 	case <-snode.Closed():
