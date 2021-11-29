@@ -67,10 +67,10 @@ func sshd(node tree.Node) {
 	})
 }
 
-func setupSshConnection(node tree.Node, tcpConn net.Conn, id Id) {
+func setupSshConnection(node tree.Node, tcpConn net.Conn, id *idDso) {
 	defer node.IfRecoverCloser(tcpConn.Close)
 	addr := tcpConn.RemoteAddr().String()
-	cid := id.Next(addr)
+	cid := id.next(addr)
 	child := node.AddChild(cid)
 	child.AddCloser("tcpConn", tcpConn.Close)
 	child.AddProcess("tcpConn", func() {
@@ -141,10 +141,10 @@ func handleSshConnection(node tree.Node, tcpConn net.Conn) {
 	}
 }
 
-func setupProxyConnection(node tree.Node, proxyConn net.Conn, id Id) {
+func setupProxyConnection(node tree.Node, proxyConn net.Conn, id *idDso) {
 	defer node.IfRecoverCloser(proxyConn.Close)
 	addr := proxyConn.RemoteAddr().String()
-	cid := id.Next(addr)
+	cid := id.next(addr)
 	child := node.AddChild(cid)
 	child.AddCloser("proxyConn", proxyConn.Close)
 	child.AddProcess("proxyConn", func() {

@@ -26,6 +26,7 @@ func main() {
 	rnode.SetValue("record", tools.GetEnviron("LV_NLK_DOCK_RECORD", "dock.laurelview.io"))
 	rnode.SetValue("pool", tools.GetEnviron("LV_NLK_DOCK_POOL", ""))
 	rnode.SetValue("count", newCount())
+	rnode.SetValue("id", newId("ch"))
 
 	enode := rnode.AddChild("ship")
 	defer enode.WaitDisposed()

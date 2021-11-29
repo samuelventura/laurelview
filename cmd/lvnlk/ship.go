@@ -2,7 +2,6 @@ package main
 
 import (
 	"embed"
-	"fmt"
 	"io"
 	"log"
 	"math/rand"
@@ -24,6 +23,7 @@ func run(node tree.Node) {
 	target := node.GetValue("target").(string)
 	record := node.GetValue("record").(string)
 	count := node.GetValue("count").(*countDso)
+	id := node.GetValue("id").(*idDso)
 	key, err := keys.ReadFile("keys/id_rsa")
 	if err != nil {
 		log.Panicln(err)
@@ -151,15 +151,12 @@ func run(node tree.Node) {
 			})
 		}
 		node.AddProcess("sshch", func() {
-			child_count := 0
 			for ch := range sshch {
 				if ch.ChannelType() != "forward" {
 					ch.Reject(ssh.Prohibited, "unsupported")
 					return
 				}
-				child_count++
-				cid := fmt.Sprintf("child-%d", child_count)
-				setupForward(ch, cid)
+				setupForward(ch, id.next())
 			}
 		})
 		return
