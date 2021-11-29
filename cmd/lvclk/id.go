@@ -16,7 +16,7 @@ type Id interface {
 	Next(key string) string
 }
 
-func NewId(prefix string) Id {
+func newId(prefix string) Id {
 	s := &idDso{}
 	s.mutex = new(sync.Mutex)
 	s.prefix = prefix

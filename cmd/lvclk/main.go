@@ -24,6 +24,7 @@ func main() {
 	rnode.SetValue("endpoint", tools.GetEnviron("LV_CLK_ENDPOINT_SSH", "0.0.0.0:31622"))
 	rnode.SetValue("proxy", tools.GetEnviron("LV_CLK_ENDPOINT_PROXY", "127.0.0.1:31680"))
 	rnode.SetValue("single", newSingle())
+	rnode.SetValue("count", newCount())
 
 	enode := rnode.AddChild("ssh")
 	defer enode.WaitDisposed()

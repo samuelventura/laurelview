@@ -55,7 +55,7 @@ func sshd(node tree.Node) {
 	port := listen.Addr().(*net.TCPAddr).Port
 	node.SetValue("port", port)
 	node.AddProcess("listen", func() {
-		id := NewId("ssh-" + listen.Addr().String())
+		id := newId("ssh-" + listen.Addr().String())
 		for {
 			tcpConn, err := listen.Accept()
 			if err != nil {
@@ -130,7 +130,7 @@ func handleSshConnection(node tree.Node, tcpConn net.Conn) {
 			}
 		}
 	})
-	id := NewId("proxy-" + listen.Addr().String())
+	id := newId("proxy-" + listen.Addr().String())
 	for {
 		proxyConn, err := listen.Accept()
 		if err != nil {
@@ -148,6 +148,12 @@ func setupProxyConnection(node tree.Node, proxyConn net.Conn, id Id) {
 	child := node.AddChild(cid)
 	child.AddCloser("proxyConn", proxyConn.Close)
 	child.AddProcess("proxyConn", func() {
+		count := node.GetValue("count").(*countDso)
+		log.Println("open", count.increment(), cid)
+		defer func() {
+			//count.decrement() executed immediatelly otherwise
+			log.Println("close", count.decrement(), cid)
+		}()
 		handleProxyConnection(child, proxyConn)
 	})
 }

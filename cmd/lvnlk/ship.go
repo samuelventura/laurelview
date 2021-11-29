@@ -23,6 +23,7 @@ func run(node tree.Node) {
 	pool := node.GetValue("pool").(string)
 	target := node.GetValue("target").(string)
 	record := node.GetValue("record").(string)
+	count := node.GetValue("count").(*countDso)
 	key, err := keys.ReadFile("keys/id_rsa")
 	if err != nil {
 		log.Panicln(err)
@@ -132,7 +133,6 @@ func run(node tree.Node) {
 			case <-node.Closed():
 			}
 		}
-		count := newCount()
 		setupForward := func(ch ssh.NewChannel, cid string) {
 			defer node.IfRecoverAction(func() {
 				ch.Reject(ssh.ConnectionFailed, "closing")
