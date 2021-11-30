@@ -115,6 +115,16 @@ func (entry *entryDso) origin(ctx *fasthttp.RequestCtx) bool {
 func (entry *entryDso) handle(ctx *fasthttp.RequestCtx) {
 	defer TraceRecover(entry.log.Debug)
 	path := string(ctx.Path())
+	//remove /proxy/<any>/ from path
+	const proxyPrefix = "/proxy/"
+	if strings.HasPrefix(path, proxyPrefix) {
+		trimmedPath := path[len(proxyPrefix):]
+		slashIndex := strings.Index(trimmedPath, "/")
+		if slashIndex >= 0 {
+			path = trimmedPath[slashIndex:]
+			ctx.URI().SetPath(path)
+		}
+	}
 	if !strings.HasPrefix(path, "/ws/") {
 		entry.static(ctx)
 		return
