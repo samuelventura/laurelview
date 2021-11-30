@@ -143,10 +143,7 @@ func run(node tree.Node) {
 					ch.Reject(ssh.ConnectionFailed, "panic")
 				})
 				log.Println("open", count.increment(), cid)
-				defer func() {
-					//count.decrement() executed immediatelly otherwise
-					log.Println("close", count.decrement(), cid)
-				}()
+				defer func() { log.Println("close", count.decrement(), cid) }()
 				handleForward(ch)
 			})
 		}

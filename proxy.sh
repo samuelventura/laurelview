@@ -56,9 +56,11 @@ run_goms "ship"
 
 #./pack.sh
 #./run.sh
+#http://127.0.0.1:31081/
 #https://127.0.0.1:31080/
 #the browser requires the trailing /
-#https://127.0.0.1:31080/proxy/demo/
+#https://127.0.0.1:31080/proxy/demo1/
+#https://127.0.0.1:31080/proxy/demo2/
 read -p "Press ENTER to quit..."
 
 #go-proxy-ms needs aggresive idle timeout to 1s
