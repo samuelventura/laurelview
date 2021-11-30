@@ -150,19 +150,17 @@ func setupProxyConnection(node tree.Node, proxyConn net.Conn, id *idDso) {
 	child.AddProcess("proxyConn", func() {
 		count := node.GetValue("count").(*countDso)
 		log.Println("open", count.increment(), cid)
-		defer func() {
-			//count.decrement() executed immediatelly otherwise
-			log.Println("close", count.decrement(), cid)
-		}()
+		defer func() { log.Println("close", count.decrement(), cid) }()
 		handleProxyConnection(child, proxyConn)
 	})
 }
 
 func handleProxyConnection(node tree.Node, proxyConn net.Conn) {
 	tools.KeepAlive(proxyConn, 5)
+	target := node.GetValue("target").(string)
 	proxy := node.GetValue("proxy").(string)
 	sshConn := node.GetValue("ssh").(*ssh.ServerConn)
-	sshChan, reqChan, err := sshConn.OpenChannel("forward", nil)
+	sshChan, reqChan, err := sshConn.OpenChannel("forward", []byte(target))
 	if err != nil {
 		log.Println(proxy, err)
 		return

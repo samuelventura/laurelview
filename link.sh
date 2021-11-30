@@ -17,12 +17,12 @@ run_daemon() {
 }
 
 export LV_CLK_ENDPOINT_PROXY=127.0.0.1:31080
+export LV_CLK_ENDPOINT_TARGET=$TEP
 run_daemon "lvclk"
 
 sleep 1
 
 export LV_NLK_DOCK_POOL=127.0.0.1:31622
-export LV_NLK_ENDPOINT_TARGET=$TEP
 run_daemon "lvnlk"
 
 #./pack.sh

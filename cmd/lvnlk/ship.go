@@ -20,7 +20,6 @@ var keys embed.FS
 func run(node tree.Node) {
 	name := node.GetValue("name").(string)
 	pool := node.GetValue("pool").(string)
-	target := node.GetValue("target").(string)
 	record := node.GetValue("record").(string)
 	count := node.GetValue("count").(*countDso)
 	id := node.GetValue("id").(*idDso)
@@ -102,7 +101,8 @@ func run(node tree.Node) {
 			}
 		})
 		handleForward := func(ch ssh.NewChannel) {
-			conn, err := net.DialTimeout("tcp", target, 5*time.Second)
+			addr := string(ch.ExtraData())
+			conn, err := net.DialTimeout("tcp", addr, 5*time.Second)
 			if err != nil {
 				log.Panic(err) //panic triggers a rejection
 				return

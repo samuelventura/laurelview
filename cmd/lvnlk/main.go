@@ -22,7 +22,6 @@ func main() {
 	//recover closes as well
 	defer rnode.Recover()
 	rnode.SetValue("name", tools.GetEnviron("LV_NLK_NAME", tools.GetHostname()))
-	rnode.SetValue("target", tools.GetEnviron("LV_NLK_ENDPOINT_TARGET", "127.0.0.1:80"))
 	rnode.SetValue("record", tools.GetEnviron("LV_NLK_DOCK_RECORD", "dock.laurelview.io"))
 	rnode.SetValue("pool", tools.GetEnviron("LV_NLK_DOCK_POOL", ""))
 	rnode.SetValue("count", newCount())
