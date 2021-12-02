@@ -1,62 +1,117 @@
 package main
 
 import (
-	"embed"
+	"fmt"
 	"log"
-	"mime"
-	"net"
-	"net/http"
-	"path/filepath"
+	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/samuelventura/go-tree"
 )
 
-//go:embed build/*
-var build embed.FS
-
-func static(c *gin.Context) {
-	path := "build" + c.Request.URL.Path
-	if path == "build/" {
-		path = "build/index.html"
-	}
-	//log.Println(path)
-	data, err := build.ReadFile(path)
-	if err != nil {
-		c.Next()
-	} else {
-		ext := filepath.Ext(path)
-		ct := mime.TypeByExtension(ext)
-		c.Data(http.StatusOK, ct, data)
-	}
+type apiDso struct {
+	dao  *daoDso
+	sid  *idDso
+	pid  *idDso
+	stom int64
 }
 
-func api(node tree.Node) {
-	mime.AddExtensionType(".map", "application/json")
-	endpoint := node.GetValue("endpoint").(string)
-	gin.SetMode(gin.ReleaseMode) //remove debug warning
-	router := gin.New()          //remove default logger
-	router.Use(gin.Recovery())   //looks important
-	router.Use(static)
-	rapi := router.Group("/api")
-	rapi.GET("/ok", func(c *gin.Context) {
-		c.JSON(200, "ok")
-	})
-	listen, err := net.Listen("tcp", endpoint)
+func newApi(node tree.Node) *apiDso {
+	dao := node.GetValue("dao").(*daoDso)
+	stom := node.GetValue("stom").(int64)
+	sid := newId("sid")
+	pid := newId("pid")
+	return &apiDso{dao, sid, pid, stom}
+}
+
+//FIXME add delayer to prevent attacks
+func (dso *apiDso) post_signup(id string) (*AccountDro, error) {
+	password := pwdit(dso.pid.next())
+	dro := &AccountDro{}
+	dro.Aid = id
+	dro.Created = time.Now()
+	dro.Password = hashit(dso.pid.next())
+	dro.Recover = hashit(password)
+	dro.Enabled = true
+	err := dso.dao.create(dro)
 	if err != nil {
-		log.Panicln(err)
+		err = fmt.Errorf("account already exists")
+		return nil, err
 	}
-	node.AddCloser("listen", listen.Close)
-	port := listen.Addr().(*net.TCPAddr).Port
-	log.Println("port", port)
-	server := &http.Server{
-		Addr:    endpoint,
-		Handler: router,
+	//FIXME remove development log
+	log.Println("signup", id, password)
+	//FIXME send email with recover password
+	return dro, err
+}
+
+//FIXME add delayer to prevent attacks
+func (dso *apiDso) post_signin(aid, hash string) (*SessionDro, error) {
+	adro, err := dso.dao.getAccount(aid)
+	if err != nil {
+		err = fmt.Errorf("account not found")
+		return nil, err
 	}
-	node.AddProcess("server", func() {
-		err = server.Serve(listen)
+	if !adro.Enabled {
+		err = fmt.Errorf("account is disabled")
+		return nil, err
+	}
+	//log.Println("signin", aid, hash, adro.Password, adro.Recover)
+	//FIXME never leave neither password nor recover empty
+	if hash != adro.Password && hash != adro.Recover {
+		err = fmt.Errorf("invalid credentials")
+		return nil, err
+	}
+	//recover password usable only once
+	if hash == adro.Recover {
+		adro.Password = adro.Recover
+		adro.Recover = hashit(dso.pid.next())
+		err = dso.dao.update(adro)
 		if err != nil {
-			log.Println(endpoint, port, err)
+			return nil, err
 		}
-	})
+	}
+	stom := time.Duration(dso.stom)
+	sdro := &SessionDro{}
+	sdro.Sid = hashit(dso.sid.next())
+	sdro.Aid = aid
+	sdro.Created = time.Now()
+	sdro.Expires = time.Now().Add(stom * time.Minute)
+	sdro.Enabled = true
+	err = dso.dao.create(sdro)
+	return sdro, err
+}
+
+func (dso *apiDso) get_signout(sid string) (*SessionDro, error) {
+	sdro, err := dso.dao.getSession(sid)
+	if err != nil {
+		err = fmt.Errorf("session not found")
+		return nil, err
+	}
+	err = dso.dao.delete(sdro)
+	if err != nil {
+		err = fmt.Errorf("session delete error")
+		return nil, err
+	}
+	return sdro, nil
+}
+
+//FIXME add delayer to prevent attacks
+func (dso *apiDso) post_recover(aid, hash string) (*AccountDro, error) {
+	dro, err := dso.dao.getAccount(aid)
+	if err != nil {
+		err = fmt.Errorf("account not found")
+		return nil, err
+	}
+	if !dro.Enabled {
+		err = fmt.Errorf("account is disabled")
+		return nil, err
+	}
+	password := pwdit(dso.pid.next())
+	dro.Recover = hashit(password)
+	err = dso.dao.update(dro)
+	if err != nil {
+		return nil, err
+	}
+	//FIXME remove development log
+	log.Println("recover", aid, password)
+	return dro, err
 }
