@@ -92,7 +92,8 @@ web/lvnfe #node react frontend
 ./deps.sh           #once only
 ./pack.sh           #node build
 ./cross.sh bbb|rpi4 #build and zip
-./nerves.sh ssh|sd|emmc upgrade|complete bbb|rpi4
+./nerves.sh ssh|sd|emmc upgrade|complete bbb|rpi4 nerves.local|10.77.3.171
+#./nerves.sh ssh upgrade rpi4 10.77.3.171
 #windows installer
 ./pack.sh
 ./build.sh

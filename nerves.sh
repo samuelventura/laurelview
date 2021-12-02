@@ -6,6 +6,8 @@ MEDIA="${1:-ssh}"
 TYPE="${2:-upgrade}"
 # bbb|rpi4
 BOARD="${3:-bbb}"
+# $HOST|10.77.3.171
+HOST="${4:-$HOST}"
 
 case $MEDIA in
     sd|ssh)
@@ -32,7 +34,7 @@ KEY=`pwd`/id_rsa
 case $MEDIA in
     ssh) #wont work for bbb_emmc
     ssh-add $KEY
-    mix upload nerves.local
+    mix upload $HOST
     ;;
     sd)
     case $TYPE in
@@ -49,12 +51,12 @@ case $MEDIA in
     ;;
     emmc)
     IMAGES=_build/bbb_emmc_prod/nerves/images
-(cd $IMAGES && sftp -oIdentityFile=$KEY nerves.local) << EOF
+(cd $IMAGES && sftp -oIdentityFile=$KEY $HOST) << EOF
 put nfw.fw /tmp/
 quit
 EOF
 
-ssh -i $KEY nerves.local << EOF
+ssh -i $KEY $HOST << EOF
 cmd "fwup -aU -i /tmp/nfw.fw -d /dev/mmcblk1 -t $TYPE"
 cmd "poweroff"
 exit
