@@ -35,17 +35,17 @@ function ItemDisplay(props) {
   const [state, dispatch] = useReducer(reducer, initial)
 
   useEffect(() => {
-    const tid = setInterval(()=>{
+    const tid = setInterval(() => {
       const now = new Date().getTime()
       const elapsed = now - state.start.getTime()
-      dispatch({name:"millis", args: elapsed})
+      dispatch({ name: "millis", args: elapsed })
     }, 10)
     return () => clearInterval(tid)
   }, [state.start])
 
   useEffect(() => {
     const q = props.query || {}
-    dispatch({name:"query", args: q})
+    dispatch({ name: "query", args: q })
     if (q.error) {
       console.error(q.index, q.error, q)
     }
@@ -72,14 +72,14 @@ function ItemDisplay(props) {
     //truty "0"
     //show "Dial" request
     let r = requestMap[request]
-    r = r ||  request || "------"
+    r = r || request || "------"
     return r
   }
 
   function responseText(response) {
     let r = responseMap[response]
     r = r || response || "------"
-    return  r.toUpperCase()
+    return r.toUpperCase()
   }
 
   function timing() {

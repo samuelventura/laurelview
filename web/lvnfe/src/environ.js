@@ -1,7 +1,7 @@
 
 const locurl = new URL(window.location.href)
 let wsproto = "ws:"
-if (locurl.protocol==="https:") {
+if (locurl.protocol === "https:") {
   wsproto = "wss:"
 }
 let wsURL = `${wsproto}//${locurl.host}${locurl.pathname}ws`
@@ -24,7 +24,7 @@ function href(path) {
   return process.env.PUBLIC_URL + path
 }
 
-const environ = {isDev, wsURL, enableLog, log, href}
+const environ = { isDev, wsURL, enableLog, log, href }
 
 window.enableLog = enableLog
 

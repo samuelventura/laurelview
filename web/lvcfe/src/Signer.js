@@ -7,17 +7,17 @@ import Recover from './Recover'
 
 function Signer() {
   return (
-  <Tabs defaultActiveKey="signin" className="mb-3 mx-autO" md="auto">
-    <Tab eventKey="signin" title="Sign-in">
-      <SignIn/>
-    </Tab>
-    <Tab eventKey="signup" title="Sign-up">
-      <SignUp/>
-    </Tab>
-    <Tab eventKey="recover" title="Recover">
-      <Recover/>
-    </Tab>
-  </Tabs>
+    <Tabs defaultActiveKey="signin" className="mb-3 mx-autO" md="auto">
+      <Tab eventKey="signin" title="Sign-in">
+        <SignIn />
+      </Tab>
+      <Tab eventKey="signup" title="Sign-up">
+        <SignUp />
+      </Tab>
+      <Tab eventKey="recover" title="Recover">
+        <Recover />
+      </Tab>
+    </Tabs>
   )
 }
 

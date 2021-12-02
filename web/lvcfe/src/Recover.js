@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import Form from 'react-bootstrap/Form'
 import InputGroup from 'react-bootstrap/InputGroup'
 import Button from 'react-bootstrap/Button'
-import {useAlert} from './Alert'
+import { useAlert } from './Alert'
 import Api from './Api'
 
 function Recover() {
@@ -26,13 +26,13 @@ function Recover() {
         <Form.Group className="mb-3" controlId="formRecoverEmail">
           <Form.Label>Email</Form.Label>
           <InputGroup hasValidation>
-          <Form.Control type="email" placeholder="Email" required
-            value={email} onChange={e=>setEmail(e.target.value)}/>
-          <Form.Control.Feedback type="invalid">Provide a valid email.</Form.Control.Feedback>
+            <Form.Control type="email" placeholder="Email" required
+              value={email} onChange={e => setEmail(e.target.value)} />
+            <Form.Control.Feedback type="invalid">Provide a valid email.</Form.Control.Feedback>
           </InputGroup>
         </Form.Group>
         <Button variant="primary" type="submit" className="float-end">Recover</Button>
-      </Form>    
+      </Form>
     </React.Fragment>
   )
 }

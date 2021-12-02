@@ -4,22 +4,22 @@ import Navbar from 'react-bootstrap/Navbar'
 import Container from 'react-bootstrap/Container'
 import Button from 'react-bootstrap/Button'
 import Alert from 'react-bootstrap/Alert'
-import {useAuth, initialSession} from './Auth'
-import {useAlert} from './Alert'
+import { useAuth, initialSession } from './Auth'
+import { useAlert } from './Alert'
 import Api from './Api'
 import './App.css'
 
 function Username() {
   const auth = useAuth()
   const sid = auth.session.id
-  const handleSigoutClick = function() {
+  const handleSigoutClick = function () {
     auth.setSession(initialSession)
     Api.signout(sid)
-  } 
+  }
   if (sid) return (
     <Button variant="link" onClick={handleSigoutClick} title="Sign-out">
       {auth.session.email}
-    </Button> 
+    </Button>
   )
   return null
 }
@@ -30,7 +30,7 @@ function showAlert(alert) {
     return (<Alert variant={current.type} dismissible
       onClose={() => alert.clearAlert()}>
       {current.message}
-      </Alert>)
+    </Alert>)
   }
 }
 
@@ -44,20 +44,20 @@ function App() {
     <Container>
       <Navbar className="mb-3">
         <Container>
-          <Navbar.Brand  className="btn" onClick={handleBrandClick} title="Home">
-            <img height="48px" src="banner.png" alt="Home"/>
+          <Navbar.Brand className="btn" onClick={handleBrandClick} title="Home">
+            <img height="48px" src="banner.png" alt="Home" />
           </Navbar.Brand>
           <Navbar.Toggle />
           <Navbar.Collapse className="justify-content-end">
-            <Navbar.Text><Username/></Navbar.Text>
+            <Navbar.Text><Username /></Navbar.Text>
           </Navbar.Collapse>
-        </Container>        
+        </Container>
       </Navbar>
       <Container>
         {showAlert(alert)}
         <Outlet />
-      </Container> 
-    </Container> 
+      </Container>
+    </Container>
   )
 }
 

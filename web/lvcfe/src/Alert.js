@@ -1,24 +1,27 @@
 import React, { useState, useContext } from 'react'
 import { useLocation } from 'react-router-dom';
 
-const initialAlert = {type: "", message: ""}
-const initialValue = {current: initialAlert, 
-  clearAlert: () => {},
-  errorAlert: () => {}, 
-  warnAlert: () => {}, 
-  successAlert: () => {}}
+const initialAlert = { type: "", message: "" }
+const initialValue = {
+  current: initialAlert,
+  clearAlert: () => { },
+  errorAlert: () => { },
+  warnAlert: () => { },
+  successAlert: () => { }
+}
 const AlertContext = React.createContext(initialValue)
 
-function AlertProvider({children}) {
+function AlertProvider({ children }) {
   const location = useLocation()
   const [alert, setAlert] = useState(initialAlert)
   // NOTE: you *might* need to memoize this value
   // Learn more in http://kcd.im/optimize-context
-  const value = {current: alert, 
+  const value = {
+    current: alert,
     clearAlert: () => setAlert(initialAlert),
-    errorAlert: (message) => setAlert({type: "danger", message}),
-    warnAlert: (message) => setAlert({type: "warning", message}),
-    successAlert: (message) => setAlert({type: "success", message}),
+    errorAlert: (message) => setAlert({ type: "danger", message }),
+    warnAlert: (message) => setAlert({ type: "warning", message }),
+    successAlert: (message) => setAlert({ type: "success", message }),
   }
   React.useEffect(() => {
     setAlert(initialAlert)
@@ -39,4 +42,4 @@ function useAlert() {
   return useContext(AlertContext)
 }
 
-export {AlertProvider, useAlert}
+export { AlertProvider, useAlert }
