@@ -24,6 +24,7 @@ type IdResponseData struct {
 	MacAddr  string `json:"macaddr"`
 	Name     string `json:"name"`
 	Version  string `json:"version"`
+	IpAddr   string `json:"ipaddr"`
 }
 
 func main() {
@@ -49,16 +50,17 @@ func main() {
 	inbuf := make([]byte, 2048)
 	socket.SetDeadline(time.Now().Add(1 * time.Second))
 	for {
-		inn, _, err := socket.ReadFromUDP(inbuf)
+		inn, addr, err := socket.ReadFromUDP(inbuf)
 		if err != nil {
 			log.Fatal(err)
 		}
-		log.Println("<", string(inbuf[:inn]))
+		log.Println("<", addr, string(inbuf[:inn]))
 		response := &IdResponseDso{}
 		err = json.Unmarshal(inbuf[:inn], response)
 		if err != nil {
 			log.Println(err)
 		} else {
+			response.Data.IpAddr = addr.IP.String()
 			log.Println(response)
 		}
 	}
