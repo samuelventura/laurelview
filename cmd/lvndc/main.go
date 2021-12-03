@@ -27,34 +27,35 @@ type IdResponseData struct {
 }
 
 func main() {
-	listen, err := net.ListenUDP("udp4", &net.UDPAddr{})
+	socket, err := net.ListenUDP("udp4", &net.UDPAddr{})
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("LocalAddr", listen.LocalAddr())
-	id := &IdRequestDso{Name: "nerves", Action: "id"}
-	idb, err := json.Marshal(id)
+	defer socket.Close()
+	log.Println("LocalAddr", socket.LocalAddr())
+	idb, err := json.Marshal(&IdRequestDso{
+		Name: "nerves", Action: "id"})
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println(">", string(idb))
-	idn, err := listen.WriteToUDP(idb, &net.UDPAddr{
+	idn, err := socket.WriteToUDP(idb, &net.UDPAddr{
 		IP:   net.IPv4(255, 255, 255, 255),
 		Port: 31680,
 	})
 	if err != nil || idn != len(idb) {
 		log.Fatal(err)
 	}
-	input := make([]byte, 2048)
-	listen.SetDeadline(time.Now().Add(1 * time.Second))
+	inbuf := make([]byte, 2048)
+	socket.SetDeadline(time.Now().Add(1 * time.Second))
 	for {
-		inn, _, err := listen.ReadFromUDP(input)
+		inn, _, err := socket.ReadFromUDP(inbuf)
 		if err != nil {
 			log.Fatal(err)
 		}
-		log.Println("<", string(input[:inn]))
+		log.Println("<", string(inbuf[:inn]))
 		response := &IdResponseDso{}
-		err = json.Unmarshal(input[:inn], response)
+		err = json.Unmarshal(inbuf[:inn], response)
 		if err != nil {
 			log.Println(err)
 		} else {

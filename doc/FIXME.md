@@ -9,4 +9,6 @@
 ## TODO
 
 - confirm discovery works with direct cable ethernet connection
+- confirm discovery works over nerves.local
+- confirm nerves.local works without special driver permissions in windows 10 +
 
