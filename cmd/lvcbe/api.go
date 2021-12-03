@@ -75,7 +75,6 @@ func (dso *apiDso) post_signin(aid, hash string) (*SessionDro, error) {
 	sdro.Aid = aid
 	sdro.Created = time.Now()
 	sdro.Expires = time.Now().Add(stom * time.Minute)
-	sdro.Enabled = true
 	err = dso.dao.create(sdro)
 	return sdro, err
 }

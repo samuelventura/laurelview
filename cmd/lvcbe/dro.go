@@ -15,5 +15,20 @@ type SessionDro struct {
 	Aid     string `gorm:"index"`
 	Created time.Time
 	Expires time.Time
-	Enabled bool
+}
+
+type NodeDro struct {
+	Nid     string `gorm:"primaryKey"`
+	Aid     string `gorm:"index"`
+	Name    string
+	Created time.Time
+}
+
+type CreditDro struct {
+	Cid     string `gorm:"primaryKey"`
+	Aid     string `gorm:"index"`
+	Nid     string `gorm:"index"`
+	Months  int
+	Created time.Time
+	Expires time.Time
 }

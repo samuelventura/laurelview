@@ -7,9 +7,23 @@ import (
 	"time"
 )
 
-type IdDso struct {
+type IdRequestDso struct {
 	Name   string `json:"name"`
 	Action string `json:"action"`
+}
+
+type IdResponseDso struct {
+	Name   string         `json:"name"`
+	Action string         `json:"action"`
+	Data   IdResponseData `json:"data"`
+}
+
+type IdResponseData struct {
+	Hostname string `json:"hostname"`
+	Ifname   string `json:"ifname"`
+	MacAddr  string `json:"macaddr"`
+	Name     string `json:"name"`
+	Version  string `json:"version"`
 }
 
 func main() {
@@ -18,7 +32,7 @@ func main() {
 		log.Fatal(err)
 	}
 	log.Println("LocalAddr", listen.LocalAddr())
-	id := &IdDso{Name: "nerves", Action: "id"}
+	id := &IdRequestDso{Name: "nerves", Action: "id"}
 	idb, err := json.Marshal(id)
 	if err != nil {
 		log.Fatal(err)
@@ -39,6 +53,12 @@ func main() {
 			log.Fatal(err)
 		}
 		log.Println("<", string(input[:inn]))
+		response := &IdResponseDso{}
+		err = json.Unmarshal(input[:inn], response)
+		if err != nil {
+			log.Println(err)
+		} else {
+			log.Println(response)
+		}
 	}
 }
-
