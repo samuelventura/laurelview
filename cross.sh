@@ -36,18 +36,22 @@ esac
 
 MOD="github.com/YeicoLabs/laurelview"
 CMD=$MOD/cmd
-DST=nfw/rootfs_overlay/lvbin
-mkdir -p $DST
+FDST=nfw/rootfs_overlay/lvbin
+mkdir -p $FDST
+BDST=build/$BOARD
+mkdir -p $BDST
 
 [ ! -d $TOOLCHAIN ] && (cd nfw; MIX_TARGET=$BOARD mix deps.get)
 
-go build -ldflags="-extld=$CC" -o $DST/lvdpm $CMD/lvdpm
-go build -ldflags="-extld=$CC" -o $DST/lvnbe $CMD/lvnbe
-go build -ldflags="-extld=$CC" -o $DST/lvnup $CMD/lvnup
-go build -ldflags="-extld=$CC" -o $DST/lvnss $CMD/lvnss
+go build -ldflags="-extld=$CC" -o $BDST/lvdpm $CMD/lvdpm
+go build -ldflags="-extld=$CC" -o $BDST/lvnbe $CMD/lvnbe
+go build -ldflags="-extld=$CC" -o $BDST/lvnup $CMD/lvnup
+go build -ldflags="-extld=$CC" -o $BDST/lvnss $CMD/lvnss
 
-echo "LV_NUP_ENDPOINT=127.0.0.1:80" > $DST/lvnup.env
-echo "LV_DPM_ENDPOINT=127.0.0.1:81" > $DST/lvdpm.env
-echo "LV_NBE_ENDPOINT=0.0.0.0:80" > $DST/lvnbe.env
-echo "LV_NBE_DEBUG=127.0.0.1:82" >> $DST/lvnbe.env
-echo "LV_NBE_DATABASE=/data/lvnbe.db3" >> $DST/lvnbe.env
+echo "LV_NUP_ENDPOINT=127.0.0.1:80" > $BDST/lvnup.env
+echo "LV_DPM_ENDPOINT=127.0.0.1:81" > $BDST/lvdpm.env
+echo "LV_NBE_ENDPOINT=0.0.0.0:80" > $BDST/lvnbe.env
+echo "LV_NBE_DEBUG=127.0.0.1:82" >> $BDST/lvnbe.env
+echo "LV_NBE_DATABASE=/data/lvnbe.db3" >> $BDST/lvnbe.env
+
+cp $BDST/* $FDST

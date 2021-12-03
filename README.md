@@ -89,12 +89,14 @@ web/lvnfe #node react frontend
 ./run.sh        #go to http://localhost:5001/
 ./proxy.sh      #go to https://127.0.0.1:31080/proxy/demo/
 #nerves BBB firmware
-./deps.sh           #once only
-./pack.sh           #node build
+./nerves.sh clean   #once if required
+./nerves.sh deps    #once only
+./pack.sh node      #node build
 ./cross.sh bbb|rpi4 #build and zip
 ./nerves.sh ssh|sd|emmc upgrade|complete bbb|rpi4 nerves.local|10.77.3.171
+#nerves.local conflicts between usb and visible eth0
 #./nerves.sh ssh upgrade rpi4 10.77.3.171
-#./nerves.sh ssh upgrade bbb nerves.local
+#./nerves.sh ssh upgrade bbb 172.31.219.181
 #./nerves.sh sd complete bbb
 #windows installer
 ./pack.sh

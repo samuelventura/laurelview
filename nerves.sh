@@ -1,6 +1,6 @@
 #!/bin/bash -xe
 
-# ssh|sd|emmc
+# ssh|sd|emmc|clean
 MEDIA="${1:-ssh}"
 # upgrade|complete
 TYPE="${2:-upgrade}"
@@ -18,16 +18,33 @@ case $MEDIA in
     export MIX_ENV=prod
     export MIX_TARGET=bbb_emmc
     ;;
+    clean)
+    # ensure NFW_BIN is reset
+    rm -fr nfw/_build
+    exit
+    ;;
+    deps)
+    mix local.hex --force
+    mix local.rebar --force
+    mix archive.install hex nerves_bootstrap --force
+    cd nfw
+    export MIX_ENV=dev
+    export MIX_TARGET=bbb
+    mix deps.get
+    export MIX_ENV=dev
+    export MIX_TARGET=rpi4
+    mix deps.get
+    export MIX_ENV=prod
+    export MIX_TARGET=bbb_emmc
+    mix deps.get
+    export -n MIX_ENV
+    export -n MIX_TARGET
+    exit
+    ;;
 esac
-
-# ensure NFW_BIN is reset
-rm -fr nfw/_build
 
 cd nfw
 
-# first time requires 
-# mix archive.install hex nerves_bootstrap
-mix deps.get
 mix firmware
 
 KEY=`pwd`/id_rsa
