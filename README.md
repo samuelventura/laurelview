@@ -95,8 +95,10 @@ web/lvnfe #node react frontend
 ./cross.sh bbb|rpi4 #build and zip
 ./nerves.sh ssh|sd|emmc upgrade|complete bbb|rpi4 nerves.local|10.77.3.171
 #nerves.local conflicts between usb and visible eth0
-#./nerves.sh ssh upgrade rpi4 10.77.3.171
-#./nerves.sh ssh upgrade bbb 172.31.219.181
+#./nerves.sh ssh upgrade rpi4 10.77.3.171       #rpi4 samuel
+#./nerves.sh ssh upgrade bbb 10.77.3.170        #bbb hiram
+#./nerves.sh ssh upgrade bbb 10.77.3.155        #bbb samuel
+#./nerves.sh ssh upgrade bbb 172.31.219.181     #bbb.usb samuel
 #./nerves.sh sd complete bbb
 #windows installer
 ./pack.sh
