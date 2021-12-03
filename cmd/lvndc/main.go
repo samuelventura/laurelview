@@ -13,15 +13,7 @@ type IdDso struct {
 }
 
 func main() {
-	ra, err := net.ResolveUDPAddr("udp4", "255.255.255.255:31680")
-	if err != nil {
-		log.Fatal(err)
-	}
-	la, err := net.ResolveUDPAddr("udp4", "0.0.0.0:0")
-	if err != nil {
-		log.Fatal(err)
-	}
-	listen, err := net.ListenUDP("udp4", la)
+	listen, err := net.ListenUDP("udp4", &net.UDPAddr{})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -32,7 +24,10 @@ func main() {
 		log.Fatal(err)
 	}
 	log.Println(">", string(idb))
-	idn, err := listen.WriteToUDP(idb, ra)
+	idn, err := listen.WriteToUDP(idb, &net.UDPAddr{
+		IP:   net.IPv4(255, 255, 255, 255),
+		Port: 31680,
+	})
 	if err != nil || idn != len(idb) {
 		log.Fatal(err)
 	}
@@ -46,3 +41,4 @@ func main() {
 		log.Println("<", string(input[:inn]))
 	}
 }
+
