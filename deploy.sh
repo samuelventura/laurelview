@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash -xe
 
 # cloud|node
 TARGET="${1:-cloud}"

@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash -xe
 
 # bbb|rpi4
 BOARD="${1:-bbb}"

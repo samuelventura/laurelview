@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash -xe
 
 touch ../../nerves_backdoor/mix.exs
 export NFW_USB=/dev/sdc1

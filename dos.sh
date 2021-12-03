@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash -xe
 
 #trace|debug|info
 export LV_LOGLEVEL="${1:-info}"

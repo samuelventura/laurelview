@@ -98,6 +98,8 @@ web/lvnfe #node react frontend
 ./pack.sh
 ./build.sh
 ./inno.sh       #gui
+#nerves discovery
+./discover.sh
 ```
 
 ## Helpers

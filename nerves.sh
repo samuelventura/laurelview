@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash -xe
 
 # ssh|sd|emmc
 MEDIA="${1:-ssh}"

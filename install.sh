@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash -xe
 
 if [[ "$OSTYPE" == "linux"* ]]; then
     SRC=$HOME/go/bin

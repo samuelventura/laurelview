@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash -xe
 
 #ps -A | grep go-
 trap 'kill $(jobs -p)' SIGINT SIGTERM EXIT

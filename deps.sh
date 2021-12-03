@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash -xe
 
 mix local.hex --force
 mix local.rebar --force

@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash -xe
 
 #trace|debug|info
 TEST_PKG="${1:-all}"
