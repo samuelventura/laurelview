@@ -1,0 +1,4 @@
+/* remove bootstrap 5 table header bottom border */
+.table thead>tr>th {
+    border-bottom: 2px solid hsl(0, 0%, 67%);
+}
