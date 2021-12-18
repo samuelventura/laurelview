@@ -99,6 +99,7 @@ web/lvnfe #node react frontend
 #./nerves.sh ssh upgrade bbb 10.77.3.170        #bbb hiram
 #./nerves.sh ssh upgrade bbb 10.77.3.182        #bbb samuel
 #./nerves.sh ssh upgrade bbb 172.31.219.181     #bbb.usb samuel
+#./nerves.sh emmc complete bbb 10.77.3.155      #bbb samuel
 #./nerves.sh sd complete bbb
 #windows installer
 ./pack.sh
