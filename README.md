@@ -74,6 +74,11 @@ cmd/lvnup #node uplink executable
 cmd/lvnss #node system service
 cmd/lvdpm #node dpm echo server
 web/lvnfe #node react frontend
+cmd/lvcbe #cloud backend executable
+web/lvcfe #cloud react frontend
+cmd/lvsbe #setup backend executable
+web/lvsfe #setup react frontend
+cmd/lvfix #fixture power loss tester
 ```
 
 ## Howto
@@ -82,11 +87,11 @@ web/lvnfe #node react frontend
 #testing go code
 ./test.sh all|db|rt|sdk
 #develop go + react
-./node.sh       #launches http://localhost:3000/
+./node.sh node|cloud #launches http://localhost:3000/
 ./run.sh info|debug|trace
 #develop local proxy
-./pack.sh       #only once
-./run.sh        #go to http://localhost:5001/
+./pack.sh node|cloud #only once
+./run.sh        #go to http://localhost:5001/ 5001,5002,5003
 ./proxy.sh      #go to https://127.0.0.1:31080/proxy/demo/
 #nerves BBB firmware
 ./nerves.sh clean   #once if required
