@@ -1,9 +1,12 @@
 //Discover
+//On no NIC available it fails the json parsing with
+//SyntaxError: Unexpected token w in JSON at position 0
 function getNetworkDiscover(cb) {
   fetch("discovery/2")
     .then(res => res.json())
     .then(json => cb(json))
-    .catch(err => cb(err))
+    .catch(err => console.log(err))
+    .then(err => cb([]))
 }
 
 //Network
