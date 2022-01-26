@@ -21,4 +21,12 @@ case $TARGET in
     touch cmd/lvcbe/build/.empty
     cp -fr web/lvcfe/build cmd/lvcbe/
     ;;
+    setup)
+    [ ! -d web/lvsfe/node_modules ] && (cd web/lvsfe; yarn install)
+    (cd web/lvsfe; yarn run build)
+    rm -fr cmd/lvsbe/build
+    mkdir -p cmd/lvsbe/build
+    touch cmd/lvsbe/build/.empty
+    cp -fr web/lvsfe/build cmd/lvsbe/
+    ;;
 esac

@@ -13,4 +13,8 @@ case $TARGET in
     [ ! -d web/lvcfe/node_modules ] && (cd web/lvcfe; yarn install)
     (cd web/lvcfe; yarn start)
     ;;
+    setup)
+    [ ! -d web/lvsfe/node_modules ] && (cd web/lvsfe; yarn install)
+    (cd web/lvsfe; yarn start)
+    ;;
 esac
