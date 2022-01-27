@@ -2,7 +2,7 @@ defmodule Nfw.MixProject do
   use Mix.Project
 
   @app :nfw
-  @version "0.1.0"
+  @version "0.2.0"
   @all_targets [:bbb, :bbb_emmc, :rpi4]
 
   def project do
@@ -23,10 +23,34 @@ defmodule Nfw.MixProject do
   def application do
     [
       mod: {Nfw.Application, []},
-      extra_applications: [:logger, :runtime_tools, :nerves_backdoor],
-      #usb is partition to mount
-      env: [usb: System.get_env("NFW_USB") || "/dev/sda1",
-      bin: System.get_env("NFW_BIN") || "/lvbin"]
+      extra_applications: [
+        :logger,
+        :runtime_tools,
+        :plug,
+        :jason,
+        :plug_cowboy,
+        :mac_address,
+        :circuits_gpio
+      ],
+      # usb is partition to mount
+      env: [
+        usb: System.get_env("NFW_USB") || "/dev/sda1",
+        bin: System.get_env("NFW_BIN") || "/lvbin",
+        port: 31680,
+        name: "lvbox",
+        home: "/data/nfw",
+        version: @version,
+        ifname: "eth0",
+        io_push: 47,
+        io_red: 66,
+        io_green: 45,
+        io_blue: 69,
+        blink_ms: 200,
+        blink_color: :blue,
+        reset_color: :red,
+        restart_color: :green,
+        reset_ms: 3000
+      ]
     ]
   end
 
@@ -38,8 +62,6 @@ defmodule Nfw.MixProject do
       {:shoehorn, "~> 0.7.0"},
       {:ring_logger, "~> 0.8.1"},
       {:toolshed, "~> 0.2.13"},
-      #{:nerves_backdoor, "~> 0.1.1"},
-      {:nerves_backdoor, path: "../../nerves_backdoor"},
 
       # Dependencies for all targets except :host
       {:nerves_runtime, "~> 0.11.3", targets: @all_targets},
@@ -52,7 +74,14 @@ defmodule Nfw.MixProject do
       # changes to your application are needed.
       {:nerves_system_rpi4, "~> 1.17", runtime: false, targets: :rpi4},
       {:nerves_system_bbb, "~> 2.12", runtime: false, targets: :bbb},
-      {:nerves_system_bbb_emmc, "~> 0.0.1", runtime: false, targets: :bbb_emmc}
+      {:nerves_system_bbb_emmc, "~> 0.0.1", runtime: false, targets: :bbb_emmc},
+      {:plug, "~> 1.7"},
+      {:jason, "~> 1.2"},
+      {:plug_cowboy, "~> 2.5"},
+      {:mac_address, "~> 0.0.1"},
+      {:circuits_gpio, "~> 0.4"},
+      {:cors_plug, "~> 2.0"},
+      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false}
     ]
   end
 

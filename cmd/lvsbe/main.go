@@ -110,7 +110,7 @@ func discover(tos int) ([]*IdResponseDso, error) {
 	defer socket.Close()
 	log.Println("LocalAddr", socket.LocalAddr())
 	idb, err := json.Marshal(&IdRequestDso{
-		Name: "nerves", Action: "id"})
+		Name: "lvbox", Action: "id"})
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +160,7 @@ func blink(ips string) error {
 	defer socket.Close()
 	log.Println("LocalAddr", socket.LocalAddr())
 	idb, err := json.Marshal(&IdRequestDso{
-		Name: "nerves", Action: "blink"})
+		Name: "lvbox", Action: "blink"})
 	if err != nil {
 		return err
 	}

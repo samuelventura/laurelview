@@ -26,7 +26,7 @@ function Database(props) {
       // console.log(filename[0])
       api.stopApp(function (res) {
         console.log(res)
-      }, props.device, "nerves", props.pass)
+      }, props.device, "lvbox", props.pass)
       api.uploadFile(function (res) {
         console.log(res)
         if (res.result === "ok") {
@@ -43,21 +43,21 @@ function Database(props) {
             setIsError(false)
           }, 3000);
         }
-      }, props.device, "nerves", props.pass, filename[0])
+      }, props.device, "lvbox", props.pass, filename[0])
       api.startApp(function (res) {
         console.log(res)
-      }, props.device, "nerves", props.pass)
+      }, props.device, "lvbox", props.pass)
     }
   }
 
   function downloadFile() {
     api.stopApp(function (res) {
       console.log(res)
-    }, props.device, "nerves", props.pass)
-    api.downloadFile(props.device, "nerves", props.pass, props.mac)
+    }, props.device, "lvbox", props.pass)
+    api.downloadFile(props.device, "lvbox", props.pass, props.mac)
     api.startApp(function (res) {
       console.log(res)
-    }, props.device, "nerves", props.pass)
+    }, props.device, "lvbox", props.pass)
   }
 
   const hiddenFileInput = React.useRef(null);
@@ -96,7 +96,7 @@ function Database(props) {
                   <FormControl type="file" style={{ display: 'none' }} text="Upload" ref={hiddenFileInput} onChange={(e) => uploadFile(e.target.files)} />
                 </Col>
                 <Col>
-                  <Button variant="dark" onClick={downloadFile}>Backup </Button>
+                  <Button variant="dark" onClick={downloadFile}>Download </Button>
                 </Col>
               </Row>
             </Form>

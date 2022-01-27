@@ -2,11 +2,11 @@
 //On no NIC available it fails the json parsing with
 //SyntaxError: Unexpected token w in JSON at position 0
 function getNetworkDiscover(cb) {
+
   fetch("discovery/2")
     .then(res => res.json())
     .then(json => cb(json))
-    .catch(err => console.log(err))
-    .then(err => cb([]))
+    .catch(err => { cb([]); console.log(err) })
 }
 
 //Network
@@ -123,13 +123,13 @@ function downloadFile(ip, username, pass, mac) {
     .then((href) => {
       Object.assign(document.createElement('a'), {
         href,
-        download: `lv-database-${mac}-${tms}.db3`,
+        download: `lvbox-db-${mac}-${tms}.db3`,
       }).click();
     })
 }
 
 function stopApp(cb, ip, username, pass) {
-  fetch(`http://${ip}:31680/app/stop/nfw`, {
+  fetch(`http://${ip}:31680/app/stop/lvapp`, {
     method: "post",
     headers: { 'Authorization': 'Basic ' + Buffer.from(`${username}:${pass}`).toString('base64') }
   })
@@ -139,7 +139,7 @@ function stopApp(cb, ip, username, pass) {
 }
 
 function startApp(cb, ip, username, pass) {
-  fetch(`http://${ip}:31680/app/start/nfw`, {
+  fetch(`http://${ip}:31680/app/start/lvapp`, {
     method: "post",
     headers: { 'Authorization': 'Basic ' + Buffer.from(`${username}:${pass}`).toString('base64') }
   })

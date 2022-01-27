@@ -121,6 +121,7 @@ dig dock.laurelview.io TXT
 (cd cmd/lvnlk; go install && ~/go/bin/lvnlk)
 (cd cmd/lvclk; go install && ~/go/bin/lvclk)
 #https://github.com/samuelventura/nerves_backdoor
+#nerves_backdoor was integrated into laurelview
 ssh nerves.local -i nfw/id_rsa
 export MIX_ENV=dev
 export MIX_TARGET=bbb|rpi4
@@ -133,8 +134,8 @@ iex -S mix
 recompile
 Application.start :nfw
 Application.stop :nfw
-Application.start :nerves_backdoor
-Application.ensure_all_started :nerves_backdoor
+Application.start :nfw
+Application.ensure_all_started :nfw
 #elixir environment info
 Application.started_applications
 Application.loaded_applications

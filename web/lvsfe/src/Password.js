@@ -9,9 +9,14 @@ import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import Alert from 'react-bootstrap/Alert'
 
-function Settings(props) {
+function Password(props) {
 
     const [newPass, setNewPass] = React.useState("")
+    const [curPass, setCurPass] = React.useState(props.pass)
+
+    React.useEffect(() => {
+        setCurPass(props.pass);
+    }, [props.pass])
 
     //Response from yeico appliance
     const [responseString, setResponseString] = React.useState("")
@@ -21,13 +26,14 @@ function Settings(props) {
     const [isError, setIsError] = useState(false);
 
     function buttonSetNewPassClick() {
-        console.log(props.pass)
+        //console.log(props.pass, "->", curPass, "->", newPass)
         var passEncode = Buffer.from(newPass).toString('base64')
         api.setNewPass(function (res) {
             console.log(res)
             if (res.result === "ok") {
                 setResponseString(`Set New Password Success`)
                 setIsValid(true)
+                setCurPass(newPass)
                 setNewPass("")
 
                 localStorage.setItem(props.mac, passEncode)
@@ -43,7 +49,7 @@ function Settings(props) {
                     setNewPass("")
                 }, 3000);
             }
-        }, props.device, "nerves", props.pass, Buffer.from(`${newPass}`).toString('base64'))
+        }, props.device, "lvbox", curPass, passEncode)
     }
 
     function buttonResetPassClick() {
@@ -65,7 +71,7 @@ function Settings(props) {
                     setIsError(false)
                 }, 3000);
             }
-        }, props.device, "nerves", props.pass)
+        }, props.device, "lvbox", curPass)
     }
 
     return (
@@ -78,7 +84,7 @@ function Settings(props) {
         >
             <Modal.Header closeButton>
                 <Modal.Title id="contained-modal-title-vcenter">
-                    Password Manager
+                    Password
                 </Modal.Title>
             </Modal.Header>
             <Modal.Body>
@@ -91,12 +97,12 @@ function Settings(props) {
                     </Alert>
                     <Form.Group as={Row} className="mb-2">
                         <Form.Label align="right" column sm={3}>
-                            New Pass
+                            New Password
                         </Form.Label>
                         <Col sm={8}>
                             <Form.Control
                                 type="password"
-                                placeholder="Enter New Pass"
+                                placeholder="Enter New Password"
                                 value={newPass}
                                 onChange={e => setNewPass(e.target.value)}
                             />
@@ -105,12 +111,12 @@ function Settings(props) {
                 </Form>
             </Modal.Body>
             <Modal.Footer>
-                <Button onClick={buttonSetNewPassClick} variant='dark'>Set New</Button>
-                <Button onClick={buttonResetPassClick} variant='dark'>Reset</Button>
+                <Button onClick={buttonSetNewPassClick} variant='dark'>Set New Password</Button>
+                <Button onClick={buttonResetPassClick} variant='dark'>Reset Password</Button>
                 <Button variant='dark' onClick={props.onHide}>Close</Button>
             </Modal.Footer>
         </Modal >
     );
 }
 
-export default Settings;
+export default Password;

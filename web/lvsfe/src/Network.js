@@ -163,7 +163,7 @@ function Network(props) {
                     setIsError(false)
                 }, 3000);
             }
-        }, props.device, "nerves", props.pass)
+        }, props.device, "lvbox", props.pass)
     }
 
     //SetConfig
@@ -286,7 +286,7 @@ function Network(props) {
                                 setIsError(false)
                             }, 3000);
                         }
-                    }, props.device, "nerves", props.pass);
+                    }, props.device, "lvbox", props.pass);
                 }
             }
         }
@@ -304,7 +304,8 @@ function Network(props) {
                 }, 3000);
             }
             else {
-                //FIXME when i send valid config the nervesbackdoor doesent response ok?, i think the response is in the new ip previously config
+                //FIXME when i send valid config the backdoor doesent response ok?, 
+                //i think the response is in the new ip previously config
                 //i dont need to cath the response?
                 api.setNetworkConfigDhcp(result.input, function (res) {
                     console.log(res)
@@ -327,7 +328,7 @@ function Network(props) {
                             setIsError(false)
                         }, 3000);
                     }
-                }, props.device, "nerves", props.pass);
+                }, props.device, "lvbox", props.pass);
             }
         }
     }

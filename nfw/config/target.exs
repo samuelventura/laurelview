@@ -20,7 +20,7 @@ config :nerves_runtime, :kernel, use_system_registry: false
 
 config :nerves,
   erlinit: [
-    hostname_pattern: "nerves-%s"
+    hostname_pattern: "lvbox-%s"
   ]
 
 # Configure the device for SSH IEx prompt access and firmware updates
@@ -30,10 +30,10 @@ config :nerves,
 
 keys =
   [
-    Path.join(["id_rsa.pub"]),
-    #Path.join([System.user_home!(), ".ssh", "id_rsa.pub"]),
-    #Path.join([System.user_home!(), ".ssh", "id_ecdsa.pub"]),
-    #Path.join([System.user_home!(), ".ssh", "id_ed25519.pub"])
+    Path.join(["id_rsa.pub"])
+    # Path.join([System.user_home!(), ".ssh", "id_rsa.pub"]),
+    # Path.join([System.user_home!(), ".ssh", "id_ecdsa.pub"]),
+    # Path.join([System.user_home!(), ".ssh", "id_ed25519.pub"])
   ]
   |> Enum.filter(&File.exists?/1)
 

@@ -8,7 +8,7 @@ import Modal from 'react-bootstrap/Modal'
 import Alert from 'react-bootstrap/Alert'
 import Button from 'react-bootstrap/Button'
 
-function Settings(props) {
+function Password(props) {
 
     const [currentPass, setCurrentPass] = React.useState("")
 
@@ -18,6 +18,14 @@ function Settings(props) {
     //Alerts
     const [isValid, setIsValid] = useState(false);
     const [isError, setIsError] = useState(false);
+
+    //set default password in textbox so user does not have to copy-paste mac
+    //this is because when reseting from physical button the locally cached 
+    //password needs to be reset but there is only a global cache clear button
+    //so user must copy mac to be able to login
+    function buttonDefaultClick() {
+        setCurrentPass(props.mac)
+    }
 
     function buttonLoginClick() {
         var passEncode = Buffer.from(currentPass).toString('base64')
@@ -33,14 +41,14 @@ function Settings(props) {
                 }, 3000);
             }
             else {
-                setResponseString(`Login Fail Chek Password`)
+                setResponseString(`Login Failed`)
                 setIsError(true)
                 setTimeout(() => {
                     setIsError(false)
                     setCurrentPass("")
                 }, 3000);
             }
-        }, props.device, "nerves", currentPass)
+        }, props.device, "lvbox", currentPass)
     }
 
     return (
@@ -80,11 +88,12 @@ function Settings(props) {
                 </Form>
             </Modal.Body>
             <Modal.Footer>
-                <Button onClick={buttonLoginClick} variant='dark'>Set Current Pass</Button>
+                <Button onClick={buttonLoginClick} variant='dark'>Login</Button>
+                <Button onClick={buttonDefaultClick} variant='dark'>Default</Button>
                 <Button variant='dark' onClick={props.onHide}>Close</Button>
             </Modal.Footer>
         </Modal >
     );
 }
 
-export default Settings;
+export default Password;

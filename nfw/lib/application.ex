@@ -1,58 +1,47 @@
 defmodule Nfw.Application do
-  # See https://hexdocs.pm/elixir/Application.html
-  # for more information on OTP Applications
-  @moduledoc false
-
   use Application
 
   @impl true
   def start(_type, _args) do
-    # See https://hexdocs.pm/elixir/Supervisor.html
-    # for other strategies and supported options
-    opts = [strategy: :one_for_one, name: Nfw.Supervisor]
-
-    children =
-      [
-        # Children for all targets
-        # Starts a worker by calling: Nfw.Worker.start_link(arg)
-        # {Nfw.Worker, arg},
-      ] ++ children(target())
-
-    Supervisor.start_link(children, opts)
-  end
-
-  # List all child processes to be supervised
-  def children(:host) do
-    [
-      # Children that only run on the host
-      # Starts a worker by calling: Nfw.Worker.start_link(arg)
-      # {Nfw.Worker, arg},
-    ]
-  end
-
-  def children(_target) do
     bin = Application.fetch_env!(:nfw, :bin)
+    port = Nfw.env_port()
+    home = Nfw.env_home()
+    File.mkdir_p(home)
+    off(Nfw.env_red())
+    off(Nfw.env_green())
+    off(Nfw.env_blue())
 
-    [
-      # Children for all targets except host
-      # Starts a worker by calling: Nfw.Worker.start_link(arg)
-      # {Nfw.Worker, arg},
+    children = [
+      {Nfw.Reset, []},
+      {Nfw.Gpio, []},
+      {Nfw.Vintage, []},
+      {Nfw.Discovery, []},
+      Plug.Cowboy.child_spec(
+        scheme: :http,
+        plug: Nfw.Endpoint,
+        options: [port: port]
+      ),
       %{
         id: :lvdpm,
-        start: {NervesBackdoor.Daemon, :start_link, [Path.join(bin, "lvdpm")]}
+        start: {Nfw.Daemon, :start_link, [Path.join(bin, "lvdpm")]}
       },
       %{
         id: :lvnbe,
-        start: {NervesBackdoor.Daemon, :start_link, [Path.join(bin, "lvnbe")]}
+        start: {Nfw.Daemon, :start_link, [Path.join(bin, "lvnbe")]}
       },
       %{
         id: :lvnup,
-        start: {NervesBackdoor.Daemon, :start_link, [Path.join(bin, "lvnup")]}
+        start: {Nfw.Daemon, :start_link, [Path.join(bin, "lvnup")]}
       }
     ]
+
+    opts = [strategy: :one_for_one, name: Nfw.Supervisor]
+    Supervisor.start_link(children, opts)
   end
 
-  def target() do
-    Application.get_env(:nfw, :target)
+  defp off(port) do
+    {:ok, gpio} = Nfw.Gpio.io_output(port)
+    :ok = Nfw.Gpio.io_write(gpio, 0)
+    :ok = Nfw.Gpio.io_close(gpio)
   end
 end

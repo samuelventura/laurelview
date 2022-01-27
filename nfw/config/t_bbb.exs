@@ -1,6 +1,6 @@
 import Config
 
-#66 red
-#69 green
-#45 blue
-#47 push
+# 66 red
+# 45 green
+# 69 blue
+# 47 push
