@@ -60,7 +60,8 @@ function App() {
   }
 
   function getPassFromLocalStorage(device) {
-    return localStorage.getItem(device) || ""
+    const defaultPass = Buffer.from(device, 'ascii').toString('base64')
+    return localStorage.getItem(device) || defaultPass
   }
 
   function buttonDiscoveryClick() {
