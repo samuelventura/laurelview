@@ -15,7 +15,11 @@ export LV_SBE_ENDPOINT="127.0.0.1:5004"
 export LV_NSS_LOGS="/tmp"
 MOD="github.com/YeicoLabs/laurelview"
 mkdir -p cmd/lvnbe/build
-touch cmd/lvnbe/build/.empty
+mkdir -p cmd/lvcbe/build
+mkdir -p cmd/lvsbe/build
+touch cmd/lvnbe/build/empty.txt
+touch cmd/lvcbe/build/empty.txt
+touch cmd/lvsbe/build/empty.txt
 go install $MOD/cmd/lvdpm
 go install $MOD/cmd/lvnbe
 go install $MOD/cmd/lvnup

@@ -4,6 +4,7 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"mime"
 	"net"
@@ -18,6 +19,10 @@ import (
 )
 
 func main() {
+	go func() {
+		defer os.Exit(0)
+		ioutil.ReadAll(os.Stdin)
+	}() //exit on stdin close
 	endpoint := endpoint()
 	gin.SetMode(gin.ReleaseMode) //remove debug warning
 	router := gin.New()          //remove default logger
