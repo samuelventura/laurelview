@@ -11,13 +11,14 @@ import (
 	"path/filepath"
 	"strconv"
 	"time"
+	"os"
+	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/samuelventura/go-tools"
 )
 
 func main() {
-	endpoint := tools.GetEnviron("LV_SBE_ENDPOINT", "127.0.0.1:5004")
+	endpoint := endpoint()
 	gin.SetMode(gin.ReleaseMode) //remove debug warning
 	router := gin.New()          //remove default logger
 	router.Use(gin.Recovery())   //catches panics
@@ -62,6 +63,14 @@ func main() {
 	if err != nil {
 		log.Println(err)
 	}
+}
+
+func endpoint() string {
+	ep := os.Getenv("LV_SBE_ENDPOINT")
+	if len(strings.TrimSpace(ep)) > 0 {
+		return ep
+	}
+	return ":0"
 }
 
 //go:embed build/*
