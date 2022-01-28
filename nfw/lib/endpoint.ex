@@ -131,7 +131,6 @@ defmodule Nfw.Endpoint do
   # curl -X POST http://nerves.local:31680/app/stop/nss
   post "/app/stop/:app" do
     {:ok, app} = Map.fetch(conn.path_params, "app")
-    IO.inspect(app)
 
     result =
       case app do
