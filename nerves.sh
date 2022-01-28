@@ -9,6 +9,8 @@ BOARD="${3:-bbb}"
 # $HOST|10.77.3.171
 HOST="${4:-$HOST}"
 
+SSHO="-oStrictHostKeyChecking=no"
+
 case $MEDIA in
     sd|ssh)
     export MIX_ENV=dev
@@ -68,14 +70,17 @@ case $MEDIA in
     ;;
     emmc)
     IMAGES=_build/bbb_emmc_prod/nerves/images
-(cd $IMAGES && sftp -oIdentityFile=$KEY $HOST) << EOF
+(cd $IMAGES && sftp $SSHO -oIdentityFile=$KEY $HOST) << EOF
 put nfw.fw /tmp/
 quit
 EOF
 
-ssh -i $KEY $HOST << EOF
-cmd "fwup -aU -i /tmp/nfw.fw -d /dev/mmcblk1 -t $TYPE"
-cmd "poweroff"
+#iex(1)> cmd "fwup -aU -i /tmp/nfw.fw -d /dev/mmcblk1 -t upgrade"
+#fwup: Expecting platform=bbb and architecture=arm
+
+ssh $SSHO -i $KEY $HOST << EOF
+r = cmd "fwup -aU -i /tmp/nfw.fw -d /dev/mmcblk1 -t $TYPE"
+if r == 0, do: cmd "poweroff"
 exit
 EOF
     ;;

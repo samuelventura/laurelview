@@ -155,13 +155,6 @@ defmodule Nfw.Endpoint do
     )
   end
 
-  defp app_loaded(app) do
-    Enum.find(Application.loaded_applications(), fn tuple ->
-      {atom, _desc, _ver} = tuple
-      Atom.to_string(atom) == app
-    end)
-  end
-
   defp respond(conn, result) do
     conn = put_resp_content_type(conn, "application/json")
 

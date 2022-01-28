@@ -41,7 +41,7 @@ defmodule Nfw.Discovery do
         # return current nic ip to reflect real IP across NAT (from vbox vm)
         nicName = to_charlist(Nfw.env_ifname())
         {:ok, ifaddrs} = :inet.getifaddrs()
-        [{_, nicInfo}] = Enum.filter(ifaddrs, fn {nic, data} -> nic == nicName end)
+        [{_, nicInfo}] = Enum.filter(ifaddrs, fn {nic, _data} -> nic == nicName end)
 
         nicAddrs =
           Enum.filter(nicInfo, fn {k, _v} -> k == :addr end) |> Enum.map(fn {_k, v} -> v end)
