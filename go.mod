@@ -3,7 +3,6 @@ module github.com/YeicoLabs/laurelview
 go 1.16
 
 require (
-	github.com/akavel/rsrc v0.10.2 // indirect
 	github.com/andybalholm/brotli v1.0.3 // indirect
 	github.com/fasthttp/websocket v1.4.3
 	github.com/gin-gonic/gin v1.7.4

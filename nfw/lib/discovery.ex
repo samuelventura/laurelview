@@ -9,7 +9,12 @@ defmodule Nfw.Discovery do
   @impl true
   def init(port) do
     {:ok, socket} =
-      :gen_udp.open(port, active: true, mode: :binary, reuseaddr: true, ip: {0, 0, 0, 0})
+      :gen_udp.open(port,
+        active: true,
+        mode: :binary,
+        reuseaddr: true,
+        bind_to_device: Nfw.env_ifname()
+      )
 
     {:ok, {socket, port}}
   end
@@ -33,12 +38,30 @@ defmodule Nfw.Discovery do
         macaddr = Nfw.get_mac()
         hostname = Nfw.env_hostname()
 
+        # return current nic ip to reflect real IP across NAT (from vbox vm)
+        nicName = to_charlist(Nfw.env_ifname())
+        {:ok, ifaddrs} = :inet.getifaddrs()
+        [{_, nicInfo}] = Enum.filter(ifaddrs, fn {nic, data} -> nic == nicName end)
+
+        nicAddrs =
+          Enum.filter(nicInfo, fn {k, _v} -> k == :addr end) |> Enum.map(fn {_k, v} -> v end)
+
+        # assumes one and only one IPv4 address
+        [nicAddr] =
+          Enum.filter(nicAddrs, fn addr ->
+            case addr do
+              {_, _, _, _} -> true
+              _ -> false
+            end
+          end)
+
         data = %{
           name: name,
           version: version,
           hostname: hostname,
           ifname: ifname,
-          macaddr: macaddr
+          macaddr: macaddr,
+          ipaddr: to_string(:inet.ntoa(nicAddr))
         }
 
         message = Map.put(message, :data, data)

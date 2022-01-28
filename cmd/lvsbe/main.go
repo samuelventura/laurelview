@@ -8,11 +8,11 @@ import (
 	"mime"
 	"net"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strconv"
-	"time"
-	"os"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -108,6 +108,7 @@ type IdResponseData struct {
 	MacAddr  string `json:"macaddr"`
 	Name     string `json:"name"`
 	Version  string `json:"version"`
+	IpFrom   string `json:"ipfrom"`
 	IpAddr   string `json:"ipaddr"`
 }
 
@@ -150,8 +151,8 @@ func discover(tos int) ([]*IdResponseDso, error) {
 		if err != nil {
 			log.Println(err)
 		} else {
+			response.Data.IpFrom = addr.IP.String()
 			log.Println(response)
-			response.Data.IpAddr = addr.IP.String()
 			list = append(list, response)
 		}
 	}
