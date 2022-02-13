@@ -1,8 +1,8 @@
 # Laurel View
 
 - [Overview Slides](https://docs.google.com/presentation/d/1xeui3pKBsiawwA66xwWQhE_MmHkpiWV1BbGwXqUr4k0/edit?usp=sharing)
-- [Live Demo https://laurelview.io/](https://laurelview.io/)
 - [Photo Album](https://photos.app.goo.gl/94ASC7XjtpJcb2LF6)
+- [Live Demo https://laurelview.io/](https://laurelview.io/)
 
 ## What is LaurelView?
 
