@@ -10,13 +10,6 @@
 - A technological HW/SW exploration
 - An arquitectural exploration
 
-## Challenges
-
-- Seemsless experience between intranet and roaming users
-- Long term reliability of embedded data store
-- Out of the box setup experience
-- Remote OTA upgrades
-
 ## Dev Environ
 
 ```bash
@@ -183,6 +176,13 @@ test.txt
 - Link node Laurels to cloud
 - iPhone bookmark shows react icon
 - Node react proxy wont server ws to chrome
+
+## Challenges
+
+- Seemsless experience between intranet and roaming users
+- Long term reliability of embedded data store
+- Out of the box setup experience
+- Remote OTA upgrades
 
 # Networking Issues
 
