@@ -10,6 +10,14 @@
 - A technological HW/SW exploration
 - An arquitectural exploration
 
+## Tech Stack
+
+- BBB SBC
+- Nerves firmware
+- [Elixir + cowboy + plug setup layer](https://github.com/samuelventura/nerves_backdoor)
+- Golang device driver and multiplexer
+- ReactJS UIs
+
 ## Dev Environ
 
 ```bash
